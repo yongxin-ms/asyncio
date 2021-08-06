@@ -1,0 +1,17 @@
+*.xml
+*.swp
+.idea
+cmake-build-debug
+~$*
+.vscode
+.vs
+*.obj
+*.tlog
+*.log
+*.suo
+*.db
+*.pch
+*.ipch
+*.pdb
+*.user
+.DS_Store
