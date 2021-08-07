@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "event_loop.h"
 #include "protocol.h"
+#include "event_loop.h"
 
 namespace asyncio {}

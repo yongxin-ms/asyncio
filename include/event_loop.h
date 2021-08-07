@@ -1,4 +1,8 @@
 ﻿#pragma once
+#include <string>
+#include <memory>
+#include "protoco.h"
+#include "transport.h"
 
 namespace asyncio {
 
@@ -8,14 +12,17 @@ class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
 
 public:
+	EventLoop(const EventLoop&) = delete;
+	EventLoop& operator=(const EventLoop&) = delete;
+
 	void RunForever();
 	void RunUntilComplete();
-	void Stop();
-	bool IsRunning();
-	bool IsClosed();
-	void Close();
 
-	void Post(MSG_CALLBACK&& func);
+	bool IsRunning();
+	void Stop();
+
+	void RunInLoop(MSG_CALLBACK&& func);
+	void QueueInLoop(MSG_CALLBACK&& func);
 	void CallLater(int milliseconds, MSG_CALLBACK&& func);
 
 	void CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, int port);
