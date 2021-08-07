@@ -1,6 +1,5 @@
 #pragma once
 #include <functional>
-#include "util.h"
 
 namespace asyncio {
 
@@ -15,9 +14,9 @@ public:
 
 	using LOG_FUNC = std::function<void(LogLevel, const char*)>;
 
-	Log(LOG_FUNC&& func, LogLevel log_level) 
+	Log(LOG_FUNC&& func, LogLevel lv) 
 		: m_log_func(std::move(func))
-		, m_log_level(log_level) {
+		, m_log_level(lv) {
 	}
 
 	void SetLogLevel(LogLevel lv) {
@@ -25,7 +24,7 @@ public:
 	}
 
 	void DoLog(LogLevel lv, const char* fmt, ...) {
-		if (lv <= m_log_level && log_func_) {
+		if (lv <= m_log_level) {
 			char buf[1024];
 			va_list args;
 			va_start(args, fmt);

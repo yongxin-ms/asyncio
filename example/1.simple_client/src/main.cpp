@@ -49,7 +49,7 @@ private:
 };
 
 int main() {
-	asyncio::Log log([](asyncio::Log::LogLevel lv, const char* msg){
+	asyncio::Log my_log([](asyncio::Log::LogLevel lv, const char* msg){
 		if (lv > log_level)
 			return;
 
@@ -72,8 +72,8 @@ int main() {
 		}
 	}, asyncio::Log::kDebug);
 
-	asyncio::EventLoop my_event_loop(log);
-	MyConnectionFactory my_conn_factory(log);
+	asyncio::EventLoop my_event_loop(my_log);
+	MyConnectionFactory my_conn_factory(my_log);
 	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
 	my_event_loop.RunForever();
 	return 0;

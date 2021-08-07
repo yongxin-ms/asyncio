@@ -51,10 +51,9 @@ private:
 };
 
 int main() {
-	asyncio::Log log([](asyncio::Log::LogLevel lv, const char* msg){
+	asyncio::Log my_log([](asyncio::Log::LogLevel lv, const char* msg){
 		if (lv > log_level)
 			return;
-
 		std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
 		switch (lv) {
 		case kError:
@@ -74,8 +73,8 @@ int main() {
 		}
 	}, asyncio::Log::kDebug);
 
-	asyncio::EventLoop my_event_loop(log);
-	MySessionFactory my_session_factory(log);
+	asyncio::EventLoop my_event_loop(my_log);
+	MySessionFactory my_session_factory(my_log);
 	my_event_loop.CreateServer(my_session_factory, 9000);
 	my_event_loop.RunForever();
 	return 0;
