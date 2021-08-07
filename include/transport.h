@@ -30,7 +30,7 @@ Transport::Transport(Protocol& protocol, bool is_client)
 
 void Transport::Reconnect() {
 	if (!m_is_client) {
-		throw std::exception("");
+		throw "not a client, i can't reconnect";
 	}
 }
 
