@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <memory>
+#include <functional>
 #include "protocol.h"
 #include "transport.h"
 

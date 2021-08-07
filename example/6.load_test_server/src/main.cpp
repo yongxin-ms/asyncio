@@ -1,24 +1,19 @@
+﻿#include <unordered_map>
 #include "asyncio.h"
+
+class MySessionMgr;
 
 class MySession : public asyncio::Protocol {
 public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
 		, m_event_loop(event_loop)
-		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, holder1))
+		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1))
 		, m_sid(sid) {
 	}
 
-	virtual void ConnectionMade(TransportPtr transport) override {
-		m_transport = transport;
-		m_owner.OnSessionCreate(this);
-	}
-
-	virtual void ConnectionLost(int err_code) override {
-		m_transport = null_ptr;
-		m_owner.OnSessionDestroy(this);
-	}
-
+	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
+	virtual void ConnectionLost(int err_code) override;
 	virtual void DataReceived(const char* data, size_t len) override {
 		m_codec.Decode(m_transport, data, len);
 	}
@@ -32,11 +27,9 @@ public:
 	}
 
 	size_t Send(const char* data, size_t len) {
-		if (!m_is_connected) {
-			return 0;
-		}
-
-		return m_transport->Write(m_codec.Encode(data, len));
+		auto ret = m_codec.Encode(data, len);
+		m_transport->Write(ret->data(), ret->size());
+		return ret->size();
 	}
 
 	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
@@ -48,28 +41,30 @@ private:
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecLen m_codec;
 	const uint64_t m_sid;
-}
+};
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	MySessionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {
+	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
+		: m_owner(owner)
+		, m_event_loop(event_loop) {
 	}
 
-	virtual Protocol* CreateProtocol() override {
+	virtual asyncio::Protocol* CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
-		auto new_session = new MySession(m_event_loop, sid);
+		return new MySession(m_owner, m_event_loop, sid);
 	}
 
 private:
+	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
-}
+};
 
 class MySessionMgr {
 public:
 	MySessionMgr(asyncio::EventLoop& event_loop)
-		: m_session_factory(event_loop) {
+		: m_session_factory(*this, event_loop) {
 	}
 
 	MySessionFactory& GetSessionFactory() {
@@ -88,20 +83,30 @@ public:
 	MySession* FindSessionFromSid(uint64_t sid) {
 		auto it = m_sessions.find(sid);
 		if (it == m_sessions.end()) {
-			return null_ptr;
+			return nullptr;
 		}
 		return it->second;
 	}
 
 private:
 	MySessionFactory m_session_factory;
-	std::map<uint64_t, MySession*> m_sessions;
+	std::unordered_map<uint64_t, MySession*> m_sessions;
+};
+
+void MySession::ConnectionMade(asyncio::TransportPtr transport) {
+	m_transport = transport;
+	m_owner.OnSessionCreate(this);
+}
+
+void MySession::ConnectionLost(int err_code) {
+	m_transport = nullptr;
+	m_owner.OnSessionDestroy(this);
 }
 
 int main() {
-	auto my_event_loop = new asyncio::EventLoop();
-	auto my_session_mgr = new MySessionMgr(*my_event_loop);
-	my_event_loop->CreateServer(&my_session_mgr->GetSessionFactory(), 9000);
-	my_event_loop->RunForever();
+	asyncio::EventLoop my_event_loop;
+	MySessionMgr my_session_mgr(my_event_loop);
+	my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), 9000);
+	my_event_loop.RunForever();
 	return 0;
 }

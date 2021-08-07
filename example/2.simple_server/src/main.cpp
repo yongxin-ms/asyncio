@@ -1,13 +1,13 @@
-#include "asyncio.h"
+﻿#include "asyncio.h"
 
 class MySession : public asyncio::Protocol {
 public:
-	virtual void ConnectionMade(TransportPtr transport) override {
+	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 	}
 
 	virtual void ConnectionLost(int err_code) override {
-		m_transport = null_ptr;
+		m_transport = nullptr;
 	}
 
 	virtual void DataReceived(const char* data, size_t len) override {
@@ -18,27 +18,29 @@ public:
 	}
 
 	size_t Send(const char* data, size_t len) {
-		if (m_transport == null_ptr) {
+		if (m_transport == nullptr) {
 			return 0;
 		}
 
-		return m_transport->Write(data, len);
+		m_transport->Write(data, len);
+		return len;
 	}
 
 private:
 	asyncio::TransportPtr m_transport;
-}
+};
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	virtual Protocol* CreateProtocol() override {
+	virtual asyncio::Protocol* CreateProtocol() override {
 		return new MySession();
 	}
-}
+};
 
 int main() {
-	auto my_event_loop = new asyncio::EventLoop();
-	my_event_loop->CreateServer(new MySessionFactory(), 9000);
-	my_event_loop->RunForever();
+	asyncio::EventLoop my_event_loop;
+	MySessionFactory my_session_factory;
+	my_event_loop.CreateServer(my_session_factory, 9000);
+	my_event_loop.RunForever();
 	return 0;
 }
