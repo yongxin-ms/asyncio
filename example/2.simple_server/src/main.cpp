@@ -30,6 +30,14 @@ public:
 
 	uint64_t GetSid() { return m_sid; }
 
+	size_t Send(uint32_t msg_id, const char* data, size_t len) {
+		if (!m_is_connected) {
+			return 0;
+		}
+
+		return m_transport->Write(m_codec.Encode(msg_id, data, len));
+	}
+	
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
 
 	}
