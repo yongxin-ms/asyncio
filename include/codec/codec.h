@@ -10,4 +10,4 @@ public:
 	virtual void Decode(TransportPtr transport, const char* data, size_t len) = 0;
 };
 
-}
+} // namespace asyncio

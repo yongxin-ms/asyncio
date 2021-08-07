@@ -11,7 +11,6 @@ public:
 	}
 
 	virtual void DataReceived(const char* data, size_t len) override {
-		
 	}
 
 	virtual void EofReceived() override {
@@ -28,7 +27,7 @@ private:
 	asyncio::TransportPtr m_transport;
 }
 
-class MyConnectionFactory : public asyncio::ProtocolFactory{
+class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	virtual asyncio::Protocol* CreateProtocol() override {
 		return new MyConnection();

@@ -5,7 +5,7 @@ BasedOnStyle: LLVM
 # 访问说明符的偏移(public private)
 AccessModifierOffset: -4
 # 括号之后,水平对齐参数: Align DontAlign AlwaysBreak
-AlignAfterOpenBracket: DontAlign
+AlignAfterOpenBracket: Align
 # 连续的赋值时,对齐所有的等号
 AlignConsecutiveAssignments: false
 # 连续声明时，对齐所有声明的变量名
@@ -17,13 +17,13 @@ AlignOperands: true
 # 对齐连续的尾随的注释
 AlignTrailingComments: true
 # 允许函数声明的所有参数在放在下一行
-AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
 # 允许短的块放在同一行
-AllowShortBlocksOnASingleLine: true
+AllowShortBlocksOnASingleLine: false
 # 允许短的case标签放在同一行
 AllowShortCaseLabelsOnASingleLine: false
 # 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortFunctionsOnASingleLine: None
 # 是否允许短if单行 If true, if (a) return; 可以放到同一行
 AllowShortIfStatementsOnASingleLine: false
 # 允许短的循环保持在同一行

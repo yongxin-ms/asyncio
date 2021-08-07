@@ -29,7 +29,7 @@ private:
 	asyncio::TransportPtr m_transport;
 }
 
-class MySessionFactory : public asyncio::ProtocolFactory{
+class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	virtual Protocol* CreateProtocol() override {
 		return new MySession();
