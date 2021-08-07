@@ -20,6 +20,7 @@ public:
 
 private:
 	TransportPtr m_transport;
+	CodecX m_codec;
 }
 
 class MyConnectionFactory : public asyncio::ProtocolFactory{
