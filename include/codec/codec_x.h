@@ -21,10 +21,4 @@ private:
 	USER_MSG_CALLBACK m_user_msg_func;
 };
 
-class CodecXProto {
-public:
-	virtual void OnMessage(uint32_t msg_id, std::shared_ptr<std::string> data) {
-	}
-};
-
 } // namespace asyncio
