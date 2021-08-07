@@ -1,6 +1,6 @@
 ﻿#pragma once
-
-#include "log"
+#include "util.h"
+#include "log.h"
 #include "protocol.h"
 #include "event_loop.h"
 #include "codec/codec.h"

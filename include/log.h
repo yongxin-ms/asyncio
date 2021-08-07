@@ -1,6 +1,11 @@
 #pragma once
 #include <functional>
 
+#define LOG_DEBUG(...) m_log.DoLog(asyncio::Log::kDebug, __VA_ARGS__)
+#define LOG_INFO(...) m_log.DoLog(asyncio::Log::kInfo, __VA_ARGS__)
+#define LOG_WARN(...) m_log.DoLog(asyncio::Log::kWarning, __VA_ARGS__)
+#define LOG_ERROR(...) m_log.DoLog(asyncio::Log::kError, __VA_ARGS__)
+
 namespace asyncio {
 
 class Log {
