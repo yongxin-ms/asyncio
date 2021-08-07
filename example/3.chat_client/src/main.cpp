@@ -1,10 +1,11 @@
+﻿#include <functional>
 #include "asyncio.h"
 
 class MyConnection : public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, holder1, holder2)) {
+		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {
 	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
@@ -30,7 +31,9 @@ public:
 			return 0;
 		}
 
-		return m_transport->Write(m_codec.Encode(msg_id, data, len));
+		auto ret = m_codec.Encode(msg_id, data, len);
+		m_transport->Write(ret->data(), ret->size());
+		return ret->size();
 	}
 
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
@@ -45,7 +48,7 @@ private:
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecX m_codec;
 	bool m_is_connected = false;
-}
+};
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
@@ -59,11 +62,12 @@ public:
 
 private:
 	asyncio::EventLoop& m_event_loop;
-}
+};
 
 int main() {
-	auto my_event_loop = new asyncio::EventLoop();
-	my_event_loop->CreateConnection(new MyConnectionFactory(*my_event_loop), "127.0.0.1", 9000);
-	my_event_loop->RunForever();
+	asyncio::EventLoop my_event_loop;
+	MyConnectionFactory my_conn_factory(my_event_loop);
+	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
+	my_event_loop.RunForever();
 	return 0;
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "codec.h"
 
 namespace asyncio {
@@ -25,6 +25,6 @@ class CodecXProto {
 public:
 	virtual void OnMessage(uint32_t msg_id, std::shared_ptr<std::string> data) {
 	}
-}
+};
 
 } // namespace asyncio

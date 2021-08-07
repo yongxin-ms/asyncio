@@ -1,19 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 project(AsyncioExample)
 
-# version
-execute_process(
-    OUTPUT_VARIABLE GIT_BRANCH
-    COMMAND git symbolic-ref --short -q HEAD
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-string(TIMESTAMP TODAY "%Y%m%d%H%I")
-set(BUILD_VERSION "${TODAY}")
-configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/version_config.h.in"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/version_config.h"
-)
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
