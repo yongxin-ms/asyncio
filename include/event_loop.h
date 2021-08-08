@@ -9,7 +9,7 @@
 #include "protocol.h"
 #include "log.h"
 #include "timer.h"
-#include "server.h"
+#include "listener.h"
 
 namespace asyncio {
 
@@ -35,7 +35,7 @@ public:
 
 	std::shared_ptr<Transport> CreateConnection(ProtocolFactory& protocol_factory, const std::string& host,
 												uint16_t port);
-	std::shared_ptr<Server> CreateServer(ProtocolFactory& protocol_factory, int port);
+	std::shared_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, int port);
 
 	asio::io_context& IOContext() {
 		return m_context;
@@ -113,12 +113,12 @@ std::shared_ptr<Transport> EventLoop::CreateConnection(ProtocolFactory& protocol
 	return transport;
 }
 
-std::shared_ptr<Server> EventLoop::CreateServer(ProtocolFactory& protocol_factory, int port) {
-	auto server = std::make_shared<Server>(m_context, protocol_factory);
-	if (!server->Listen(port)) {
+std::shared_ptr<Listener> EventLoop::CreateServer(ProtocolFactory& protocol_factory, int port) {
+	auto listener = std::make_shared<Listener>(m_context, protocol_factory);
+	if (!listener->Listen(port)) {
 		return nullptr;
 	}
-	return server;
+	return listener;
 }
 
 } // namespace asyncio

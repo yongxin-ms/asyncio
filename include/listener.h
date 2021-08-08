@@ -4,15 +4,15 @@
 
 namespace asyncio {
 
-class Server {
+class Listener {
 public:
-	Server(asio::io_context& context, ProtocolFactory& protocol_factory)
+	Listener(asio::io_context& context, ProtocolFactory& protocol_factory)
 		: m_context(context)
 		, m_protocol_factory(protocol_factory) {
 	}
-	Server(const Server&) = delete;
-	const Server& operator=(const Server&) = delete;
-	~Server() {
+	Listener(const Listener&) = delete;
+	const Listener& operator=(const Listener&) = delete;
+	~Listener() {
 	}
 
 	// 监听一个指定端口

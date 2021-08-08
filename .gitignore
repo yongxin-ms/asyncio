@@ -15,5 +15,5 @@ cmake-build-debug
 *.pdb
 *.user
 .DS_Store
-app
+bin
 build
