@@ -8,8 +8,7 @@ class TimerWrap : public std::enable_shared_from_this<TimerWrap> {
 
 public:
 	TimerWrap(asio::io_context& context, int milliseconds, MSG_CALLBACK&& func)
-		: m_context(context)
-		, m_milliseconds(milliseconds)
+		: m_milliseconds(milliseconds)
 		, m_func(std::move(func))
 		, m_timer(context, std::chrono::milliseconds(milliseconds)) {}
 
@@ -24,7 +23,6 @@ private:
 	void TimerFunc(std::error_code ec) { m_func(); }
 
 private:
-	asio::io_context& m_context;
 	const int m_milliseconds;
 	MSG_CALLBACK m_func;
 	asio::steady_timer m_timer;

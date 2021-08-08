@@ -121,6 +121,7 @@ void Transport::Close(int err_code) {
 
 void Transport::Write(const std::shared_ptr<std::string>& msg) {
 	auto self = shared_from_this();
+	/*
 	asio::post(self->m_context, [self, msg]() {
 		bool write_in_progress = !self->m_writeMsgs.empty();
 		self->m_writeMsgs.push_back(msg);
@@ -128,6 +129,12 @@ void Transport::Write(const std::shared_ptr<std::string>& msg) {
 			self->DoWrite();
 		}
 	});
+	*/
+	bool write_in_progress = !self->m_writeMsgs.empty();
+	self->m_writeMsgs.push_back(msg);
+	if (!write_in_progress) {
+		self->DoWrite();
+	}
 }
 
 void Transport::WriteEof() {}
