@@ -16,7 +16,10 @@ public:
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
 	virtual void ConnectionLost(int err_code) override;
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
-	virtual void EofReceived() override { m_transport->WriteEof(); }
+	virtual void EofReceived() override { 
+		ASYNCIO_LOG_DEBUG("EofReceived");
+		m_transport->WriteEof();
+	}
 
 	uint64_t GetSid() { return m_sid; }
 
@@ -26,7 +29,9 @@ public:
 		return ret->size();
 	}
 
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {}
+	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
+		m_owner.BroadcastToAll(*data);
+	}
 
 private:
 	MySessionMgr& m_owner;
@@ -60,9 +65,13 @@ public:
 
 	MySessionFactory& GetSessionFactory() { return m_session_factory; }
 
-	void OnSessionCreate(MySession* session) { m_sessions[session->GetSid()] = session; }
+	void OnSessionCreate(MySession* session) { 
+		m_sessions[session->GetSid()] = session;
+		ASYNCIO_LOG_DEBUG("session:%llu created", session->GetSid());
+	}
 
 	void OnSessionDestroy(MySession* session) {
+		ASYNCIO_LOG_DEBUG("session:%llu destroyed", session->GetSid());
 		m_sessions.erase(session->GetSid());
 		delete session;
 	}
@@ -73,6 +82,13 @@ public:
 			return nullptr;
 		}
 		return it->second;
+	}
+
+	void BroadcastToAll(const std::string& words) {
+		for (auto it : m_sessions) {
+			auto session = it.second;
+			session->Send(0, words.data(), words.size());
+		}
 	}
 
 private:

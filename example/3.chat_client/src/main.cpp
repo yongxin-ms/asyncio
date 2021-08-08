@@ -13,6 +13,9 @@ public:
 		m_transport = transport;
 		m_is_connected = true;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
+
+		std::string msg("hello,world!");
+		Send(0, msg.data(), msg.size());
 	}
 
 	virtual void ConnectionLost(int err_code) override {
@@ -25,7 +28,6 @@ public:
 	}
 
 	virtual void DataReceived(size_t len) override {
-		ASYNCIO_LOG_DEBUG("DataReceived: %lld", len);
 		m_codec.Decode(m_transport, len);
 	}
 
@@ -36,7 +38,6 @@ public:
 			return 0;
 		}
 
-		ASYNCIO_LOG_DEBUG("Send: %s", data);
 		auto ret = m_codec.Encode(msg_id, data, len);
 		m_transport->Write(ret);
 		return ret->size();
