@@ -11,9 +11,10 @@ public:
 		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1))
 		, m_sid(sid) {}
 
+	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
 	virtual void ConnectionLost(int err_code) override;
-	virtual void DataReceived(const char* data, size_t len) override { m_codec.Decode(m_transport, data, len); }
+	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
 
 	virtual void EofReceived() override { m_transport->WriteEof(); }
 

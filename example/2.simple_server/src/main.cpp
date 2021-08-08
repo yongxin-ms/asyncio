@@ -2,6 +2,12 @@
 
 class MySession : public asyncio::Protocol {
 public:
+	MySession() { m_rx_buffer.resize(1024); }
+
+	virtual std::pair<char*, size_t> GetRxBuffer() override {
+		return std::make_pair(m_rx_buffer.data(), m_rx_buffer.size());
+	}
+
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
@@ -12,11 +18,11 @@ public:
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
 	}
 
-	virtual void DataReceived(const char* data, size_t len) override {
-		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, data);
+	virtual void DataReceived(size_t len) override {
+		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, m_rx_buffer.data());
 
 		std::string ack("Your words: ");
-		ack.append(data, len);
+		ack.append(m_rx_buffer.data(), len);
 		Send(ack.data(), ack.size());
 	}
 
@@ -37,6 +43,7 @@ public:
 
 private:
 	asyncio::TransportPtr m_transport;
+	std::string m_rx_buffer;
 };
 
 class MySessionFactory : public asyncio::ProtocolFactory {

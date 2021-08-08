@@ -7,6 +7,8 @@ public:
 		: m_event_loop(event_loop)
 		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {}
 
+	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
+
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 		m_is_connected = true;
@@ -17,7 +19,7 @@ public:
 		m_event_loop.CallLater(3000, [this]() { m_transport->Reconnect(); });
 	}
 
-	virtual void DataReceived(const char* data, size_t len) override { m_codec.Decode(m_transport, data, len); }
+	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
 
 	virtual void EofReceived() override { m_transport->WriteEof(); }
 

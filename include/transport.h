@@ -6,6 +6,15 @@
 
 namespace asyncio {
 
+enum ErrorCode {
+	EC_OK = 0,
+	EC_ERROR = 20000,
+	EC_KEEP_ALIVE_FAIL,	 // 保持连接失败
+	EC_SHUT_DOWN,		 // 主动关闭
+	EC_KICK,			 // 踢人
+	EC_PACKET_OVER_SIZE, //报文超长
+};
+
 class Transport : public std::enable_shared_from_this<Transport> {
 public:
 	// 作为客户端去连接服务器
@@ -15,18 +24,14 @@ public:
 		, m_is_client(true)
 		, m_remote_ip(host)
 		, m_remote_port(port)
-		, m_socket(m_context) {
-		m_rx_buffer.resize(1024);
-	}
+		, m_socket(m_context) {}
 
 	// 作为服务器接受客户端的连接
 	Transport(asio::io_context& context, Protocol& protocol)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(false)
-		, m_socket(m_context) {
-		m_rx_buffer.resize(1024);
-	}
+		, m_socket(m_context) {}
 
 	void Connect() {
 		if (!m_is_client) {
@@ -53,10 +58,11 @@ public:
 
 	void DoReadData() {
 		auto self = shared_from_this();
+		auto rx_buffer = self->m_protocol.GetRxBuffer();
 		m_socket.async_read_some(
-			asio::buffer(m_rx_buffer.data(), m_rx_buffer.size()), [self](std::error_code ec, std::size_t length) {
+			asio::buffer(rx_buffer.first, rx_buffer.second), [self](std::error_code ec, std::size_t length) {
 				if (!ec) {
-					self->m_protocol.DataReceived(self->m_rx_buffer.data(), length);
+					self->m_protocol.DataReceived(length);
 					self->DoReadData();
 				} else {
 					self->Close(ec.value());
@@ -106,7 +112,6 @@ private:
 	uint16_t m_remote_port;
 
 	asio::ip::tcp::socket m_socket;
-	std::string m_rx_buffer;
 	std::deque<std::shared_ptr<std::string>> m_writeMsgs;
 };
 

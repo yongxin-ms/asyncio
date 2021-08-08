@@ -8,9 +8,10 @@ typedef std::shared_ptr<Transport> TransportPtr;
 
 class Protocol {
 public:
+	virtual std::pair<char*, size_t> GetRxBuffer() = 0;
 	virtual void ConnectionMade(TransportPtr transport) = 0;
 	virtual void ConnectionLost(int err_code) = 0;
-	virtual void DataReceived(const char* data, size_t len) = 0;
+	virtual void DataReceived(size_t len) = 0;
 	virtual void EofReceived() = 0;
 };
 
