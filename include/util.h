@@ -71,5 +71,66 @@ public:
 	}
 };
 
+class Text {
+public:
+	// 主要用来切分使用空格分隔的字符串，连续的空格算作一个分隔符
+	static size_t SplitStr(std::vector<std::string>& os, const std::string& is, char c) {
+		os.clear();
+		auto start = is.find_first_not_of(c, 0);
+		while (start != std::string::npos) {
+			auto end = is.find_first_of(c, start);
+			if (end == std::string::npos) {
+				os.emplace_back(is.substr(start));
+				break;
+			} else {
+				os.emplace_back(is.substr(start, end - start));
+				start = is.find_first_not_of(c, end + 1);
+			}
+		}
+		return os.size();
+	}
+
+	static size_t SplitInt(std::vector<int>& number_result, const std::string& is, char c) {
+		std::vector<std::string> string_result;
+		SplitStr(string_result, is, c);
+
+		number_result.clear();
+		for (size_t i = 0; i < string_result.size(); i++) {
+			const std::string& value = string_result[i];
+			number_result.emplace_back(atoi(value.data()));
+		}
+
+		return number_result.size();
+	}
+
+	static std::vector<std::string> ParseParam(const std::string& is, char c) {
+		std::vector<std::string> result;
+		ParseParam(result, is, c);
+		return result;
+	}
+
+	// 主要用来切分使用逗号分隔的字符串，连续的逗号算作多个分隔符
+	static size_t ParseParam(std::vector<std::string>& result, const std::string& is, char c) {
+		result.clear();
+		size_t start = 0;
+		while (start < is.size()) {
+			auto end = is.find_first_of(c, start);
+			if (end != std::string::npos) {
+				result.emplace_back(is.substr(start, end - start));
+				start = end + 1;
+			} else {
+				result.emplace_back(is.substr(start));
+				break;
+			}
+		}
+
+		if (start == is.size()) {
+			result.emplace_back(std::string());
+		}
+		return result.size();
+	}
+};
+
+
 }
 }
