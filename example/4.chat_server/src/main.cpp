@@ -11,6 +11,7 @@ public:
 		, m_event_loop(event_loop)
 		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2))
 		, m_sid(sid) {}
+	virtual ~MySession() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
