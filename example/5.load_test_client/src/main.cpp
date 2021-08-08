@@ -70,10 +70,16 @@ private:
 	asyncio::EventLoop& m_event_loop;
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+	if (argc < 2) {
+		printf("ip ?\n");
+		return 0;
+	}
+
+	std::string ip = argv[1];
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
-	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
+	my_event_loop.CreateConnection(my_conn_factory, ip, 9000);
 	g_timer = my_event_loop.CallLater(1000, []() {
 		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
 		g_cur_qps = 0;
