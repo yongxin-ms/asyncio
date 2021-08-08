@@ -35,7 +35,7 @@ public:
 
 	std::shared_ptr<Transport> CreateConnection(ProtocolFactory& protocol_factory, const std::string& host,
 												uint16_t port);
-	std::shared_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, int port);
+	Listener* CreateServer(ProtocolFactory& protocol_factory, int port);
 
 	asio::io_context& IOContext() {
 		return m_context;
@@ -113,9 +113,11 @@ std::shared_ptr<Transport> EventLoop::CreateConnection(ProtocolFactory& protocol
 	return transport;
 }
 
-std::shared_ptr<Listener> EventLoop::CreateServer(ProtocolFactory& protocol_factory, int port) {
-	auto listener = std::make_shared<Listener>(m_context, protocol_factory);
+// 监听器需要用户手工删除
+Listener* EventLoop::CreateServer(ProtocolFactory& protocol_factory, int port) {
+	auto listener = new Listener(m_context, protocol_factory);
 	if (!listener->Listen(port)) {
+		delete listener;
 		return nullptr;
 	}
 	return listener;

@@ -39,7 +39,7 @@ public:
 
 		ASYNCIO_LOG_DEBUG("Send: %s", data);
 		auto ret = m_codec.Encode(msg_id, data, len);
-		m_transport->Write(ret->data(), ret->size());
+		m_transport->Write(ret);
 		return ret->size();
 	}
 

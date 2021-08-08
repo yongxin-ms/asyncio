@@ -28,7 +28,7 @@ public:
 
 	size_t Send(const char* data, size_t len) {
 		auto ret = m_codec.Encode(data, len);
-		m_transport->Write(ret->data(), ret->size());
+		m_transport->Write(ret);
 		return ret->size();
 	}
 
