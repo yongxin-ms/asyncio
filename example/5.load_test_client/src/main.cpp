@@ -71,15 +71,19 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-	if (argc < 2) {
-		printf("ip ?\n");
+	if (argc < 3) {
+		printf("ip cli_num\n");
 		return 0;
 	}
 
 	std::string ip = argv[1];
+	int cli_num = std::atoi(argv[2]);
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
-	my_event_loop.CreateConnection(my_conn_factory, ip, 9000);
+	for (int i = 0; i < cli_num; i++) {
+		my_event_loop.CreateConnection(my_conn_factory, ip, 9000);
+	}
+
 	g_timer = my_event_loop.CallLater(1000, []() {
 		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
 		g_cur_qps = 0;
