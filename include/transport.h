@@ -17,7 +17,6 @@ public:
 		, m_remote_port(port)
 		, m_socket(m_context) {
 		m_rx_buffer.resize(1024);
-		Connect();
 	}
 
 	// 作为服务器接受客户端的连接
