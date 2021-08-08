@@ -29,9 +29,7 @@ public:
 		return ret->size();
 	}
 
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
-		m_owner.BroadcastToAll(*data);
-	}
+	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
 
 private:
 	MySessionMgr& m_owner;
@@ -104,6 +102,10 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 void MySession::ConnectionLost(int err_code) {
 	m_transport = nullptr;
 	m_owner.OnSessionDestroy(this);
+}
+
+void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
+	m_owner.BroadcastToAll(*data);
 }
 
 int main() {
