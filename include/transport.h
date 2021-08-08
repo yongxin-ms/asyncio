@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <exception>
+#include <deque>
 #include <asio.hpp>
 #include "protocol.h"
 
@@ -7,15 +8,25 @@ namespace asyncio {
 
 class Transport : public std::enable_shared_from_this<Transport> {
 public:
+	// 作为客户端去连接服务器
 	Transport(asio::io_context& context, Protocol& protocol, const std::string& host, uint16_t port)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(true)
 		, m_remote_ip(host)
 		, m_remote_port(port)
-		, m_socket(context) {
+		, m_socket(m_context) {
 		m_rx_buffer.resize(1024);
 		Connect();
+	}
+
+	// 作为服务器接受客户端的连接
+	Transport(asio::io_context& context, Protocol& protocol)
+		: m_context(context)
+		, m_protocol(protocol)
+		, m_is_client(false)
+		, m_socket(m_context) {
+		m_rx_buffer.resize(1024);
 	}
 
 	void Connect() {
@@ -63,8 +74,19 @@ public:
 	}
 	void WriteEof();
 
+	void SetRemoteIp(const std::string& remote_ip) {
+		m_remote_ip = remote_ip;
+	}
 	const std::string& GetRemoteIp() const {
 		return m_remote_ip;
+	}
+
+	asio::ip::tcp::socket& GetSocket() {
+		return m_socket;
+	}
+
+	Protocol& GetProtocol() {
+		return m_protocol;
 	}
 
 private:

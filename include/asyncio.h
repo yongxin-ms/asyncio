@@ -2,6 +2,7 @@
 #include "util.h"
 #include "log.h"
 #include "protocol.h"
+#include "transport.h"
 #include "event_loop.h"
 #include "codec/codec.h"
 #include "codec/codec_x.h"
