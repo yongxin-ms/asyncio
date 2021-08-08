@@ -2,10 +2,6 @@
 
 class MyConnection : public asyncio::Protocol {
 public:
-	MyConnection(asyncio::Log& log)
-		: m_log(log) {
-	}
-
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
@@ -34,49 +30,19 @@ public:
 	}
 
 private:
-	asyncio::Log& m_log;
 	asyncio::TransportPtr m_transport;
 };
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	MyConnectionFactory(asyncio::Log& log)
-		: m_log(log) {
-	}
-
 	virtual asyncio::Protocol* CreateProtocol() override {
-		return new MyConnection(m_log);
+		return new MyConnection;
 	}
-
-private:
-	asyncio::Log& m_log;
 };
 
 int main() {
-	asyncio::Log my_log(
-		[](asyncio::Log::LogLevel lv, const char* msg) {
-			std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
-			switch (lv) {
-			case asyncio::Log::kError:
-				printf("%s Error: %s\n", time_now.c_str(), msg);
-				break;
-			case asyncio::Log::kWarning:
-				printf("%s Warning: %s\n", time_now.c_str(), msg);
-				break;
-			case asyncio::Log::kInfo:
-				printf("%s Info: %s\n", time_now.c_str(), msg);
-				break;
-			case asyncio::Log::kDebug:
-				printf("%s Debug: %s\n", time_now.c_str(), msg);
-				break;
-			default:
-				break;
-			}
-		},
-		asyncio::Log::kDebug);
-
-	asyncio::EventLoop my_event_loop(my_log);
-	MyConnectionFactory my_conn_factory(my_log);
+	asyncio::EventLoop my_event_loop;
+	MyConnectionFactory my_conn_factory;
 	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
 	my_event_loop.RunForever();
 	return 0;

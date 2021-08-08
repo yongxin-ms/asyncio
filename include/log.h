@@ -2,10 +2,10 @@
 #include <functional>
 #include <cstdarg>
 
-#define ASYNCIO_LOG_DEBUG(...) m_log.DoLog(asyncio::Log::kDebug, __VA_ARGS__)
-#define ASYNCIO_LOG_INFO(...) m_log.DoLog(asyncio::Log::kInfo, __VA_ARGS__)
-#define ASYNCIO_LOG_WARN(...) m_log.DoLog(asyncio::Log::kWarning, __VA_ARGS__)
-#define ASYNCIO_LOG_ERROR(...) m_log.DoLog(asyncio::Log::kError, __VA_ARGS__)
+#define ASYNCIO_LOG_DEBUG(...) asyncio::g_log->DoLog(asyncio::Log::kDebug, __VA_ARGS__)
+#define ASYNCIO_LOG_INFO(...) asyncio::g_log->DoLog(asyncio::Log::kInfo, __VA_ARGS__)
+#define ASYNCIO_LOG_WARN(...) asyncio::g_log->DoLog(asyncio::Log::kWarning, __VA_ARGS__)
+#define ASYNCIO_LOG_ERROR(...) asyncio::g_log->DoLog(asyncio::Log::kError, __VA_ARGS__)
 
 namespace asyncio {
 
@@ -44,5 +44,29 @@ private:
 	LOG_FUNC m_log_func;
 	LogLevel m_log_level = kDebug;
 };
+
+static Log g_default_log(
+	[](asyncio::Log::LogLevel lv, const char* msg) {
+		std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
+		switch (lv) {
+		case asyncio::Log::kError:
+			printf("%s Error: %s\n", time_now.c_str(), msg);
+			break;
+		case asyncio::Log::kWarning:
+			printf("%s Warning: %s\n", time_now.c_str(), msg);
+			break;
+		case asyncio::Log::kInfo:
+			printf("%s Info: %s\n", time_now.c_str(), msg);
+			break;
+		case asyncio::Log::kDebug:
+			printf("%s Debug: %s\n", time_now.c_str(), msg);
+			break;
+		default:
+			break;
+		}
+	},
+	asyncio::Log::kDebug);
+
+static Log* g_log = &g_default_log;
 
 } // namespace asyncio

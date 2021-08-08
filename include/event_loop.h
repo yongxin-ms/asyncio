@@ -14,7 +14,7 @@ class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
 
 public:
-	EventLoop(Log& log);
+	EventLoop();
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
 
@@ -30,13 +30,9 @@ public:
 
 	void CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, int port);
 	void CreateServer(ProtocolFactory& protocol_factory, int port);
-
-private:
-	Log& m_log;
 };
 
-EventLoop::EventLoop(Log& log)
-	: m_log(log) {
+EventLoop::EventLoop() {
 }
 
 void EventLoop::RunForever() {

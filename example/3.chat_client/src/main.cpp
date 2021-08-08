@@ -11,14 +11,20 @@ public:
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 		m_is_connected = true;
+		ASYNCIO_LOG_DEBUG("ConnectionMade");
 	}
 
 	virtual void ConnectionLost(int err_code) override {
 		m_is_connected = false;
-		m_event_loop.CallLater(3000, [this]() { m_transport->Reconnect(); });
+		m_event_loop.CallLater(3000, [this]() {
+			ASYNCIO_LOG_DEBUG("Start Reconnect");
+			m_transport->Reconnect();
+		});
+		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
 
 	virtual void DataReceived(const char* data, size_t len) override {
+		ASYNCIO_LOG_DEBUG("DataReceived: %lld", len);
 		m_codec.Decode(m_transport, data, len);
 	}
 
@@ -31,12 +37,14 @@ public:
 			return 0;
 		}
 
+		ASYNCIO_LOG_DEBUG("Send: %s", data);
 		auto ret = m_codec.Encode(msg_id, data, len);
 		m_transport->Write(ret->data(), ret->size());
 		return ret->size();
 	}
 
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
+		ASYNCIO_LOG_DEBUG("OnMyMessageFunc: %s", data->data());
 	}
 
 	bool IsConnected() {

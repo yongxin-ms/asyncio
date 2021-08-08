@@ -1,13 +1,12 @@
 ﻿#pragma once
 #include <exception>
 #include <protocol.h>
-#include "log.h"
 
 namespace asyncio {
 
 class Transport : public std::enable_shared_from_this<Transport> {
 public:
-	Transport(Log& log, Protocol& protocol, bool is_client);
+	Transport(Protocol& protocol, bool is_client);
 
 	void Reconnect();
 	void Close();
@@ -18,16 +17,14 @@ public:
 	const std::string& GetRemoteIp() const;
 
 private:
-	Log& m_log;
 	// Protocol生命周期肯定比Transport长
 	Protocol& m_protocol;
 	bool m_is_client = false;
 	std::string m_remote_ip;
 };
 
-Transport::Transport(Log& log, Protocol& protocol, bool is_client)
-	: m_log(log)
-	, m_protocol(protocol)
+Transport::Transport(Protocol& protocol, bool is_client)
+	: m_protocol(protocol)
 	, m_is_client(is_client) {
 }
 
