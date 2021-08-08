@@ -17,3 +17,4 @@ cmake-build-debug
 .DS_Store
 bin
 build
+build_release
