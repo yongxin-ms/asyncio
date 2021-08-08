@@ -1,12 +1,11 @@
-﻿#include <functional>
+#include <functional>
 #include "asyncio.h"
 
 class MyConnection : public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {
-	}
+		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
@@ -18,13 +17,9 @@ public:
 		m_event_loop.CallLater(3000, [this]() { m_transport->Reconnect(); });
 	}
 
-	virtual void DataReceived(const char* data, size_t len) override {
-		m_codec.Decode(m_transport, data, len);
-	}
+	virtual void DataReceived(const char* data, size_t len) override { m_codec.Decode(m_transport, data, len); }
 
-	virtual void EofReceived() override {
-		m_transport->WriteEof();
-	}
+	virtual void EofReceived() override { m_transport->WriteEof(); }
 
 	size_t Send(const char* data, size_t len) {
 		if (!m_is_connected) {
@@ -36,12 +31,9 @@ public:
 		return ret->size();
 	}
 
-	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
-	}
+	void OnMyMessageFunc(std::shared_ptr<std::string> data) {}
 
-	bool IsConnected() {
-		return m_is_connected;
-	}
+	bool IsConnected() { return m_is_connected; }
 
 private:
 	asyncio::EventLoop& m_event_loop;
@@ -53,12 +45,9 @@ private:
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {
-	}
+		: m_event_loop(event_loop) {}
 
-	virtual asyncio::Protocol* CreateProtocol() override {
-		return new MyConnection(m_event_loop);
-	}
+	virtual asyncio::Protocol* CreateProtocol() override { return new MyConnection(m_event_loop); }
 
 private:
 	asyncio::EventLoop& m_event_loop;

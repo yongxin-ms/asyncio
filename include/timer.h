@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <list>
 #include <vector>
@@ -142,8 +142,7 @@ private:
 
 struct CronWheel {
 	CronWheel()
-		: cur_index(0) {
-	}
+		: cur_index(0) {}
 
 	//返回值：是否有进位
 	bool init(int init_value) {
@@ -172,24 +171,15 @@ public:
 	BaseTimer(TimerMgr& owner, FUNC_CALLBACK&& func)
 		: owner_(owner)
 		, func_(std::move(func))
-		, is_in_list_(false) {
-	}
+		, is_in_list_(false) {}
 
 	inline void Cancel();
 
 protected:
-	std::list<std::shared_ptr<BaseTimer>>::iterator& GetIt() {
-		return it_;
-	}
-	void SetIt(const std::list<std::shared_ptr<BaseTimer>>::iterator& it) {
-		it_ = it;
-	}
-	bool GetIsInList() const {
-		return is_in_list_;
-	}
-	void SetIsInList(bool b) {
-		is_in_list_ = b;
-	}
+	std::list<std::shared_ptr<BaseTimer>>::iterator& GetIt() { return it_; }
+	void SetIt(const std::list<std::shared_ptr<BaseTimer>>::iterator& it) { it_ = it; }
+	bool GetIsInList() const { return is_in_list_; }
+	void SetIsInList(bool b) { is_in_list_ = b; }
 
 	virtual void DoFunc() = 0;
 	virtual std::chrono::system_clock::time_point GetCurTime() const = 0;
@@ -235,8 +225,7 @@ public:
 		}
 	}
 
-	virtual ~CronTimer() {
-	}
+	virtual ~CronTimer() {}
 	inline void DoFunc() override;
 	std::chrono::system_clock::time_point GetCurTime() const override {
 		tm next_tm;
@@ -292,12 +281,9 @@ public:
 		Next();
 	}
 
-	virtual ~LaterTimer() {
-	}
+	virtual ~LaterTimer() {}
 	inline void DoFunc() override;
-	std::chrono::system_clock::time_point GetCurTime() const override {
-		return cur_time_;
-	}
+	std::chrono::system_clock::time_point GetCurTime() const override { return cur_time_; }
 
 private:
 	//前进到下一格
@@ -323,8 +309,7 @@ class TimerMgr {
 	friend class LaterTimer;
 
 public:
-	TimerMgr() {
-	}
+	TimerMgr() {}
 	TimerMgr(const TimerMgr&) = delete;
 	const TimerMgr& operator=(const TimerMgr&) = delete;
 
@@ -338,8 +323,8 @@ public:
 	};
 
 	// 新增一个Cron表达式的定时器，缺省永远执行
-	std::shared_ptr<BaseTimer> AddTimer(const std::string& timer_string, FUNC_CALLBACK&& func,
-										int count = RUN_FOREVER) {
+	std::shared_ptr<BaseTimer> AddTimer(
+		const std::string& timer_string, FUNC_CALLBACK&& func, int count = RUN_FOREVER) {
 		if (stopped_) {
 			return nullptr;
 		}

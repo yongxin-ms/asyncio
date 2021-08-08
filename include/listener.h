@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include "transport.h"
 
@@ -8,12 +8,10 @@ class Listener {
 public:
 	Listener(asio::io_context& context, ProtocolFactory& protocol_factory)
 		: m_context(context)
-		, m_protocol_factory(protocol_factory) {
-	}
+		, m_protocol_factory(protocol_factory) {}
 	Listener(const Listener&) = delete;
 	const Listener& operator=(const Listener&) = delete;
-	~Listener() {
-	}
+	~Listener() {}
 
 	// 监听一个指定端口
 	bool Listen(uint16_t port) {
@@ -38,9 +36,7 @@ public:
 		return true;
 	}
 
-	void Stop() {
-		m_acceptor->close();
-	}
+	void Stop() { m_acceptor->close(); }
 
 private:
 	void Accept() {

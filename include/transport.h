@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <exception>
 #include <deque>
 #include <asio.hpp>
@@ -54,15 +54,15 @@ public:
 
 	void DoReadData() {
 		auto self = shared_from_this();
-		m_socket.async_read_some(asio::buffer(m_rx_buffer.data(), m_rx_buffer.size()),
-								 [self](std::error_code ec, std::size_t length) {
-									 if (!ec) {
-										 self->m_protocol.DataReceived(self->m_rx_buffer.data(), length);
-										 self->DoReadData();
-									 } else {
-										 self->Close(ec.value());
-									 }
-								 });
+		m_socket.async_read_some(
+			asio::buffer(m_rx_buffer.data(), m_rx_buffer.size()), [self](std::error_code ec, std::size_t length) {
+				if (!ec) {
+					self->m_protocol.DataReceived(self->m_rx_buffer.data(), length);
+					self->DoReadData();
+				} else {
+					self->Close(ec.value());
+				}
+			});
 	}
 
 	void Close(int err_code);
@@ -74,35 +74,27 @@ public:
 	}
 	void WriteEof();
 
-	void SetRemoteIp(const std::string& remote_ip) {
-		m_remote_ip = remote_ip;
-	}
-	const std::string& GetRemoteIp() const {
-		return m_remote_ip;
-	}
+	void SetRemoteIp(const std::string& remote_ip) { m_remote_ip = remote_ip; }
+	const std::string& GetRemoteIp() const { return m_remote_ip; }
 
-	asio::ip::tcp::socket& GetSocket() {
-		return m_socket;
-	}
+	asio::ip::tcp::socket& GetSocket() { return m_socket; }
 
-	Protocol& GetProtocol() {
-		return m_protocol;
-	}
+	Protocol& GetProtocol() { return m_protocol; }
 
 private:
 	void DoWrite() {
 		auto self = shared_from_this();
 		asio::async_write(m_socket, asio::buffer(m_writeMsgs.front()->data(), m_writeMsgs.front()->size()),
-						  [self](std::error_code ec, std::size_t /*length*/) {
-							  if (!ec) {
-								  self->m_writeMsgs.pop_front();
-								  if (!self->m_writeMsgs.empty()) {
-									  self->DoWrite();
-								  }
-							  } else {
-								  self->Close(ec.value());
-							  }
-						  });
+			[self](std::error_code ec, std::size_t /*length*/) {
+				if (!ec) {
+					self->m_writeMsgs.pop_front();
+					if (!self->m_writeMsgs.empty()) {
+						self->DoWrite();
+					}
+				} else {
+					self->Close(ec.value());
+				}
+			});
 	}
 
 private:
@@ -139,7 +131,6 @@ void Transport::Write(const std::shared_ptr<std::string>& msg) {
 	});
 }
 
-void Transport::WriteEof() {
-}
+void Transport::WriteEof() {}
 
 } // namespace asyncio

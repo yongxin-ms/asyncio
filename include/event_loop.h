@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <memory>
 #include <functional>
@@ -33,13 +33,11 @@ public:
 	void QueueInLoop(MSG_CALLBACK&& func);
 	std::shared_ptr<BaseTimer> CallLater(int milliseconds, MSG_CALLBACK&& func);
 
-	std::shared_ptr<Transport> CreateConnection(ProtocolFactory& protocol_factory, const std::string& host,
-												uint16_t port);
+	std::shared_ptr<Transport> CreateConnection(
+		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 	Listener* CreateServer(ProtocolFactory& protocol_factory, int port);
 
-	asio::io_context& IOContext() {
-		return m_context;
-	}
+	asio::io_context& IOContext() { return m_context; }
 
 private:
 	std::queue<MSG_CALLBACK> m_queue;
@@ -50,8 +48,7 @@ private:
 	asio::io_context m_context;
 };
 
-EventLoop::EventLoop() {
-}
+EventLoop::EventLoop() {}
 
 void EventLoop::RunForever() {
 	std::unique_lock<std::mutex> lock(m_mutex);
@@ -60,8 +57,8 @@ void EventLoop::RunForever() {
 	while (true) {
 		auto nearest_time =
 			(std::min)(std::chrono::system_clock::now() + std::chrono::milliseconds(500), m_timer_mgr.GetNearestTime());
-		m_condition.wait_until(lock, nearest_time,
-							  [this] { return m_stop.load(std::memory_order_acquire) || !m_queue.empty(); });
+		m_condition.wait_until(
+			lock, nearest_time, [this] { return m_stop.load(std::memory_order_acquire) || !m_queue.empty(); });
 		std::swap(msgs, m_queue);
 		lock.unlock();
 
@@ -80,8 +77,7 @@ void EventLoop::RunForever() {
 	}
 }
 
-void EventLoop::RunUntilComplete() {
-}
+void EventLoop::RunUntilComplete() {}
 
 bool EventLoop::IsRunning() {
 	return true;
@@ -92,8 +88,7 @@ void EventLoop::Stop() {
 	m_condition.notify_one();
 }
 
-void EventLoop::RunInLoop(MSG_CALLBACK&& func) {
-}
+void EventLoop::RunInLoop(MSG_CALLBACK&& func) {}
 
 void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 	{
@@ -107,8 +102,8 @@ std::shared_ptr<BaseTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&&
 	return m_timer_mgr.AddDelayTimer(milliseconds, std::move(func));
 }
 
-std::shared_ptr<Transport> EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const std::string& host,
-													   uint16_t port) {
+std::shared_ptr<Transport> EventLoop::CreateConnection(
+	ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
 	auto transport = std::make_shared<Transport>(m_context, *protocol_factory.CreateProtocol(), host, port);
 	return transport;
 }

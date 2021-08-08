@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "codec.h"
 
 namespace asyncio {
@@ -8,14 +8,11 @@ class CodecX : public Codec {
 
 public:
 	CodecX(USER_MSG_CALLBACK&& func)
-		: m_user_msg_func(std::move(func)) {
-	}
+		: m_user_msg_func(std::move(func)) {}
 
-	virtual void Decode(TransportPtr transport, const char* data, size_t len) override {
-	}
+	virtual void Decode(TransportPtr transport, const char* data, size_t len) override {}
 
-	std::shared_ptr<std::string> Encode(uint32_t msg_id, const char* data, size_t len) {
-	}
+	std::shared_ptr<std::string> Encode(uint32_t msg_id, const char* data, size_t len) {}
 
 private:
 	USER_MSG_CALLBACK m_user_msg_func;

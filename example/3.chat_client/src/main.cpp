@@ -1,12 +1,11 @@
-﻿#include <functional>
+#include <functional>
 #include "asyncio.h"
 
 class MyConnection : public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {
-	}
+		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
@@ -28,9 +27,7 @@ public:
 		m_codec.Decode(m_transport, data, len);
 	}
 
-	virtual void EofReceived() override {
-		m_transport->WriteEof();
-	}
+	virtual void EofReceived() override { m_transport->WriteEof(); }
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len) {
 		if (!m_is_connected) {
@@ -47,9 +44,7 @@ public:
 		ASYNCIO_LOG_DEBUG("OnMyMessageFunc: %s", data->data());
 	}
 
-	bool IsConnected() {
-		return m_is_connected;
-	}
+	bool IsConnected() { return m_is_connected; }
 
 private:
 	asyncio::EventLoop& m_event_loop;
@@ -61,12 +56,9 @@ private:
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {
-	}
+		: m_event_loop(event_loop) {}
 
-	virtual asyncio::Protocol* CreateProtocol() override {
-		return new MyConnection(m_event_loop);
-	}
+	virtual asyncio::Protocol* CreateProtocol() override { return new MyConnection(m_event_loop); }
 
 private:
 	asyncio::EventLoop& m_event_loop;

@@ -1,4 +1,4 @@
-﻿#include <functional>
+#include <functional>
 #include <unordered_map>
 #include "asyncio.h"
 
@@ -10,21 +10,14 @@ public:
 		: m_owner(owner)
 		, m_event_loop(event_loop)
 		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2))
-		, m_sid(sid) {
-	}
+		, m_sid(sid) {}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
 	virtual void ConnectionLost(int err_code) override;
-	virtual void DataReceived(const char* data, size_t len) override {
-		m_codec.Decode(m_transport, data, len);
-	}
-	virtual void EofReceived() override {
-		m_transport->WriteEof();
-	}
+	virtual void DataReceived(const char* data, size_t len) override { m_codec.Decode(m_transport, data, len); }
+	virtual void EofReceived() override { m_transport->WriteEof(); }
 
-	uint64_t GetSid() {
-		return m_sid;
-	}
+	uint64_t GetSid() { return m_sid; }
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len) {
 		auto ret = m_codec.Encode(msg_id, data, len);
@@ -32,8 +25,7 @@ public:
 		return ret->size();
 	}
 
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
-	}
+	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {}
 
 private:
 	MySessionMgr& m_owner;
@@ -47,8 +39,7 @@ class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
 		: m_owner(owner)
-		, m_event_loop(event_loop) {
-	}
+		, m_event_loop(event_loop) {}
 
 	virtual asyncio::Protocol* CreateProtocol() override {
 		static uint64_t g_sid = 0;
@@ -64,16 +55,11 @@ private:
 class MySessionMgr {
 public:
 	MySessionMgr(asyncio::EventLoop& event_loop)
-		: m_session_factory(*this, event_loop) {
-	}
+		: m_session_factory(*this, event_loop) {}
 
-	MySessionFactory& GetSessionFactory() {
-		return m_session_factory;
-	}
+	MySessionFactory& GetSessionFactory() { return m_session_factory; }
 
-	void OnSessionCreate(MySession* session) {
-		m_sessions[session->GetSid()] = session;
-	}
+	void OnSessionCreate(MySession* session) { m_sessions[session->GetSid()] = session; }
 
 	void OnSessionDestroy(MySession* session) {
 		m_sessions.erase(session->GetSid());

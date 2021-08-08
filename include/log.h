@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <functional>
 #include <cstdarg>
 
@@ -22,12 +22,9 @@ public:
 
 	Log(LOG_FUNC&& func, LogLevel lv)
 		: m_log_func(std::move(func))
-		, m_log_level(lv) {
-	}
+		, m_log_level(lv) {}
 
-	void SetLogLevel(LogLevel lv) {
-		m_log_level = lv;
-	}
+	void SetLogLevel(LogLevel lv) { m_log_level = lv; }
 
 	void DoLog(LogLevel lv, const char* fmt, ...) {
 		if (lv <= m_log_level) {
