@@ -52,7 +52,6 @@ public:
 	}
 
 	void Reconnect() {
-		Close(0);
 		Connect();
 	}
 

@@ -69,6 +69,7 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 
 std::shared_ptr<TimerWrap> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&& func) {
 	auto timer = std::make_shared<TimerWrap>(m_context, milliseconds, std::move(func));
+	timer->Start();
 	return timer;
 }
 

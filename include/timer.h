@@ -3,7 +3,7 @@
 #include <asio.hpp>
 
 namespace asyncio {
-class TimerWrap {
+class TimerWrap : public std::enable_shared_from_this<TimerWrap> {
 	using MSG_CALLBACK = std::function<void()>;
 
 public:
@@ -11,11 +11,13 @@ public:
 		: m_context(context)
 		, m_milliseconds(milliseconds)
 		, m_func(std::move(func))
-		, m_timer(context, std::chrono::milliseconds(milliseconds)) {
-		m_timer.async_wait(std::bind(&TimerWrap::TimerFunc, this, std::placeholders::_1));
-	}
+		, m_timer(context, std::chrono::milliseconds(milliseconds)) {}
 
 	void Cancel() { m_timer.cancel(); }
+	void Start() {
+		auto self = shared_from_this();
+		m_timer.async_wait(std::bind(&TimerWrap::TimerFunc, self, std::placeholders::_1));
+	}
 
 private:
 	void TimerFunc(std::error_code ec) { m_func(); }

@@ -20,10 +20,15 @@ public:
 
 	virtual void ConnectionLost(int err_code) override {
 		m_is_connected = false;
-		m_event_loop.CallLater(3000, [this]() {
-			ASYNCIO_LOG_DEBUG("Start Reconnect");
-			m_transport->Reconnect();
-		});
+		if (m_transport != nullptr) {
+			m_event_loop.CallLater(3000, [this]() {
+				ASYNCIO_LOG_DEBUG("Start Reconnect");
+				m_transport->Reconnect();
+			});
+		} else {
+			// 第一次都无法建立连接，可以退出了
+		}
+		
 		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
 
