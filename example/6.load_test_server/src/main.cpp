@@ -97,10 +97,16 @@ void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_owner.OnSessionDestroy(this);
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+	if (argc < 2) {
+		printf("ip cli_num\n");
+		return 0;
+	}
+
+	int port = std::atoi(argv[1]);
 	asyncio::EventLoop my_event_loop;
 	MySessionMgr my_session_mgr(my_event_loop);
-	my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), 9000);
+	my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), port);
 	g_timer = my_event_loop.CallLater(1000, []() {
 		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
 		g_cur_qps = 0;

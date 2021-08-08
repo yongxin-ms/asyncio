@@ -16,7 +16,6 @@ public:
 		m_transport = transport;
 		m_is_connected = true;
 
-		ASYNCIO_LOG_DEBUG("ConnectionMade");
 		std::string msg("hello,world!");
 		Send(msg.data(), msg.size());
 	}
@@ -27,8 +26,6 @@ public:
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
 			transport->Connect();
 		});
-
-		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
 
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
@@ -71,17 +68,18 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-	if (argc < 3) {
-		printf("ip cli_num\n");
+	if (argc < 4) {
+		printf("ip port cli_num\n");
 		return 0;
 	}
 
 	std::string ip = argv[1];
-	int cli_num = std::atoi(argv[2]);
+	int port = std::atoi(argv[2]);
+	int cli_num = std::atoi(argv[3]);
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
 	for (int i = 0; i < cli_num; i++) {
-		my_event_loop.CreateConnection(my_conn_factory, ip, 9000);
+		my_event_loop.CreateConnection(my_conn_factory, ip, port);
 	}
 
 	g_timer = my_event_loop.CallLater(1000, []() {
