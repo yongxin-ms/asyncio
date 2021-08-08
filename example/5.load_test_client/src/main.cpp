@@ -14,7 +14,7 @@ public:
 		m_is_connected = true;
 	}
 
-	virtual void ConnectionLost(int err_code) override {
+	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		m_is_connected = false;
 		m_event_loop.CallLater(3000, [this]() { m_transport->Reconnect(); });
 	}

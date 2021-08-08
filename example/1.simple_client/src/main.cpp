@@ -16,7 +16,7 @@ public:
 		Send(msg.data(), msg.size());
 	}
 
-	virtual void ConnectionLost(int err_code) override {
+	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		m_transport = nullptr;
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
 	}

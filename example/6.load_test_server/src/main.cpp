@@ -14,7 +14,7 @@ public:
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
-	virtual void ConnectionLost(int err_code) override;
+	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
 
 	virtual void EofReceived() override { m_transport->WriteEof(); }
@@ -86,7 +86,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_owner.OnSessionCreate(this);
 }
 
-void MySession::ConnectionLost(int err_code) {
+void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
 	m_owner.OnSessionDestroy(this);
 }

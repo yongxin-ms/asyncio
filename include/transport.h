@@ -46,7 +46,7 @@ public:
 				self->m_protocol.ConnectionMade(self);
 				self->DoReadData();
 			} else {
-				self->m_protocol.ConnectionLost(ec.value());
+				self->m_protocol.ConnectionLost(self, ec.value());
 			}
 		});
 	}
@@ -120,7 +120,7 @@ void Transport::Close(int err_code) {
 	m_socket.close();
 
 	auto self = shared_from_this();
-	m_protocol.ConnectionLost(err_code);
+	m_protocol.ConnectionLost(self, err_code);
 }
 
 void Transport::Write(const std::shared_ptr<std::string>& msg) {

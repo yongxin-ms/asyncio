@@ -18,16 +18,12 @@ public:
 		Send(0, msg.data(), msg.size());
 	}
 
-	virtual void ConnectionLost(int err_code) override {
+	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		m_is_connected = false;
-		if (m_transport != nullptr) {
-			m_event_loop.CallLater(3000, [this]() {
-				ASYNCIO_LOG_DEBUG("Start Reconnect");
-				m_transport->Reconnect();
-			});
-		} else {
-			// 第一次都无法建立连接，可以退出了
-		}
+		m_event_loop.CallLater(3000, [transport]() {
+			ASYNCIO_LOG_DEBUG("Start Reconnect");
+			transport->Reconnect();
+		});
 		
 		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
