@@ -14,7 +14,7 @@ class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
 
 public:
-	EventLoop(Log& log) : m_log(log) {}
+	EventLoop(Log& log);
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
 
@@ -35,7 +35,8 @@ private:
 	Log& m_log;
 };
 
-EventLoop::EventLoop() {
+EventLoop::EventLoop(Log& log)
+	: m_log(log) {
 }
 
 void EventLoop::RunForever() {

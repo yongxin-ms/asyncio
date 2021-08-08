@@ -1,10 +1,11 @@
-#pragma once
+﻿#pragma once
 #include <functional>
+#include <cstdarg>
 
-#define LOG_DEBUG(...) m_log.DoLog(asyncio::Log::kDebug, __VA_ARGS__)
-#define LOG_INFO(...) m_log.DoLog(asyncio::Log::kInfo, __VA_ARGS__)
-#define LOG_WARN(...) m_log.DoLog(asyncio::Log::kWarning, __VA_ARGS__)
-#define LOG_ERROR(...) m_log.DoLog(asyncio::Log::kError, __VA_ARGS__)
+#define ASYNCIO_LOG_DEBUG(...) m_log.DoLog(asyncio::Log::kDebug, __VA_ARGS__)
+#define ASYNCIO_LOG_INFO(...) m_log.DoLog(asyncio::Log::kInfo, __VA_ARGS__)
+#define ASYNCIO_LOG_WARN(...) m_log.DoLog(asyncio::Log::kWarning, __VA_ARGS__)
+#define ASYNCIO_LOG_ERROR(...) m_log.DoLog(asyncio::Log::kError, __VA_ARGS__)
 
 namespace asyncio {
 
@@ -19,7 +20,7 @@ public:
 
 	using LOG_FUNC = std::function<void(LogLevel, const char*)>;
 
-	Log(LOG_FUNC&& func, LogLevel lv) 
+	Log(LOG_FUNC&& func, LogLevel lv)
 		: m_log_func(std::move(func))
 		, m_log_level(lv) {
 	}
@@ -33,9 +34,9 @@ public:
 			char buf[1024];
 			va_list args;
 			va_start(args, fmt);
-			vsnprintf(buf, sizeof(buf) - 1, fmt, args);
+			std::vsnprintf(buf, sizeof(buf) - 1, fmt, args);
 			va_end(args);
-			log_func_(lv, buf);
+			m_log_func(lv, buf);
 		}
 	}
 
@@ -44,4 +45,4 @@ private:
 	LogLevel m_log_level = kDebug;
 };
 
-}
+} // namespace asyncio

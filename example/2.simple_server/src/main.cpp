@@ -2,25 +2,27 @@
 
 class MySession : public asyncio::Protocol {
 public:
-	MySession(asyncio::Log& log) : m_log(log) {}
+	MySession(asyncio::Log& log)
+		: m_log(log) {
+	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
-		LOG_INFO("ConnectionMade");
+		ASYNCIO_LOG_DEBUG("ConnectionMade");
 	}
 
 	virtual void ConnectionLost(int err_code) override {
 		m_transport = nullptr;
-		LOG_INFO("ConnectionLost");
+		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
 
 	virtual void DataReceived(const char* data, size_t len) override {
-		LOG_INFO("DataReceived: %s", data);
+		ASYNCIO_LOG_DEBUG("DataReceived: %s", data);
 	}
 
 	virtual void EofReceived() override {
 		m_transport->WriteEof();
-		LOG_INFO("EofReceived");
+		ASYNCIO_LOG_DEBUG("EofReceived");
 	}
 
 	size_t Send(const char* data, size_t len) {
@@ -28,7 +30,7 @@ public:
 			return 0;
 		}
 
-		LOG_INFO("Send: %s", data);
+		ASYNCIO_LOG_DEBUG("Send: %s", data);
 		m_transport->Write(data, len);
 		return len;
 	}
@@ -40,7 +42,9 @@ private:
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	MySessionFactory(asyncio::Log& log) : m_log(log) {}
+	MySessionFactory(asyncio::Log& log)
+		: m_log(log) {
+	}
 
 	virtual asyncio::Protocol* CreateProtocol() override {
 		return new MySession(m_log);
@@ -51,25 +55,27 @@ private:
 };
 
 int main() {
-	asyncio::Log my_log([](asyncio::Log::LogLevel lv, const char* msg) {
-		std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
-		switch (lv) {
-		case kError:
-			printf("%s Error: %s\n", time_now.c_str(), msg);
-			break;
-		case kWarning:
-			printf("%s Warning: %s\n", time_now.c_str(), msg);
-			break;
-		case kInfo:
-			printf("%s Info: %s\n", time_now.c_str(), msg);
-			break;
-		case kDebug:
-			printf("%s Debug: %s\n", time_now.c_str(), msg);
-			break;
-		default:
-			break;
-		}
-	}, asyncio::Log::kDebug);
+	asyncio::Log my_log(
+		[](asyncio::Log::LogLevel lv, const char* msg) {
+			std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
+			switch (lv) {
+			case asyncio::Log::kError:
+				printf("%s Error: %s\n", time_now.c_str(), msg);
+				break;
+			case asyncio::Log::kWarning:
+				printf("%s Warning: %s\n", time_now.c_str(), msg);
+				break;
+			case asyncio::Log::kInfo:
+				printf("%s Info: %s\n", time_now.c_str(), msg);
+				break;
+			case asyncio::Log::kDebug:
+				printf("%s Debug: %s\n", time_now.c_str(), msg);
+				break;
+			default:
+				break;
+			}
+		},
+		asyncio::Log::kDebug);
 
 	asyncio::EventLoop my_event_loop(my_log);
 	MySessionFactory my_session_factory(my_log);
