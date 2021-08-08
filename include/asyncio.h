@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "util.h"
 #include "log.h"
 #include "protocol.h"
