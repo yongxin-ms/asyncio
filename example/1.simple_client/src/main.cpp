@@ -5,6 +5,9 @@ public:
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
+
+		std::string msg("hello,world!");
+		Send(msg.data(), msg.size());
 	}
 
 	virtual void ConnectionLost(int err_code) override {

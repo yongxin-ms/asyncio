@@ -14,6 +14,10 @@ public:
 
 	virtual void DataReceived(const char* data, size_t len) override {
 		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, data);
+
+		std::string ack("Your words: ");
+		ack.append(data, len);
+		Send(ack.data(), ack.size());
 	}
 
 	virtual void EofReceived() override {
