@@ -32,7 +32,7 @@ public:
 	void QueueInLoop(MSG_CALLBACK&& func);
 	std::shared_ptr<BaseTimer> CallLater(int milliseconds, MSG_CALLBACK&& func);
 
-	void CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, int port);
+	void CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 	void CreateServer(ProtocolFactory& protocol_factory, int port);
 
 private:
@@ -41,6 +41,7 @@ private:
 	mutable std::mutex m_mutex;
 	std::atomic<bool> m_stop = false;
 	TimerMgr m_timer_mgr;
+	asio::io_context m_context;
 };
 
 EventLoop::EventLoop() {
@@ -100,7 +101,8 @@ std::shared_ptr<BaseTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&&
 	return m_timer_mgr.AddDelayTimer(milliseconds, std::move(func));
 }
 
-void EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, int port) {
+void EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
+	auto transport = std::make_shared<Transport>(m_context, *protocol_factory.CreateProtocol(), host, port);
 }
 
 void EventLoop::CreateServer(ProtocolFactory& protocol_factory, int port) {
