@@ -16,6 +16,7 @@ public:
 	void Cancel() { m_timer.cancel(); }
 	void Start() {
 		auto self = shared_from_this();
+		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
 		m_timer.async_wait(std::bind(&TimerWrap::TimerFunc, self, std::placeholders::_1));
 	}
 

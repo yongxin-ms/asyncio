@@ -51,10 +51,6 @@ public:
 		});
 	}
 
-	void Reconnect() {
-		Connect();
-	}
-
 	void DoReadData() {
 		auto self = shared_from_this();
 		auto rx_buffer = self->m_protocol.GetRxBuffer();

@@ -22,7 +22,7 @@ public:
 		m_is_connected = false;
 		m_event_loop.CallLater(3000, [transport]() {
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
-			transport->Reconnect();
+			transport->Connect();
 		});
 		
 		ASYNCIO_LOG_DEBUG("ConnectionLost");

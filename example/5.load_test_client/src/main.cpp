@@ -1,6 +1,9 @@
 ﻿#include <functional>
 #include "asyncio.h"
 
+int g_cur_qps = 0;
+std::shared_ptr<asyncio::TimerWrap> g_timer = nullptr;
+
 class MyConnection : public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
@@ -12,11 +15,20 @@ public:
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
 		m_is_connected = true;
+
+		ASYNCIO_LOG_DEBUG("ConnectionMade");
+		std::string msg("hello,world!");
+		Send(msg.data(), msg.size());
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		m_is_connected = false;
-		m_event_loop.CallLater(3000, [this]() { m_transport->Reconnect(); });
+		m_event_loop.CallLater(3000, [transport]() {
+			ASYNCIO_LOG_DEBUG("Start Reconnect");
+			transport->Connect();
+		});
+
+		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
 
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
@@ -33,7 +45,10 @@ public:
 		return ret->size();
 	}
 
-	void OnMyMessageFunc(std::shared_ptr<std::string> data) {}
+	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
+		Send(data->data(), data->size());
+		g_cur_qps++;
+	}
 
 	bool IsConnected() { return m_is_connected; }
 
@@ -59,6 +74,11 @@ int main() {
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
 	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
+	g_timer = my_event_loop.CallLater(1000, []() {
+		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
+		g_cur_qps = 0;
+		g_timer->Start();
+	});
 	my_event_loop.RunForever();
 	return 0;
 }

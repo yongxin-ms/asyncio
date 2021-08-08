@@ -1,6 +1,9 @@
 ﻿#include <unordered_map>
 #include "asyncio.h"
 
+int g_cur_qps = 0;
+std::shared_ptr<asyncio::TimerWrap> g_timer = nullptr;
+
 class MySessionMgr;
 
 class MySession : public asyncio::Protocol {
@@ -27,7 +30,10 @@ public:
 		return ret->size();
 	}
 
-	void OnMyMessageFunc(std::shared_ptr<std::string> data) {}
+	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
+		Send(data->data(), data->size());
+		g_cur_qps++;
+	}
 
 private:
 	MySessionMgr& m_owner;
@@ -95,6 +101,12 @@ int main() {
 	asyncio::EventLoop my_event_loop;
 	MySessionMgr my_session_mgr(my_event_loop);
 	my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), 9000);
+	g_timer = my_event_loop.CallLater(1000, []() {
+		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
+		g_cur_qps = 0;
+		g_timer->Start();
+	});
+
 	my_event_loop.RunForever();
 	return 0;
 }
