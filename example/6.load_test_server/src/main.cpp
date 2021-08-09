@@ -1,8 +1,7 @@
 ﻿#include <unordered_map>
-#include <atomic>
 #include "asyncio.h"
 
-std::atomic<int> g_cur_qps;
+int g_cur_qps = 0;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
 class MySessionMgr;
@@ -32,8 +31,11 @@ public:
 	}
 
 	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
-		Send(data->data(), data->size());
-		g_cur_qps.store(g_cur_qps.load(std::memory_order_acquire) + 1);
+		auto self = shared_from_this();
+		asio::post(m_event_loop.GetIOContext(), [self, data]() {
+			self->Send(data->data(), data->size());
+			g_cur_qps++;
+		});
 	}
 
 private:
@@ -95,13 +97,13 @@ private:
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
 	auto self = shared_from_this();
-	m_owner.OnSessionCreate(self);
+	asio::post(m_event_loop.GetIOContext(), [self]() { self->m_owner.OnSessionCreate(self); });
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
 	auto self = shared_from_this();
-	m_owner.OnSessionDestroy(self);
+	asio::post(m_event_loop.GetIOContext(), [self]() { self->m_owner.OnSessionDestroy(self); });
 }
 
 int main(int argc, char* argv[]) {
@@ -121,8 +123,8 @@ int main(int argc, char* argv[]) {
 
 	ASYNCIO_LOG_INFO("listen on %d suc", port);
 	g_timer = my_event_loop.CallLater(1000, []() {
-		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps.load(std::memory_order_acquire));
-		g_cur_qps.store(0);
+		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
+		g_cur_qps = 0;
 		g_timer->Start();
 	});
 
