@@ -35,7 +35,7 @@ public:
 
 	std::shared_ptr<Transport> CreateConnection(
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
-	Listener* CreateServer(ProtocolFactory& protocol_factory, int port);
+	std::unique_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
 	asio::io_context& IOContext() { return m_context; }
 
@@ -64,7 +64,7 @@ void EventLoop::Stop() {
 void EventLoop::RunInLoop(MSG_CALLBACK&& func) {}
 
 void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
-	asio::post(func);
+	asio::post(std::move(func));
 }
 
 std::shared_ptr<DelayTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&& func) {
@@ -80,11 +80,11 @@ std::shared_ptr<Transport> EventLoop::CreateConnection(
 	return transport;
 }
 
-// 监听器需要用户手工删除
-Listener* EventLoop::CreateServer(ProtocolFactory& protocol_factory, int port) {
-	auto listener = new Listener(m_context, protocol_factory);
+// 使用者应该保持这个监听器
+std::unique_ptr<Listener> EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
+	auto listener = std::make_unique<Listener>(m_context, protocol_factory);
 	if (!listener->Listen(port)) {
-		delete listener;
+		ASYNCIO_LOG_ERROR("Listen on %d failed", port);
 		return nullptr;
 	}
 	return listener;

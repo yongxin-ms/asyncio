@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include "transport.h"
+#include "log.h"
 
 namespace asyncio {
 
@@ -11,7 +12,7 @@ public:
 		, m_protocol_factory(protocol_factory) {}
 	Listener(const Listener&) = delete;
 	const Listener& operator=(const Listener&) = delete;
-	~Listener() {}
+	~Listener() { Stop(); }
 
 	// 监听一个指定端口
 	bool Listen(uint16_t port) {
@@ -27,7 +28,7 @@ public:
 		asio::error_code ec;
 		m_acceptor->bind(ep, ec);
 		if (ec) {
-			// LOG_ERROR("bind port:{} failed, ec:{}", port, ec.value());
+			ASYNCIO_LOG_ERROR("bind port:%d failed, ec:%d", port, ec.value());
 			return false;
 		}
 
@@ -66,7 +67,7 @@ private:
 					session->DoReadData();
 				}
 			} else {
-				// LOG_ERROR("Accept error:{}", ec.message());
+				ASYNCIO_LOG_ERROR("Accept error:%s", ec.message().data());
 				// acceptor->close();
 			}
 
