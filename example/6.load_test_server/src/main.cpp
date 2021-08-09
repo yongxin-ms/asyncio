@@ -6,7 +6,7 @@ std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
 class MySessionMgr;
 
-class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
+class MySession : public std::enable_shared_from_this<MySession>, public asyncio::Protocol {
 public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
