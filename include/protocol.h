@@ -4,7 +4,7 @@
 namespace asyncio {
 
 class Transport;
-typedef std::shared_ptr<Transport> TransportPtr;
+using TransportPtr = std::shared_ptr<Transport>;
 
 class Protocol {
 public:
@@ -15,9 +15,11 @@ public:
 	virtual void EofReceived() = 0;
 };
 
+using ProtocolPtr = std::shared_ptr<Protocol>;
+
 class ProtocolFactory {
 public:
-	virtual Protocol* CreateProtocol() = 0;
+	virtual ProtocolPtr CreateProtocol() = 0;
 };
 
 } // namespace asyncio

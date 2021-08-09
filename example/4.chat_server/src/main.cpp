@@ -4,7 +4,7 @@
 
 class MySessionMgr;
 
-class MySession : public asyncio::Protocol {
+class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
 public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
@@ -46,10 +46,10 @@ public:
 		: m_owner(owner)
 		, m_event_loop(event_loop) {}
 
-	virtual asyncio::Protocol* CreateProtocol() override {
+	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
-		return new MySession(m_owner, m_event_loop, sid);
+		return std::make_shared<MySession>(m_owner, m_event_loop, sid);
 	}
 
 private:

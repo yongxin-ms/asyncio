@@ -1,6 +1,6 @@
 ﻿#include "asyncio.h"
 
-class MyConnection : public asyncio::Protocol {
+class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
 public:
 	MyConnection() { m_rx_buffer.resize(1024); }
 
@@ -46,7 +46,7 @@ private:
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	virtual asyncio::Protocol* CreateProtocol() override { return new MyConnection; }
+	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(); }
 };
 
 int main() {

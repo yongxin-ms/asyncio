@@ -1,6 +1,6 @@
 ﻿#include "asyncio.h"
 
-class MySession : public asyncio::Protocol {
+class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
 public:
 	MySession() { m_rx_buffer.resize(1024); }
 
@@ -48,7 +48,7 @@ private:
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	virtual asyncio::Protocol* CreateProtocol() override { return new MySession; }
+	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MySession>(); }
 };
 
 int main() {

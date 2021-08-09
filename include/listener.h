@@ -40,7 +40,7 @@ public:
 
 private:
 	void Accept() {
-		auto session = std::make_shared<Transport>(m_context, *m_protocol_factory.CreateProtocol());
+		auto session = std::make_shared<Transport>(m_context, m_protocol_factory.CreateProtocol());
 		m_acceptor->async_accept(session->GetSocket(), [this, session](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
 			// completion handler had a chance to run.
@@ -59,7 +59,7 @@ private:
 				session->SetRemoteIp(remote_ip);
 				session->GetSocket().set_option(asio::ip::tcp::no_delay(true), ec);
 
-				session->GetProtocol().ConnectionMade(session);
+				session->GetProtocol()->ConnectionMade(session);
 
 				//可以在连接建立之后立刻断开它（调用session->Close()），完成一些比如ip黑名单、连接数控制等功能
 				if (session->GetSocket().is_open()) {

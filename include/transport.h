@@ -18,7 +18,7 @@ enum ErrorCode {
 class Transport : public std::enable_shared_from_this<Transport> {
 public:
 	// 作为客户端去连接服务器
-	Transport(asio::io_context& context, Protocol& protocol, const std::string& host, uint16_t port)
+	Transport(asio::io_context& context, ProtocolPtr protocol, const std::string& host, uint16_t port)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(true)
@@ -27,11 +27,13 @@ public:
 		, m_socket(m_context) {}
 
 	// 作为服务器接受客户端的连接
-	Transport(asio::io_context& context, Protocol& protocol)
+	Transport(asio::io_context& context, ProtocolPtr protocol)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(false)
 		, m_socket(m_context) {}
+
+	virtual ~Transport() {}
 
 	void Connect() {
 		if (!m_is_client) {
@@ -43,21 +45,21 @@ public:
 		auto self = shared_from_this();
 		asio::async_connect(m_socket, endpoints, [self](std::error_code ec, asio::ip::tcp::endpoint) {
 			if (!ec) {
-				self->m_protocol.ConnectionMade(self);
+				self->m_protocol->ConnectionMade(self);
 				self->DoReadData();
 			} else {
-				self->m_protocol.ConnectionLost(self, ec.value());
+				self->m_protocol->ConnectionLost(self, ec.value());
 			}
 		});
 	}
 
 	void DoReadData() {
 		auto self = shared_from_this();
-		auto rx_buffer = self->m_protocol.GetRxBuffer();
+		auto rx_buffer = self->m_protocol->GetRxBuffer();
 		m_socket.async_read_some(
 			asio::buffer(rx_buffer.first, rx_buffer.second), [self](std::error_code ec, std::size_t length) {
 				if (!ec) {
-					self->m_protocol.DataReceived(length);
+					self->m_protocol->DataReceived(length);
 					self->DoReadData();
 				} else {
 					self->Close(ec.value());
@@ -79,7 +81,7 @@ public:
 
 	asio::ip::tcp::socket& GetSocket() { return m_socket; }
 
-	Protocol& GetProtocol() { return m_protocol; }
+	ProtocolPtr GetProtocol() { return m_protocol; }
 
 private:
 	void DoWrite() {
@@ -101,7 +103,7 @@ private:
 	asio::io_context& m_context;
 
 	// Protocol生命周期肯定比Transport长
-	Protocol& m_protocol;
+	ProtocolPtr m_protocol;
 	bool m_is_client = false;
 	std::string m_remote_ip;
 	uint16_t m_remote_port;
@@ -116,12 +118,11 @@ void Transport::Close(int err_code) {
 	m_socket.close();
 
 	auto self = shared_from_this();
-	m_protocol.ConnectionLost(self, err_code);
+	m_protocol->ConnectionLost(self, err_code);
 }
 
 void Transport::Write(const std::shared_ptr<std::string>& msg) {
 	auto self = shared_from_this();
-	/*
 	asio::post(self->m_context, [self, msg]() {
 		bool write_in_progress = !self->m_writeMsgs.empty();
 		self->m_writeMsgs.push_back(msg);
@@ -129,12 +130,6 @@ void Transport::Write(const std::shared_ptr<std::string>& msg) {
 			self->DoWrite();
 		}
 	});
-	*/
-	bool write_in_progress = !self->m_writeMsgs.empty();
-	self->m_writeMsgs.push_back(msg);
-	if (!write_in_progress) {
-		self->DoWrite();
-	}
 }
 
 void Transport::WriteEof() {}

@@ -1,7 +1,7 @@
 ﻿#include <functional>
 #include "asyncio.h"
 
-class MyConnection : public asyncio::Protocol {
+class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
@@ -62,7 +62,7 @@ public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
 
-	virtual asyncio::Protocol* CreateProtocol() override { return new MyConnection(m_event_loop); }
+	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:
 	asyncio::EventLoop& m_event_loop;
