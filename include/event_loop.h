@@ -60,7 +60,7 @@ void EventLoop::Stop() {
 void EventLoop::RunInLoop(MSG_CALLBACK&& func) {}
 
 void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
-	asio::post(std::move(func));
+	asio::post(m_context, std::move(func));
 }
 
 std::shared_ptr<DelayTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&& func) {

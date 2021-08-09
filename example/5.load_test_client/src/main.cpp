@@ -45,7 +45,7 @@ public:
 
 	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
 		auto self = shared_from_this();
-		asio::post(m_event_loop.GetIOContext(), [self, data]() {
+		m_event_loop.QueueInLoop([self, data]() {
 			self->Send(data->data(), data->size());
 			g_cur_qps++;
 		});

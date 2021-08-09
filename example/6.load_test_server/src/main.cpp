@@ -32,7 +32,7 @@ public:
 
 	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
 		auto self = shared_from_this();
-		asio::post(m_event_loop.GetIOContext(), [self, data]() {
+		m_event_loop.QueueInLoop([self, data]() {
 			self->Send(data->data(), data->size());
 			g_cur_qps++;
 		});
@@ -98,13 +98,13 @@ private:
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
 	auto self = shared_from_this();
-	asio::post(m_event_loop.GetIOContext(), [self]() { self->m_owner.OnSessionCreate(self); });
+	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionCreate(self); });
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
 	auto self = shared_from_this();
-	asio::post(m_event_loop.GetIOContext(), [self]() { self->m_owner.OnSessionDestroy(self); });
+	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionDestroy(self); });
 }
 
 int main(int argc, char* argv[]) {
