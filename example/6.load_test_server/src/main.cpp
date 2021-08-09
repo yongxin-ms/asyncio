@@ -43,6 +43,8 @@ private:
 	const uint64_t m_sid;
 };
 
+using MySessionPtr = std::shared_ptr<MySession>;
+
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
@@ -67,14 +69,13 @@ public:
 
 	MySessionFactory& GetSessionFactory() { return m_session_factory; }
 
-	void OnSessionCreate(MySession* session) { m_sessions[session->GetSid()] = session; }
+	void OnSessionCreate(MySessionPtr session) { m_sessions[session->GetSid()] = session; }
 
-	void OnSessionDestroy(MySession* session) {
+	void OnSessionDestroy(MySessionPtr session) {
 		m_sessions.erase(session->GetSid());
-		delete session;
 	}
 
-	MySession* FindSessionFromSid(uint64_t sid) {
+	MySessionPtr FindSessionFromSid(uint64_t sid) {
 		auto it = m_sessions.find(sid);
 		if (it == m_sessions.end()) {
 			return nullptr;
@@ -84,22 +85,24 @@ public:
 
 private:
 	MySessionFactory m_session_factory;
-	std::unordered_map<uint64_t, MySession*> m_sessions;
+	std::unordered_map<uint64_t, MySessionPtr> m_sessions;
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
-	m_owner.OnSessionCreate(this);
+	auto self = shared_from_this();
+	m_owner.OnSessionCreate(self);
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
-	m_owner.OnSessionDestroy(this);
+	auto self = shared_from_this();
+	m_owner.OnSessionDestroy(self);
 }
 
 int main(int argc, char* argv[]) {
 	if (argc < 2) {
-		printf("ip cli_num\n");
+		printf("port \n");
 		return 0;
 	}
 

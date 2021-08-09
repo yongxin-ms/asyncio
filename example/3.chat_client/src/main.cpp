@@ -15,7 +15,7 @@ public:
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
 
 		auto self = shared_from_this();
-		m_say_timer = m_event_loop.CallLater(3000, [self]() {
+		m_say_timer = m_event_loop.CallLater(2000, [self]() {
 			std::string msg("hello,world!");
 			self->Send(0, msg.data(), msg.size());
 
