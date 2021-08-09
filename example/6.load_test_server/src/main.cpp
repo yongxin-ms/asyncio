@@ -1,7 +1,8 @@
 ﻿#include <unordered_map>
+#include <atomic>
 #include "asyncio.h"
 
-std::atomic_int g_cur_qps = 0;
+std::atomic<int> g_cur_qps;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
 class MySessionMgr;
@@ -32,7 +33,7 @@ public:
 
 	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
 		Send(data->data(), data->size());
-		g_cur_qps++;
+		g_cur_qps.store(g_cur_qps.load(std::memory_order_acquire) + 1);
 	}
 
 private:
@@ -120,8 +121,8 @@ int main(int argc, char* argv[]) {
 
 	ASYNCIO_LOG_INFO("listen on %d suc", port);
 	g_timer = my_event_loop.CallLater(1000, []() {
-		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
-		g_cur_qps = 0;
+		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps.load(std::memory_order_acquire));
+		g_cur_qps.store(0);
 		g_timer->Start();
 	});
 
