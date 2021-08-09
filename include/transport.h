@@ -35,20 +35,22 @@ public:
 	virtual ~Transport() {}
 
 	void Connect() {
-		if (!m_is_client) {
-			throw "not a client, i can't reconnect";
-		}
-
-		asio::ip::tcp::resolver resolver(m_context);
-		auto endpoints = resolver.resolve(m_remote_ip, std::to_string(m_remote_port));
 		auto self = shared_from_this();
-		asio::async_connect(m_socket, endpoints, [self](std::error_code ec, asio::ip::tcp::endpoint) {
-			if (!ec) {
-				self->m_protocol->ConnectionMade(self);
-				self->DoReadData();
-			} else {
-				self->m_protocol->ConnectionLost(self, ec.value());
+		asio::post(m_context, [self, this]() {
+			if (!m_is_client) {
+				throw "not a client, i can't reconnect";
 			}
+
+			asio::ip::tcp::resolver resolver(m_context);
+			auto endpoints = resolver.resolve(m_remote_ip, std::to_string(m_remote_port));
+			asio::async_connect(m_socket, endpoints, [self](std::error_code ec, asio::ip::tcp::endpoint) {
+				if (!ec) {
+					self->m_protocol->ConnectionMade(self);
+					self->DoReadData();
+				} else {
+					self->m_protocol->ConnectionLost(self, ec.value());
+				}
+			});
 		});
 	}
 
@@ -77,10 +79,9 @@ public:
 
 	void SetRemoteIp(const std::string& remote_ip) { m_remote_ip = remote_ip; }
 	const std::string& GetRemoteIp() const { return m_remote_ip; }
-
 	asio::ip::tcp::socket& GetSocket() { return m_socket; }
-
 	ProtocolPtr GetProtocol() { return m_protocol; }
+	IOContext& GetIOContext() { return m_context; }
 
 private:
 	void DoWrite() {
@@ -112,12 +113,15 @@ private:
 };
 
 void Transport::Close(int err_code) {
-	if (!m_socket.is_open())
-		return;
-	m_socket.close();
-
 	auto self = shared_from_this();
-	m_protocol->ConnectionLost(self, err_code);
+	asio::post(self->m_context, [self, this, err_code]() {
+		if (!m_socket.is_open())
+			return;
+		m_socket.close();
+
+		auto self = shared_from_this();
+		m_protocol->ConnectionLost(self, err_code);
+	});
 }
 
 void Transport::Write(const std::shared_ptr<std::string>& msg) {

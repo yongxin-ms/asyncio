@@ -4,7 +4,7 @@
 int g_cur_qps = 0;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
-class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
+class MyConnection : public std::enable_shared_from_this<MyConnection>, public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
