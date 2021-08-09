@@ -1,7 +1,7 @@
 ﻿#include <functional>
 #include "asyncio.h"
 
-class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
+class MyConnection : public std::enable_shared_from_this<MyConnection>, public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
@@ -14,8 +14,15 @@ public:
 		m_is_connected = true;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
 
-		std::string msg("hello,world!");
-		Send(0, msg.data(), msg.size());
+		auto self = shared_from_this();
+		m_say_timer = m_event_loop.CallLater(3000, [self]() {
+			std::string msg("hello,world!");
+			self->Send(0, msg.data(), msg.size());
+
+			if (self->m_say_timer != nullptr) {
+				self->m_say_timer->Start();
+			}
+		});
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
@@ -24,6 +31,10 @@ public:
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
 			transport->Connect();
 		});
+
+		if (m_say_timer != nullptr) {
+			m_say_timer = nullptr;
+		}
 		
 		ASYNCIO_LOG_DEBUG("ConnectionLost");
 	}
@@ -55,6 +66,7 @@ private:
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecX m_codec;
 	bool m_is_connected = false;
+	std::shared_ptr<asyncio::DelayTimer> m_say_timer;
 };
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {

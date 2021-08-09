@@ -2,7 +2,7 @@
 #include "asyncio.h"
 
 int g_cur_qps = 0;
-std::shared_ptr<asyncio::TimerWrap> g_timer = nullptr;
+std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
 class MySessionMgr;
 

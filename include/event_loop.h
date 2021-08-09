@@ -31,7 +31,7 @@ public:
 
 	void RunInLoop(MSG_CALLBACK&& func);
 	void QueueInLoop(MSG_CALLBACK&& func);
-	std::shared_ptr<TimerWrap> CallLater(int milliseconds, MSG_CALLBACK&& func);
+	std::shared_ptr<DelayTimer> CallLater(int milliseconds, MSG_CALLBACK&& func);
 
 	std::shared_ptr<Transport> CreateConnection(
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
@@ -67,8 +67,8 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 	asio::post(func);
 }
 
-std::shared_ptr<TimerWrap> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&& func) {
-	auto timer = std::make_shared<TimerWrap>(m_context, milliseconds, std::move(func));
+std::shared_ptr<DelayTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&& func) {
+	auto timer = std::make_shared<DelayTimer>(m_context, milliseconds, std::move(func));
 	timer->Start();
 	return timer;
 }

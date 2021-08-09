@@ -3,28 +3,27 @@
 #include <asio.hpp>
 
 namespace asyncio {
-class TimerWrap : public std::enable_shared_from_this<TimerWrap> {
-	using MSG_CALLBACK = std::function<void()>;
+class DelayTimer : public std::enable_shared_from_this<DelayTimer> {
+	using FUNC_CALLBACK = std::function<void()>;
 
 public:
-	TimerWrap(asio::io_context& context, int milliseconds, MSG_CALLBACK&& func)
+	DelayTimer(asio::io_context& context, int milliseconds, FUNC_CALLBACK&& func)
 		: m_milliseconds(milliseconds)
 		, m_func(std::move(func))
-		, m_timer(context, std::chrono::milliseconds(milliseconds)) {}
-
+		, m_timer(context) {
+	}
+	~DelayTimer() { Cancel(); }
 	void Cancel() { m_timer.cancel(); }
+
 	void Start() {
 		auto self = shared_from_this();
 		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
-		m_timer.async_wait(std::bind(&TimerWrap::TimerFunc, self, std::placeholders::_1));
+		m_timer.async_wait([self](std::error_code ec) { self->m_func(); });
 	}
 
 private:
-	void TimerFunc(std::error_code ec) { m_func(); }
-
-private:
 	const int m_milliseconds;
-	MSG_CALLBACK m_func;
+	FUNC_CALLBACK m_func;
 	asio::steady_timer m_timer;
 };
 

@@ -4,7 +4,7 @@
 
 class MySessionMgr;
 
-class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
+class MySession : public std::enable_shared_from_this<MySession>, public asyncio::Protocol{
 public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
@@ -57,6 +57,8 @@ private:
 	asyncio::EventLoop& m_event_loop;
 };
 
+using MySessionPtr = std::shared_ptr<MySession>;
+
 class MySessionMgr {
 public:
 	MySessionMgr(asyncio::EventLoop& event_loop)
@@ -64,18 +66,17 @@ public:
 
 	MySessionFactory& GetSessionFactory() { return m_session_factory; }
 
-	void OnSessionCreate(MySession* session) { 
+	void OnSessionCreate(MySessionPtr session) { 
 		m_sessions[session->GetSid()] = session;
 		ASYNCIO_LOG_DEBUG("session:%llu created", session->GetSid());
 	}
 
-	void OnSessionDestroy(MySession* session) {
+	void OnSessionDestroy(MySessionPtr session) {
 		ASYNCIO_LOG_DEBUG("session:%llu destroyed", session->GetSid());
 		m_sessions.erase(session->GetSid());
-		delete session;
 	}
 
-	MySession* FindSessionFromSid(uint64_t sid) {
+	MySessionPtr FindSessionFromSid(uint64_t sid) {
 		auto it = m_sessions.find(sid);
 		if (it == m_sessions.end()) {
 			return nullptr;
@@ -92,17 +93,19 @@ public:
 
 private:
 	MySessionFactory m_session_factory;
-	std::unordered_map<uint64_t, MySession*> m_sessions;
+	std::unordered_map<uint64_t, MySessionPtr> m_sessions;
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
-	m_owner.OnSessionCreate(this);
+	auto self = shared_from_this();
+	m_owner.OnSessionCreate(self);
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
-	m_owner.OnSessionDestroy(this);
+	auto self = shared_from_this();
+	m_owner.OnSessionDestroy(self);
 }
 
 void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
