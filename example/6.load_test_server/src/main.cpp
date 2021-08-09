@@ -1,7 +1,7 @@
 ﻿#include <unordered_map>
 #include "asyncio.h"
 
-int g_cur_qps = 0;
+std::atomic_int g_cur_qps = 0;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
 class MySessionMgr;

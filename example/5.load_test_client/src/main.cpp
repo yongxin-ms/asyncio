@@ -1,7 +1,7 @@
 ﻿#include <functional>
 #include "asyncio.h"
 
-int g_cur_qps = 0;
+std::atomic_int g_cur_qps = 0;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
 class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
@@ -59,13 +59,15 @@ private:
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {}
+		: m_event_loop(event_loop)
+		, m_context_pool(4) {}
 
-	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
+	virtual asyncio::IOContext& AssignIOContext() override { return m_context_pool.NextContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:
 	asyncio::EventLoop& m_event_loop;
+	asyncio::ContextPool m_context_pool;
 };
 
 int main(int argc, char* argv[]) {
