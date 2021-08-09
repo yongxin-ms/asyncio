@@ -2,10 +2,6 @@
 #include <string>
 #include <memory>
 #include <functional>
-#include <queue>
-#include <condition_variable>
-#include <mutex>
-#include <asio.hpp>
 #include "protocol.h"
 #include "log.h"
 #include "listener.h"
@@ -37,11 +33,11 @@ public:
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 	std::unique_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
-	asio::io_context& IOContext() { return m_context; }
+	IOContext& GetIOContext() { return m_context; }
 
 private:
-	asio::io_context m_context;
-	asio::executor_work_guard<asio::io_context::executor_type> m_work;
+	IOContext m_context;
+	IOWorker m_work;
 };
 
 EventLoop::EventLoop()
@@ -82,7 +78,7 @@ std::shared_ptr<Transport> EventLoop::CreateConnection(
 
 // 使用者应该保持这个监听器
 std::unique_ptr<Listener> EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
-	auto listener = std::make_unique<Listener>(m_context, protocol_factory);
+	auto listener = std::make_unique<Listener>(protocol_factory);
 	if (!listener->Listen(port)) {
 		ASYNCIO_LOG_ERROR("Listen on %d failed", port);
 		return nullptr;

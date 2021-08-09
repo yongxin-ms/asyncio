@@ -49,8 +49,10 @@ class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
 		: m_owner(owner)
-		, m_event_loop(event_loop) {}
+		, m_event_loop(event_loop)
+		, m_context_pool(4) {}
 
+	virtual asyncio::IOContext& AssignIOContext() override { return m_context_pool.NextContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
@@ -60,6 +62,7 @@ public:
 private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
+	asyncio::ContextPool m_context_pool;
 };
 
 class MySessionMgr {

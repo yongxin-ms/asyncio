@@ -61,6 +61,7 @@ public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
 
+	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:

@@ -48,13 +48,20 @@ private:
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
+	MySessionFactory(asyncio::EventLoop& event_loop)
+		: m_event_loop(event_loop) {}
+
+	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MySession>(); }
+
+private:
+	asyncio::EventLoop& m_event_loop;
 };
 
 int main() {
 	int port = 9000;
 	asyncio::EventLoop my_event_loop;
-	MySessionFactory my_session_factory;
+	MySessionFactory my_session_factory(my_event_loop);
 	auto listener = my_event_loop.CreateServer(my_session_factory, port);
 	if (listener == nullptr) {
 		ASYNCIO_LOG_ERROR("listen on %d failed", port);

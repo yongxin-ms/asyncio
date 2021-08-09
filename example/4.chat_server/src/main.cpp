@@ -46,6 +46,7 @@ public:
 		: m_owner(owner)
 		, m_event_loop(event_loop) {}
 
+	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;

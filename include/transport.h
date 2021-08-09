@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <exception>
 #include <deque>
-#include <asio.hpp>
 #include "protocol.h"
 
 namespace asyncio {
@@ -18,7 +17,7 @@ enum ErrorCode {
 class Transport : public std::enable_shared_from_this<Transport> {
 public:
 	// 作为客户端去连接服务器
-	Transport(asio::io_context& context, ProtocolPtr protocol, const std::string& host, uint16_t port)
+	Transport(IOContext& context, ProtocolPtr protocol, const std::string& host, uint16_t port)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(true)
@@ -27,7 +26,7 @@ public:
 		, m_socket(m_context) {}
 
 	// 作为服务器接受客户端的连接
-	Transport(asio::io_context& context, ProtocolPtr protocol)
+	Transport(IOContext& context, ProtocolPtr protocol)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(false)
@@ -100,7 +99,7 @@ private:
 	}
 
 private:
-	asio::io_context& m_context;
+	IOContext& m_context;
 
 	// Protocol生命周期肯定比Transport长
 	ProtocolPtr m_protocol;
