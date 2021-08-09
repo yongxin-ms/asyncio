@@ -115,7 +115,7 @@ void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> da
 int main() {
 	asyncio::EventLoop my_event_loop;
 	MySessionMgr my_session_mgr(my_event_loop);
-	my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), 9000);
+	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), 9000);
 	my_event_loop.RunForever();
 	return 0;
 }

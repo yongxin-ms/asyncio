@@ -54,7 +54,7 @@ public:
 int main() {
 	asyncio::EventLoop my_event_loop;
 	MySessionFactory my_session_factory;
-	my_event_loop.CreateServer(my_session_factory, 9000);
+	auto listener = my_event_loop.CreateServer(my_session_factory, 9000);
 	my_event_loop.RunForever();
 	return 0;
 }
