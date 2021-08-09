@@ -19,7 +19,6 @@ public:
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
-
 	virtual void EofReceived() override { m_transport->WriteEof(); }
 
 	uint64_t GetSid() { return m_sid; }

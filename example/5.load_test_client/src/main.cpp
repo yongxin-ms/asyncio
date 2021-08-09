@@ -15,14 +15,13 @@ public:
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
-		m_is_connected = true;
 
 		std::string msg("hello,world!");
 		Send(msg.data(), msg.size());
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
-		m_is_connected = false;
+		m_transport = nullptr;
 		m_event_loop.CallLater(3000, [transport]() {
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
 			transport->Connect();
@@ -30,11 +29,10 @@ public:
 	}
 
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
-
 	virtual void EofReceived() override { m_transport->WriteEof(); }
 
 	size_t Send(const char* data, size_t len) {
-		if (!m_is_connected) {
+		if (!IsConnected()) {
 			return 0;
 		}
 
@@ -51,13 +49,12 @@ public:
 		});
 	}
 
-	bool IsConnected() { return m_is_connected; }
+	bool IsConnected() { return m_transport != nullptr; }
 
 private:
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecLen m_codec;
-	bool m_is_connected = false;
 };
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
