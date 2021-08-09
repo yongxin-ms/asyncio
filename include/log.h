@@ -2,10 +2,14 @@
 #include <functional>
 #include <cstdarg>
 
-#define ASYNCIO_LOG_DEBUG(...) asyncio::g_log->DoLog(asyncio::Log::kDebug, __VA_ARGS__)
-#define ASYNCIO_LOG_INFO(...) asyncio::g_log->DoLog(asyncio::Log::kInfo, __VA_ARGS__)
-#define ASYNCIO_LOG_WARN(...) asyncio::g_log->DoLog(asyncio::Log::kWarning, __VA_ARGS__)
-#define ASYNCIO_LOG_ERROR(...) asyncio::g_log->DoLog(asyncio::Log::kError, __VA_ARGS__)
+#define ASYNCIO_LOG_DEBUG(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kDebug, \
+	"[%s:%d %s] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_INFO(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kInfo,  \
+	"[%s:%d %s] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_WARN(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kWarning,  \
+	"[%s:%d %s] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_ERROR(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kError,  \
+	"[%s:%d %s] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 
 namespace asyncio {
 
@@ -35,6 +39,14 @@ public:
 			va_end(args);
 			m_log_func(lv, buf);
 		}
+	}
+
+	static const char* GetFileName(const char* file) {
+		auto i = strrchr(file, '/');
+		if (i != nullptr)
+			return i + 1;
+		else
+			return file;
 	}
 
 private:
