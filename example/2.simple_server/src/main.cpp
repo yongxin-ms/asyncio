@@ -3,6 +3,7 @@
 class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
 public:
 	MySession() { m_rx_buffer.resize(1024); }
+	virtual ~MySession() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(m_rx_buffer.data(), m_rx_buffer.size());
@@ -50,6 +51,7 @@ class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
+	virtual ~MySessionFactory() {}
 
 	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MySession>(); }

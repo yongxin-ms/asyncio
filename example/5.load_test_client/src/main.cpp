@@ -9,6 +9,7 @@ public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
 		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {}
+	virtual ~MyConnection() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 
@@ -64,6 +65,7 @@ public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
 		, m_context_pool(4) {}
+	virtual ~MyConnectionFactory() {}
 
 	virtual asyncio::IOContext& AssignIOContext() override { return m_context_pool.NextContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }

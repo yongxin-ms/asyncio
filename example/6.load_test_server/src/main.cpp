@@ -54,6 +54,7 @@ public:
 		: m_owner(owner)
 		, m_event_loop(event_loop)
 		, m_context_pool(4) {}
+	virtual ~MySessionFactory() {}
 
 	virtual asyncio::IOContext& AssignIOContext() override { return m_context_pool.NextContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
