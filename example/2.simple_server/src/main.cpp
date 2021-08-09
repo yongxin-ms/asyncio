@@ -52,9 +52,16 @@ public:
 };
 
 int main() {
+	int port = 9000;
 	asyncio::EventLoop my_event_loop;
 	MySessionFactory my_session_factory;
-	auto listener = my_event_loop.CreateServer(my_session_factory, 9000);
+	auto listener = my_event_loop.CreateServer(my_session_factory, port);
+	if (listener == nullptr) {
+		ASYNCIO_LOG_ERROR("listen on %d failed", port);
+		return 0;
+	}
+
+	ASYNCIO_LOG_INFO("listen on %d suc", port);
 	my_event_loop.RunForever();
 	return 0;
 }

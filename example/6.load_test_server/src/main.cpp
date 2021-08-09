@@ -110,6 +110,12 @@ int main(int argc, char* argv[]) {
 	asyncio::EventLoop my_event_loop;
 	MySessionMgr my_session_mgr(my_event_loop);
 	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), port);
+	if (listener == nullptr) {
+		ASYNCIO_LOG_ERROR("listen on %d failed", port);
+		return 0;
+	}
+
+	ASYNCIO_LOG_INFO("listen on %d suc", port);
 	g_timer = my_event_loop.CallLater(1000, []() {
 		ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
 		g_cur_qps = 0;

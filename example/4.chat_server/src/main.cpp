@@ -113,9 +113,16 @@ void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> da
 }
 
 int main() {
+	int port = 9000;
 	asyncio::EventLoop my_event_loop;
 	MySessionMgr my_session_mgr(my_event_loop);
-	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), 9000);
+	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), port);
+	if (listener == nullptr) {
+		ASYNCIO_LOG_ERROR("listen on %d failed", port);
+		return 0;
+	}
+
+	ASYNCIO_LOG_INFO("listen on %d suc", port);
 	my_event_loop.RunForever();
 	return 0;
 }
