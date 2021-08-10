@@ -22,7 +22,7 @@ public:
 			return false;
 		}
 
-		m_acceptor->set_option(asio::socket_base::reuse_address(true));
+		//m_acceptor->set_option(asio::socket_base::reuse_address(true));
 		m_acceptor->set_option(asio::ip::tcp::no_delay(true));
 		asio::error_code ec;
 		m_acceptor->bind(ep, ec);
