@@ -71,7 +71,7 @@ std::shared_ptr<DelayTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&
 
 std::shared_ptr<Transport> EventLoop::CreateConnection(
 	ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
-	auto transport = std::make_shared<Transport>(m_context, protocol_factory.CreateProtocol(), host, port);
+	auto transport = std::make_shared<Transport>(protocol_factory.AssignIOContext(), protocol_factory.CreateProtocol(), host, port);
 	transport->Connect();
 	return transport;
 }
