@@ -9,6 +9,7 @@ public:
 	CodecTrans(USER_MSG_CALLBACK&& func)
 		: Codec(0)
 		, m_user_msg_func(std::move(func)) {}
+	virtual ~CodecTrans() {}
 
 	virtual void Decode(TransportPtr transport, size_t len) {
 		// len是本次接收到的数据长度

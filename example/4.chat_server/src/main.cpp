@@ -36,6 +36,11 @@ private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
+
+	//
+	// 使用带消息id的解码器，解决了黏包问题
+	// 还可以使用较小的缓冲区接收大包
+	//
 	asyncio::CodecX m_codec;
 	const uint64_t m_sid;
 };
@@ -47,7 +52,15 @@ public:
 		, m_event_loop(event_loop) {}
 	virtual ~MySessionFactory() {}
 
-	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
+	virtual asyncio::IOContext& AssignIOContext() override {
+
+		//
+		// 注意这里，连接所使用的io是主线程
+		// 所以整个程序是一个单线程的，可以不加锁
+		//
+		return m_event_loop.GetIOContext();
+	}
+
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
@@ -87,8 +100,8 @@ public:
 	}
 
 	void BroadcastToAll(const std::string& words) {
-		for (auto it : m_sessions) {
-			auto session = it.second;
+		for (auto& it : m_sessions) {
+			auto& session = it.second;
 			session->Send(0, words.data(), words.size());
 		}
 	}

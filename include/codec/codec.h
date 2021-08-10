@@ -5,6 +5,12 @@ namespace asyncio {
 class Transport;
 typedef std::shared_ptr<Transport> TransportPtr;
 
+//
+// 解码器
+// 1.解决黏包问题
+// 2.能使用较小的缓冲区接收较大的报文
+//
+
 class Codec {
 public:
 	enum {

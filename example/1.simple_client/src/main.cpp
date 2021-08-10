@@ -23,6 +23,10 @@ public:
 	}
 
 	virtual void DataReceived(size_t len) override {
+
+		//
+		// 没有使用解码器，这里会有黏包问题
+		// 如果要解决黏包问题需要使用解码器
 		//
 		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, m_rx_buffer.data());
 	}
@@ -42,6 +46,11 @@ public:
 
 private:
 	asyncio::TransportPtr m_transport;
+
+	//
+	// ProActor模式使用预先分配的缓冲区接收数据
+	// 如果缓冲区不够，会分成多次接收
+	//
 	std::string m_rx_buffer;
 };
 
@@ -51,7 +60,15 @@ public:
 		: m_event_loop(event_loop) {}
 	virtual ~MyConnectionFactory() {}
 
-	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
+	virtual asyncio::IOContext& AssignIOContext() override {
+
+		//
+		// 注意这里，连接所使用的io是主线程
+		// 所以整个程序是一个单线程的，可以不加锁
+		//
+		return m_event_loop.GetIOContext();
+	}
+
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(); }
 
 private:

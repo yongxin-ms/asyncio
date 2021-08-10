@@ -10,6 +10,7 @@ public:
 	CodecX(USER_MSG_CALLBACK&& func, uint32_t packet_size_limit = 0)
 		: Codec(packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
+	virtual ~CodecX() {}
 
 	virtual void Decode(TransportPtr transport, size_t len) {
 		// len是本次接收到的数据长度

@@ -14,6 +14,9 @@ public:
 		m_transport = transport;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
 
+		//
+		// 连接建立之后每2秒钟发送一条消息
+		//
 		auto self = shared_from_this();
 		m_say_timer = m_event_loop.CallLater(2000, [self]() {
 			std::string msg("hello,world!");
@@ -27,11 +30,18 @@ public:
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		m_transport = nullptr;
+
+		//
+		// 网络断开之后每3秒钟尝试一次重连，只到连上为止
+		//
 		m_event_loop.CallLater(3000, [transport]() {
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
 			transport->Connect();
 		});
 
+		//
+		// 连接断开之后停止发送消息
+		//
 		if (m_say_timer != nullptr) {
 			m_say_timer = nullptr;
 		}
@@ -64,6 +74,11 @@ public:
 private:
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
+
+	//
+	// 使用带消息id的解码器，解决了黏包问题
+	// 还可以使用较小的缓冲区接收大包
+	//
 	asyncio::CodecX m_codec;
 	std::shared_ptr<asyncio::DelayTimer> m_say_timer;
 };
@@ -74,7 +89,15 @@ public:
 		: m_event_loop(event_loop) {}
 	virtual ~MyConnectionFactory() {}
 
-	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
+	virtual asyncio::IOContext& AssignIOContext() override {
+
+		//
+		// 注意这里，连接所使用的io是主线程
+		// 所以整个程序是一个单线程的，可以不加锁
+		//
+		return m_event_loop.GetIOContext();
+	}
+
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:
