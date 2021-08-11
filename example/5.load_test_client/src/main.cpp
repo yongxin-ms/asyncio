@@ -1,8 +1,6 @@
 ﻿#include <functional>
 #include "asyncio.h"
 
-#define _SINGLE_IO_THREAD
-
 int g_cur_qps = 0;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
@@ -59,48 +57,16 @@ private:
 	asyncio::CodecLen m_codec;
 };
 
-#ifdef _SINGLE_IO_THREAD
-
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
 	virtual ~MyConnectionFactory() {}
-
-	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:
 	asyncio::EventLoop& m_event_loop;
 };
-
-#else
-
-class MyConnectionFactory : public asyncio::ProtocolFactory {
-public:
-	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop)
-		, m_context_pool(4) {}
-	virtual ~MyConnectionFactory() {}
-
-	virtual asyncio::IOContext& AssignIOContext() override {
-
-		//
-		// 注意这里，连接所使用的io是单独的io线程，不是主线程
-		// 所以io和主逻辑在不同的线程中，需要使用消息队列（加锁）
-		//
-		return m_context_pool.NextContext();
-	}
-
-	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
-
-private:
-	asyncio::EventLoop& m_event_loop;
-	asyncio::ContextPool m_context_pool;
-};
-
-#endif
-
 
 int main(int argc, char* argv[]) {
 	if (argc < 4) {

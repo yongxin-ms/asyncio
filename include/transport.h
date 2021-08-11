@@ -1,9 +1,13 @@
 ﻿#pragma once
 #include <exception>
 #include <deque>
+#include <asio.hpp>
 #include "protocol.h"
 
 namespace asyncio {
+
+using IOContext = asio::io_context;
+using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
 
 enum ErrorCode {
 	EC_OK = 0,

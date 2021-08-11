@@ -88,16 +88,6 @@ public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
 	virtual ~MyConnectionFactory() {}
-
-	virtual asyncio::IOContext& AssignIOContext() override {
-
-		//
-		// 注意这里，连接所使用的io是主线程
-		// 所以整个程序是一个单线程的，可以不加锁
-		//
-		return m_event_loop.GetIOContext();
-	}
-
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:

@@ -1,8 +1,6 @@
 ﻿#include <unordered_map>
 #include "asyncio.h"
 
-#define _SINGLE_IO_THREAD
-
 int g_cur_qps = 0;
 std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
 
@@ -49,8 +47,6 @@ private:
 
 using MySessionPtr = std::shared_ptr<MySession>;
 
-#ifdef _SINGLE_IO_THREAD
-
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
@@ -58,7 +54,6 @@ public:
 		, m_event_loop(event_loop) {}
 	virtual ~MySessionFactory() {}
 
-	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
@@ -69,39 +64,6 @@ private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
 };
-
-#else
-
-class MySessionFactory : public asyncio::ProtocolFactory {
-public:
-	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
-		: m_owner(owner)
-		, m_event_loop(event_loop)
-		, m_context_pool(4) {}
-	virtual ~MySessionFactory() {}
-
-	virtual asyncio::IOContext& AssignIOContext() override {
-
-		//
-		// 注意这里，连接所使用的io是单独的io线程，不是主线程
-		// 所以io和主逻辑在不同的线程中，需要使用消息队列（加锁）
-		//
-		return m_context_pool.NextContext();
-	}
-
-	virtual asyncio::ProtocolPtr CreateProtocol() override {
-		static uint64_t g_sid = 0;
-		uint64_t sid = ++g_sid;
-		return std::make_shared<MySession>(m_owner, m_event_loop, sid);
-	}
-
-private:
-	MySessionMgr& m_owner;
-	asyncio::EventLoop& m_event_loop;
-	asyncio::ContextPool m_context_pool;
-};
-
-#endif
 
 class MySessionMgr {
 public:

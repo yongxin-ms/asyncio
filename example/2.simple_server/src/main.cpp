@@ -58,29 +58,14 @@ private:
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	MySessionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {}
 	virtual ~MySessionFactory() {}
-
-	virtual asyncio::IOContext& AssignIOContext() override {
-
-		//
-		// 注意这里，连接所使用的io是主线程
-		// 所以整个程序是一个单线程的，可以不加锁
-		//
-		return m_event_loop.GetIOContext();
-	}
-
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MySession>(); }
-
-private:
-	asyncio::EventLoop& m_event_loop;
 };
 
 int main() {
 	int port = 9000;
 	asyncio::EventLoop my_event_loop;
-	MySessionFactory my_session_factory(my_event_loop);
+	MySessionFactory my_session_factory;
 	auto listener = my_event_loop.CreateServer(my_session_factory, port);
 	if (listener == nullptr) {
 		ASYNCIO_LOG_ERROR("listen on %d failed", port);

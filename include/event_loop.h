@@ -3,6 +3,7 @@
 #include <memory>
 #include <functional>
 #include "protocol.h"
+#include "context_pool.h"
 #include "log.h"
 #include "listener.h"
 #include "timer.h"
@@ -15,70 +16,70 @@ class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
 
 public:
-	EventLoop();
+	EventLoop(size_t work_io_num = 0);
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
 
+	IOContext& MainIOContext() { return m_main_context; }
+	IOContext& WorkerIOContext();
+
 	void RunForever();
-	void RunUntilComplete();
-
-	bool IsRunning();
 	void Stop();
-
-	void RunInLoop(MSG_CALLBACK&& func);
 	void QueueInLoop(MSG_CALLBACK&& func);
 	std::shared_ptr<DelayTimer> CallLater(int milliseconds, MSG_CALLBACK&& func);
-
 	std::shared_ptr<Transport> CreateConnection(
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 	std::unique_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
-	IOContext& GetIOContext() { return m_context; }
-
 private:
-	IOContext m_context;
-	IOWorker m_work;
+	IOContext m_main_context;
+	IOWorker m_main_work;
+	std::shared_ptr<ContextPool> m_worker_io;
 };
 
-EventLoop::EventLoop()
-	: m_work(asio::make_work_guard(m_context)) {}
-
-void EventLoop::RunForever() {
-	m_context.run();
+EventLoop::EventLoop(size_t work_io_num)
+	: m_main_work(asio::make_work_guard(m_main_context)) {
+	if (work_io_num > 0) {
+		m_worker_io = std::make_shared<ContextPool>(work_io_num);
+	}
 }
 
-void EventLoop::RunUntilComplete() {}
+IOContext& EventLoop::WorkerIOContext() {
+	if (m_worker_io == nullptr) {
+		return m_main_context;
+	} else {
+		return m_worker_io->NextContext();
+	} 
+}
 
-bool EventLoop::IsRunning() {
-	return true;
+void EventLoop::RunForever() {
+	m_main_context.run();
 }
 
 void EventLoop::Stop() {
-	m_context.stop();
+	m_main_context.stop();
 }
 
-void EventLoop::RunInLoop(MSG_CALLBACK&& func) {}
-
 void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
-	asio::post(m_context, std::move(func));
+	asio::post(m_main_context, std::move(func));
 }
 
 std::shared_ptr<DelayTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&& func) {
-	auto timer = std::make_shared<DelayTimer>(m_context, milliseconds, std::move(func));
+	auto timer = std::make_shared<DelayTimer>(m_main_context, milliseconds, std::move(func));
 	timer->Start();
 	return timer;
 }
 
 std::shared_ptr<Transport> EventLoop::CreateConnection(
 	ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
-	auto transport = std::make_shared<Transport>(protocol_factory.AssignIOContext(), protocol_factory.CreateProtocol(), host, port);
+	auto transport = std::make_shared<Transport>(WorkerIOContext(), protocol_factory.CreateProtocol(), host, port);
 	transport->Connect();
 	return transport;
 }
 
 // 使用者应该保持这个监听器
 std::unique_ptr<Listener> EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
-	auto listener = std::make_unique<Listener>(protocol_factory);
+	auto listener = std::make_unique<Listener>(m_main_context, m_worker_io, protocol_factory);
 	if (!listener->Listen(port)) {
 		ASYNCIO_LOG_ERROR("Listen on %d failed", port);
 		return nullptr;

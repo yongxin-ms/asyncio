@@ -1,9 +1,13 @@
 ﻿#pragma once
 #include <vector>
 #include <memory>
-#include "protocol.h"
+#include <asio.hpp>
 
 namespace asyncio {
+
+using IOContext = asio::io_context;
+using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
+
 class ContextPool {
 public:
 	ContextPool(size_t pool_size)

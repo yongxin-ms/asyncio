@@ -2,13 +2,16 @@
 #include <string>
 #include "transport.h"
 #include "log.h"
+#include "context_pool.h"
 
 namespace asyncio {
 
 class Listener {
 public:
-	Listener(ProtocolFactory& protocol_factory)
-		: m_protocol_factory(protocol_factory) {}
+	Listener(IOContext& main_context, std::shared_ptr<ContextPool> worker_io, ProtocolFactory& protocol_factory)
+		: m_main_context(main_context)
+		, m_worker_io(worker_io)
+		, m_protocol_factory(protocol_factory) {}
 	Listener(const Listener&) = delete;
 	const Listener& operator=(const Listener&) = delete;
 	~Listener() { Stop(); }
@@ -16,7 +19,7 @@ public:
 	// 监听一个指定端口
 	bool Listen(uint16_t port) {
 		auto ep = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port);
-		m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(m_protocol_factory.AssignIOContext());
+		m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(m_main_context);
 		m_acceptor->open(ep.protocol());
 		if (!m_acceptor->is_open()) {
 			return false;
@@ -40,8 +43,8 @@ public:
 
 private:
 	void Accept() {
-		auto session =
-			std::make_shared<Transport>(m_protocol_factory.AssignIOContext(), m_protocol_factory.CreateProtocol());
+		auto session = std::make_shared<Transport>(
+			m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(), m_protocol_factory.CreateProtocol());
 		m_acceptor->async_accept(session->GetSocket(), [this, session](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
 			// completion handler had a chance to run.
@@ -76,6 +79,8 @@ private:
 	}
 
 private:
+	IOContext& m_main_context;
+	std::shared_ptr<ContextPool> m_worker_io;
 	ProtocolFactory& m_protocol_factory;
 	std::unique_ptr<asio::ip::tcp::acceptor> m_acceptor;
 };

@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include <memory>
-#include <asio.hpp>
 
 namespace asyncio {
 
@@ -17,12 +16,9 @@ public:
 };
 
 using ProtocolPtr = std::shared_ptr<Protocol>;
-using IOContext = asio::io_context;
-using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
 
 class ProtocolFactory {
 public:
-	virtual IOContext& AssignIOContext() = 0;
 	virtual ProtocolPtr CreateProtocol() = 0;
 };
 
