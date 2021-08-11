@@ -6,6 +6,9 @@
 #include "log.h"
 
 /*
+
+这个解码器就是辐射庇护所在用的
+
 tPacketHeader {
 	uint16 datalen;	//除掉此报文头的报文体长度
 	uint16 checksum;//除掉此报文头的报文体校验和
@@ -96,6 +99,7 @@ public:
 		return p;
 	}
 
+#pragma pack(push, 1)
 	struct TcpMsgHeader {
 		TcpMsgHeader() { memset(this, 0, size()); }
 		constexpr static size_t size() { return sizeof(TcpMsgHeader); }
@@ -106,6 +110,7 @@ public:
 		int32_t sequence;  // 0
 		int64_t reserve;   // 0
 	};
+#pragma pack(pop)
 
 private:
 	struct TcpMsgBucket {
