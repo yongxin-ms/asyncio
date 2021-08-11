@@ -32,6 +32,12 @@ public:
 		return ret->size();
 	}
 
+	void Close() {
+		if (m_transport != nullptr) {
+			m_transport->Close(asyncio::EC_KICK);
+		}
+	}
+
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
 
 private:

@@ -46,7 +46,7 @@ public:
 
 	void Close() {
 		if (m_transport != nullptr) {
-			m_transport->Close(0);
+			m_transport->Close(asyncio::EC_SHUT_DOWN);
 		}
 	}
 

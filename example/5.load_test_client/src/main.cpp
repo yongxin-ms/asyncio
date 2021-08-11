@@ -41,6 +41,12 @@ public:
 		return ret->size();
 	}
 
+	void Close() {
+		if (m_transport != nullptr) {
+			m_transport->Close(asyncio::EC_SHUT_DOWN);
+		}
+	}
+
 	void OnMyMessageFunc(std::shared_ptr<std::string> data) {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, data]() {

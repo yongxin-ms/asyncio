@@ -46,6 +46,12 @@ public:
 		return len;
 	}
 
+	void Close() {
+		if (m_transport != nullptr) {
+			m_transport->Close(asyncio::EC_KICK);
+		}
+	}
+
 private:
 	asyncio::TransportPtr m_transport;
 

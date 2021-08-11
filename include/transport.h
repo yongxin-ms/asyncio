@@ -122,8 +122,6 @@ void Transport::Close(int err_code) {
 		if (!m_socket.is_open())
 			return;
 		m_socket.close();
-
-		auto self = shared_from_this();
 		m_protocol->ConnectionLost(self, err_code);
 	});
 }

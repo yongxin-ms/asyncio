@@ -63,6 +63,12 @@ public:
 		return ret->size();
 	}
 
+	void Close() {
+		if (m_transport != nullptr) {
+			m_transport->Close(asyncio::EC_SHUT_DOWN);
+		}
+	}
+
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
 		ASYNCIO_LOG_DEBUG("OnMyMessageFunc: %s", data->data());
 	}
