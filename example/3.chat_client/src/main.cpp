@@ -56,10 +56,8 @@ public:
 	virtual void EofReceived() override { m_transport->WriteEof(); }
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len) {
-		if (!IsConnected()) {
+		if (!IsConnected())
 			return 0;
-		}
-
 		auto ret = m_codec.Encode(msg_id, data, len);
 		m_transport->Write(ret);
 		return ret->size();

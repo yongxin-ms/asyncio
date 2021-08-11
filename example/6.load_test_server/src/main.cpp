@@ -24,6 +24,8 @@ public:
 	uint64_t GetSid() { return m_sid; }
 
 	size_t Send(const char* data, size_t len) {
+		if (m_transport == nullptr)
+			return 0;
 		auto ret = m_codec.Encode(data, len);
 		m_transport->Write(ret);
 		return ret->size();
@@ -110,7 +112,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	int port = std::atoi(argv[1]);
-	asyncio::EventLoop my_event_loop;
+	asyncio::EventLoop my_event_loop(4);
 	MySessionMgr my_session_mgr(my_event_loop);
 	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), port);
 	if (listener == nullptr) {

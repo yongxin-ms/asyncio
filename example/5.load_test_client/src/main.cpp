@@ -77,7 +77,8 @@ int main(int argc, char* argv[]) {
 	std::string ip = argv[1];
 	int port = std::atoi(argv[2]);
 	int cli_num = std::atoi(argv[3]);
-	asyncio::EventLoop my_event_loop;
+
+	asyncio::EventLoop my_event_loop(4);
 	MyConnectionFactory my_conn_factory(my_event_loop);
 	for (int i = 0; i < cli_num; i++) {
 		my_event_loop.CreateConnection(my_conn_factory, ip, port);

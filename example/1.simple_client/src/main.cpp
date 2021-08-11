@@ -44,6 +44,12 @@ public:
 		return len;
 	}
 
+	void Close() {
+		if (m_transport != nullptr) {
+			m_transport->Close(0);
+		}
+	}
+
 private:
 	asyncio::TransportPtr m_transport;
 

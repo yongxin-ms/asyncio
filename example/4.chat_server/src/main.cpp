@@ -25,6 +25,8 @@ public:
 	uint64_t GetSid() { return m_sid; }
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len) {
+		if (m_transport == nullptr)
+			return 0;
 		auto ret = m_codec.Encode(msg_id, data, len);
 		m_transport->Write(ret);
 		return ret->size();
@@ -104,22 +106,23 @@ private:
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
 	auto self = shared_from_this();
-	m_owner.OnSessionCreate(self);
+	m_event_loop.QueueInLoop([self, this]() { m_owner.OnSessionCreate(self); });
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
 	auto self = shared_from_this();
-	m_owner.OnSessionDestroy(self);
+	m_event_loop.QueueInLoop([self, this]() { m_owner.OnSessionDestroy(self); });
 }
 
 void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
-	m_owner.BroadcastToAll(*data);
+	auto self = shared_from_this();
+	m_event_loop.QueueInLoop([self, data, this]() { m_owner.BroadcastToAll(*data); });
 }
 
 int main() {
 	int port = 9000;
-	asyncio::EventLoop my_event_loop;
+	asyncio::EventLoop my_event_loop(4);
 	MySessionMgr my_session_mgr(my_event_loop);
 	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), port);
 	if (listener == nullptr) {
