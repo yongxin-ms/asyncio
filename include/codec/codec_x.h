@@ -27,6 +27,8 @@ public:
 					uint32_t original_len = BigLittleSwap32(bucket_.header.get().len);
 					if (packet_size_limit_ > 0 && original_len > packet_size_limit_) {
 						transport->Close(EC_PACKET_OVER_SIZE);
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len,
+							packet_size_limit_);
 						return;
 					}
 

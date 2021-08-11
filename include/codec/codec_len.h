@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "codec.h"
 #include "bucket.h"
+#include "log.h"
 
 namespace asyncio {
 
@@ -29,6 +30,8 @@ public:
 					if (bucket_.head.get().len <= 0 ||
 						(packet_size_limit_ > 0 && bucket_.head.get().len > packet_size_limit_)) {
 						transport->Close(EC_PACKET_OVER_SIZE);
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)",
+							bucket_.head.get().len, packet_size_limit_);
 						return;
 					}
 

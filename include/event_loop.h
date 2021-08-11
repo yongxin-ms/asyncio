@@ -41,6 +41,9 @@ EventLoop::EventLoop(size_t work_io_num)
 	: m_main_work(asio::make_work_guard(m_main_context)) {
 	if (work_io_num > 0) {
 		m_worker_io = std::make_shared<ContextPool>(work_io_num);
+		ASYNCIO_LOG_INFO("EventLoop init with %d io thread(s)", work_io_num);
+	} else {
+		ASYNCIO_LOG_INFO("EventLoop init with single thread");
 	}
 }
 
@@ -58,6 +61,7 @@ void EventLoop::RunForever() {
 
 void EventLoop::Stop() {
 	m_main_context.stop();
+	ASYNCIO_LOG_INFO("EventLoop stopped");
 }
 
 void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
