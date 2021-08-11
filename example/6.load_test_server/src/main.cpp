@@ -51,19 +51,10 @@ class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
 		: m_owner(owner)
-		, m_event_loop(event_loop)
-		, m_context_pool(4) {}
+		, m_event_loop(event_loop) {}
 	virtual ~MySessionFactory() {}
 
-	virtual asyncio::IOContext& AssignIOContext() override {
-
-		//
-		// 注意这里，连接所使用的io是单独的io线程，不是主线程
-		// 所以io和主逻辑在不同的线程中，需要使用消息队列（加锁）
-		//
-		return m_context_pool.NextContext();
-	}
-
+	virtual asyncio::IOContext& AssignIOContext() override { return m_event_loop.GetIOContext(); }
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
@@ -73,7 +64,6 @@ public:
 private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
-	asyncio::ContextPool m_context_pool;
 };
 
 class MySessionMgr {
