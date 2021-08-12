@@ -13,12 +13,16 @@ std::pair<char*, size_t> MySession::GetRxBuffer() {
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
+	ASYNCIO_LOG_DEBUG("ConnectionMade sid:%llu", GetSid());
+
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionCreate(self); });
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
+	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
+
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionDestroy(self); });
 }

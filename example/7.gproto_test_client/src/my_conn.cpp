@@ -12,6 +12,7 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 
 void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
+	ASYNCIO_LOG_DEBUG("ConnectionMade");
 
 	std::string msg("hello,world!");
 	Send(0, msg.data(), msg.size());
@@ -19,6 +20,8 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 
 void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_transport = nullptr;
+	ASYNCIO_LOG_DEBUG("ConnectionLost");
+
 	m_event_loop.CallLater(3000, [transport]() {
 		ASYNCIO_LOG_DEBUG("Start Reconnect");
 		transport->Connect();
