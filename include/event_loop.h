@@ -27,8 +27,7 @@ public:
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
 	std::shared_ptr<DelayTimer> CallLater(int milliseconds, MSG_CALLBACK&& func);
-	std::shared_ptr<Transport> CreateConnection(
-		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
+	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 	std::unique_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
 private:
@@ -74,11 +73,11 @@ std::shared_ptr<DelayTimer> EventLoop::CallLater(int milliseconds, MSG_CALLBACK&
 	return timer;
 }
 
-std::shared_ptr<Transport> EventLoop::CreateConnection(
+ProtocolPtr EventLoop::CreateConnection(
 	ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
 	auto transport = std::make_shared<Transport>(WorkerIOContext(), protocol_factory.CreateProtocol(), host, port);
 	transport->Connect();
-	return transport;
+	return transport->GetProtocol();
 }
 
 // 使用者应该保持这个监听器

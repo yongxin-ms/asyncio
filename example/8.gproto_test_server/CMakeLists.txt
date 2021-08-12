@@ -27,6 +27,13 @@ source_group(src FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
 file(GLOB SELF_TEMP_SRC_FILES
+	"../common/*.cpp"
+	"../common/*.h"
+	)
+source_group(common FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
 	"../../include/*.h"
 	)
 source_group(include FILES ${SELF_TEMP_SRC_FILES})

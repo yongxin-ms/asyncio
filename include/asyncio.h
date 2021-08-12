@@ -9,5 +9,6 @@
 #include "codec/codec_x.h"
 #include "codec/codec_len.h"
 #include "codec/codec_trans.h"
+#include "codec/codec_gproto.h"
 
 namespace asyncio {}
