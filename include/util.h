@@ -22,6 +22,23 @@
 
 namespace asyncio {
 namespace util {
+
+template <class T>
+inline void UNUSED(T const&) {}
+
+class Random {
+public:
+	template <class T>
+	static T RandomInt(T low, T high) {
+		static std::random_device rd;
+		static std::default_random_engine engine(rd());
+
+		std::uniform_int_distribution<T> dis(0, high - low);
+		T dice_roll = dis(engine) + low;
+		return dice_roll;
+	}
+};
+
 class Time {
 public:
 	static tm LocalTime(time_t t) {
@@ -73,6 +90,32 @@ public:
 
 class Text {
 public:
+	// 不区分大小的字符串比较
+	static int StrCaseCmp(const char* s1, const char* s2) {
+#ifdef _WIN32
+		return _stricmp(s1, s2);
+#else
+		return strcasecmp(s1, s2);
+#endif
+	}
+
+	static std::string Format(const char* fmt, ...) {
+		std::string s;
+		va_list args;
+		va_start(args, fmt);
+
+		va_list args_copy;
+		va_copy(args_copy, args);
+		size_t len = std::vsnprintf(nullptr, 0, fmt, args);
+		if (len > 0) {
+			s.resize(len + 1);
+			std::vsnprintf(s.data(), s.size(), fmt, args_copy);
+		}
+
+		va_end(args);
+		return s.substr(0, len);
+	}
+
 	// 主要用来切分使用空格分隔的字符串，连续的空格算作一个分隔符
 	static size_t SplitStr(std::vector<std::string>& os, const std::string& is, char c) {
 		os.clear();
@@ -130,6 +173,89 @@ public:
 		return result.size();
 	}
 };
+
+class App {
+public:
+	//完整路径,程序名称（不带.exe后缀）
+	// Windows下形如：D:/git/gms/bin/app/Debug, BalanceServer
+	static std::pair<std::string, std::string> GetAppName() {
+		std::string fullName;
+		static const int MAXBUFSIZE = 1024;
+		char path[MAXBUFSIZE] = {0};
+#ifdef _WIN32
+		LPTSTR szFullPath = (LPTSTR)&path;
+		if (::GetModuleFileName(NULL, szFullPath, MAXBUFSIZE)) {
+			fullName.assign(path);
+		}
+		std::replace(fullName.begin(), fullName.end(), '\\', '/');
+#else
+		int count = readlink("/proc/self/exe", path, MAXBUFSIZE);
+		if (count > 0 && count < MAXBUFSIZE) {
+			path[count] = '\0';
+			fullName.assign(path);
+		} else {
+			char cmdline[MAXBUFSIZE] = {0};
+			FILE* fp = NULL;
+
+			sprintf(cmdline, "ls -lt /proc/%d | grep exe | awk '{print $NF}'", getpid());
+			if ((fp = popen(cmdline, "r"))) {
+				if (fgets(path, MAXBUFSIZE, fp)) {
+					size_t len = strlen(path);
+					if (len > 0) {
+						if ('\n' == path[--len])
+							path[len] = '\0';
+						fullName.assign(path);
+					}
+				}
+				pclose(fp);
+			}
+		}
+#endif
+
+		auto it = fullName.find_last_of("/");
+		auto fullPath = fullName.substr(0, it);
+		auto appName = fullName.substr(it + 1);
+		appName = appName.substr(0, appName.find_first_of("."));
+
+		return std::make_pair(fullPath, appName);
+	}
+
+	static std::string GetParentDir(const std::string& dir) { return dir.substr(0, dir.find_last_of('/')); }
+
+	//获取一个目录下面所有的文件
+	static std::vector<std::string> GetAllFilesFromDir(const std::string& dir) {
+		std::vector<std::string> ret;
+#ifdef _WIN32
+		std::string dir_filter = dir + "/*.*";
+		_finddata_t findData;
+		intptr_t handle = _findfirst(dir_filter.data(), &findData);
+		if (handle == -1) {
+			return ret;
+		}
+
+		do {
+			if (findData.attrib & _A_SUBDIR) {
+				// 是否是子目录并且不为"."或".."
+			} else {
+				ret.push_back(findData.name);
+			}
+		} while (_findnext(handle, &findData) == 0);
+
+		_findclose(handle);
+#else
+		struct dirent* ptr;
+		DIR* _dir = opendir(dir.data());
+		while ((ptr = readdir(_dir)) != NULL) {
+			if (ptr->d_type == DT_DIR)
+				continue;
+			ret.push_back(ptr->d_name);
+		}
+		closedir(_dir);
+#endif // _WIN32
+		return ret;
+	}
+};
+
 
 } // namespace util
 } // namespace asyncio
