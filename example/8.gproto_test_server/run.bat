@@ -1,2 +1,2 @@
-start ../bin/LoadTestServer.exe 9000
+start ../bin/GProtoTestServer.exe 9000
 exit
