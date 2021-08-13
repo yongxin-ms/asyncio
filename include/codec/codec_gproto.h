@@ -22,6 +22,12 @@ public:
 		, m_pong_func(std::move(pong_func)) {}
 	virtual ~CodecGProto() {}
 
+	virtual void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) override {
+		Codec::Reset(size);
+		bucket_.header.reset();
+		bucket_.msg_id.reset();
+	}
+
 	virtual void Decode(TransportPtr transport, size_t len) {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置

@@ -22,7 +22,7 @@ public:
 		Reset();
 	}
 
-	void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) {
+	virtual void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) {
 		if (rx_buf_.size() != size) {
 			rx_buf_.resize(size);
 		}
