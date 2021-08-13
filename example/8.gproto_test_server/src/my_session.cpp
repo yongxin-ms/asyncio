@@ -38,6 +38,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+	m_ping_counter = 0;
 	m_transport = nullptr;
 	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 
