@@ -18,7 +18,11 @@ public:
 	void Start() {
 		auto self = shared_from_this();
 		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
-		m_timer.async_wait([self](std::error_code ec) { self->m_func(); });
+		m_timer.async_wait([self](std::error_code ec) {
+			if (ec.value() == 0) {
+				self->m_func();
+			}
+		});
 	}
 
 private:
