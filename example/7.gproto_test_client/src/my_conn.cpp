@@ -32,8 +32,8 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 		m_ping_timer->Start();
 	});
 
-	// std::string msg("hello,world!");
-	// Send(0, msg.data(), msg.size());
+	std::string msg("hello,world!");
+	Send(0, msg.data(), msg.size());
 }
 
 void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {

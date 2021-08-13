@@ -38,11 +38,13 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	m_ping_counter = 0;
-	m_transport = nullptr;
 	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionDestroy(self); });
+	m_event_loop.QueueInLoop([self, this]() {
+		m_owner.OnSessionDestroy(self);
+		m_transport = nullptr;
+	});
 }
 
 void MySession::DataReceived(size_t len) {

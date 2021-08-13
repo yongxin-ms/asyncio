@@ -107,9 +107,11 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
-	m_transport = nullptr;
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionDestroy(self); });
+	m_event_loop.QueueInLoop([self]() {
+		self->m_owner.OnSessionDestroy(self);
+		self->m_transport = nullptr;
+	});
 }
 
 int main(int argc, char* argv[]) {
