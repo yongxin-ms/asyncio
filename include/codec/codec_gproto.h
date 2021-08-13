@@ -5,10 +5,6 @@
 #include "transport.h"
 #include "log.h"
 
-//
-// 这个解码器就是饥荒正在用的
-//
-
 namespace asyncio {
 
 class CodecGProto : public Codec {
@@ -66,7 +62,7 @@ public:
 						}
 
 						ASYNCIO_LOG_DEBUG("received ping");
-						send_pong(transport);	// 反射一个pong
+						send_pong(transport); // 反射一个pong
 						bucket_.header.reset();
 						bucket_.msg_id.reset();
 						continue;

@@ -11,8 +11,7 @@ public:
 	DelayTimer(asio::io_context& context, int milliseconds, FUNC_CALLBACK&& func)
 		: m_milliseconds(milliseconds)
 		, m_func(std::move(func))
-		, m_timer(context) {
-	}
+		, m_timer(context) {}
 	~DelayTimer() { Cancel(); }
 	void Cancel() { m_timer.cancel(); }
 
@@ -23,7 +22,7 @@ public:
 			if (ec.value() == 0) {
 				self->m_func();
 			} else {
-				ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait ec:%d", ec.value());
+				ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait err_msg:%s", ec.message().data());
 			}
 		});
 	}

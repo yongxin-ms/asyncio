@@ -2,14 +2,18 @@
 #include <functional>
 #include <cstdarg>
 
-#define ASYNCIO_LOG_DEBUG(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kDebug, \
-	"[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
-#define ASYNCIO_LOG_INFO(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kInfo,  \
-	"[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
-#define ASYNCIO_LOG_WARN(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kWarning,  \
-	"[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
-#define ASYNCIO_LOG_ERROR(fmt, ...) asyncio::g_log->DoLog(asyncio::Log::kError,  \
-	"[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                                 \
+	asyncio::g_log->DoLog(asyncio::Log::kDebug, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
+						  __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_INFO(fmt, ...)                                                                                 \
+	asyncio::g_log->DoLog(asyncio::Log::kInfo, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
+						  __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_WARN(fmt, ...)                                                                                    \
+	asyncio::g_log->DoLog(asyncio::Log::kWarning, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
+						  __FUNCTION__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_ERROR(fmt, ...)                                                                                 \
+	asyncio::g_log->DoLog(asyncio::Log::kError, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
+						  __FUNCTION__, ##__VA_ARGS__)
 
 namespace asyncio {
 

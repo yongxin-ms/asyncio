@@ -25,7 +25,6 @@ public:
 
 		while (left_len > 0) {
 			if (!bucket_.head.is_full()) {
-
 				// 长度不够，等下一次
 				if (left_len < bucket_.head.size())
 					break;
@@ -36,7 +35,7 @@ public:
 						(packet_size_limit_ > 0 && bucket_.head.get().len > packet_size_limit_)) {
 						transport->Close(EC_PACKET_OVER_SIZE);
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)",
-							bucket_.head.get().len, packet_size_limit_);
+										 bucket_.head.get().len, packet_size_limit_);
 						return;
 					}
 

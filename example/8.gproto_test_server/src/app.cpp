@@ -6,6 +6,10 @@ App::App()
 	, m_session_mgr(my_event_loop, m_idwork) {}
 
 bool App::Init(uint16_t port) {
+	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
+	ASYNCIO_LOG_INFO("+            GProtoTestServer Start           +");
+	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
+
 	asyncio::g_log->SetLogLevel(asyncio::Log::kDebug);
 
 	if (!m_session_mgr.Init(port))
@@ -21,9 +25,13 @@ bool App::Init(uint16_t port) {
 
 void App::Run() {
 	my_event_loop.RunForever();
+	ASYNCIO_LOG_INFO("GProtoTestServer Stopped");
 }
 
 void App::Stop() {
+	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
+	ASYNCIO_LOG_INFO("+            GProtoTestServer Stop            +");
+	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
 	my_event_loop.Stop();
 }
 

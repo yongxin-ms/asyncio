@@ -51,7 +51,7 @@ IOContext& EventLoop::WorkerIOContext() {
 		return m_main_context;
 	} else {
 		return m_worker_io->NextContext();
-	} 
+	}
 }
 
 void EventLoop::RunForever() {
@@ -73,8 +73,7 @@ DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&&
 	return timer;
 }
 
-ProtocolPtr EventLoop::CreateConnection(
-	ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
+ProtocolPtr EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port) {
 	auto transport = std::make_shared<Transport>(WorkerIOContext(), protocol_factory.CreateProtocol(), host, port);
 	transport->Connect();
 	return transport->GetProtocol();

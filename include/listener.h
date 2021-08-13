@@ -25,7 +25,7 @@ public:
 			return false;
 		}
 
-		//m_acceptor->set_option(asio::socket_base::reuse_address(true));
+		// m_acceptor->set_option(asio::socket_base::reuse_address(true));
 		m_acceptor->set_option(asio::ip::tcp::no_delay(true));
 		asio::error_code ec;
 		m_acceptor->bind(ep, ec);
@@ -43,8 +43,8 @@ public:
 
 private:
 	void Accept() {
-		auto session = std::make_shared<Transport>(
-			m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(), m_protocol_factory.CreateProtocol());
+		auto session = std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(),
+												   m_protocol_factory.CreateProtocol());
 		m_acceptor->async_accept(session->GetSocket(), [this, session](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
 			// completion handler had a chance to run.

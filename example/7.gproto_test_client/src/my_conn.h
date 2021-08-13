@@ -25,7 +25,7 @@ public:
 private:
 	MyConnMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
-	asyncio::TransportPtr m_transport;	// 只能在io线程中被修改
+	asyncio::TransportPtr m_transport; // 只能在io线程中被修改
 	asyncio::CodecGProto m_codec;
 	asyncio::DelayTimerPtr m_ping_timer;
 	int m_ping_counter = 0;

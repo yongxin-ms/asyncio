@@ -7,8 +7,6 @@
 
 /*
 
-这个解码器就是辐射庇护所在用的
-
 tPacketHeader {
 	uint16 datalen;	//除掉此报文头的报文体长度
 	uint16 checksum;//除掉此报文头的报文体校验和
@@ -47,7 +45,6 @@ public:
 
 		while (left_len > 0) {
 			if (!bucket_.header.is_full() || !bucket_.msg_name_len.is_full()) {
-
 				//
 				// 一个完整包的长度最少是header.size() + sizeof(msg_name_len)
 				//
@@ -60,7 +57,7 @@ public:
 					if (packet_size_limit_ > 0 && data_len > packet_size_limit_) {
 						transport->Close(EC_PACKET_OVER_SIZE);
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", data_len,
-							packet_size_limit_);
+										 packet_size_limit_);
 						return;
 					}
 
@@ -90,7 +87,7 @@ public:
 		size_t cur = 0;
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(cur);
 		cur += TcpMsgHeader::size();
-		
+
 		uint32_t msg_name_len = msg_name.size();
 		memcpy(&p->at(cur), &msg_name_len, sizeof(msg_name_len));
 		cur += sizeof(msg_name_len);
@@ -101,7 +98,7 @@ public:
 		memcpy(&p->at(cur), msg.data(), msg.size());
 
 		header->datalen = datalen;
-		//header->checksum = ;
+		// header->checksum = ;
 		return p;
 	}
 
