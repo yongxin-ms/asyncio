@@ -62,6 +62,7 @@ public:
 						ASYNCIO_LOG_DEBUG("received ping");
 						send_pong(transport);	// 反射一个pong
 						bucket_.header.reset();
+						bucket_.msg_id.reset();
 						continue;
 					} else if (ctrl == CTL_PONG) {
 						if (bucket_.header.get().len != 0) {
@@ -74,6 +75,7 @@ public:
 						ASYNCIO_LOG_DEBUG("received pong");
 						m_pong_func();
 						bucket_.header.reset();
+						bucket_.msg_id.reset();
 						continue;
 					} else if (ctrl == CTL_CLOSE) {
 						ASYNCIO_LOG_DEBUG("received close");
