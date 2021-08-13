@@ -13,6 +13,7 @@
 #include <io.h>
 #elif __APPLE__
 #include <dirent.h>
+#include <unistd.h>
 #else
 #include <unistd.h>
 #include <sys/io.h>
