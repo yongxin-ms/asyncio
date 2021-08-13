@@ -10,7 +10,7 @@ void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	ASYNCIO_LOG_INFO("+            GProtoTestClient Start           +");
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
 
-	asyncio::g_log->SetLogLevel(asyncio::Log::kDebug);
+	asyncio::g_log->SetLogLevel(asyncio::Log::kInfo);
 	m_conn_mgr.StartConnect(ip, port, conn_count);
 
 	m_timer = my_event_loop.CallLater(1000, [this]() {

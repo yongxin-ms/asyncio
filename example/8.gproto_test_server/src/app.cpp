@@ -10,7 +10,7 @@ bool App::Init(uint16_t port) {
 	ASYNCIO_LOG_INFO("+            GProtoTestServer Start           +");
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
 
-	asyncio::g_log->SetLogLevel(asyncio::Log::kDebug);
+	asyncio::g_log->SetLogLevel(asyncio::Log::kInfo);
 
 	if (!m_session_mgr.Init(port))
 		return false;
