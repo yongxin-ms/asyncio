@@ -19,7 +19,7 @@ public:
 		auto self = shared_from_this();
 		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
 		m_timer.async_wait([self](std::error_code ec) {
-			if (ec.value() == 0) {
+			if (!ec) {
 				self->m_func();
 			} else {
 				ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait err_msg:%s", ec.message().data());
