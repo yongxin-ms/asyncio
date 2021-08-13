@@ -41,6 +41,12 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					auto ctrl = bucket_.header.get().ctrl;
 					if (ctrl == CTL_DATA) {
+						if (bucket_.header.get().len < bucket_.msg_id.size()) {
+							ASYNCIO_LOG_WARN("Close transport because of packet length(%d)", bucket_.header.get().len);
+							transport->Close(EC_PACKET_OVER_SIZE);
+							return;
+						}
+
 						bucket_.msg_id.reset();
 						uint32_t original_len = bucket_.header.get().len - sizeof(uint32_t);
 						if (packet_size_limit_ > 0 && original_len > packet_size_limit_) {
