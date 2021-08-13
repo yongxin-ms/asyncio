@@ -6,6 +6,8 @@ App::App()
 	, m_session_mgr(my_event_loop, m_idwork) {}
 
 bool App::Init(uint16_t port) {
+	asyncio::g_log->SetLogLevel(asyncio::Log::kInfo);
+
 	if (!m_session_mgr.Init(port))
 		return false;
 
@@ -25,4 +27,13 @@ void App::Stop() {
 	my_event_loop.Stop();
 }
 
-void App::OnOnSecondTimer() {}
+void App::IncQps() {
+	++m_cur_qps;
+}
+
+void App::OnOnSecondTimer() {
+	if (m_cur_qps != 0) {
+		ASYNCIO_LOG_INFO("Cur qps:%d, ConnCount:%llu", m_cur_qps, m_session_mgr.size());
+		m_cur_qps = 0;
+	}
+}

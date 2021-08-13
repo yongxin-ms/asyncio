@@ -1,6 +1,7 @@
 ﻿#include <memory>
 #include "conn_mgr.h"
 #include "my_conn.h"
+#include "app.h"
 
 MyConnectionFactory::MyConnectionFactory(MyConnMgr& owner, asyncio::EventLoop& event_loop)
 	: m_owner(owner)
@@ -30,5 +31,6 @@ void MyConnMgr::StartConnect(const std::string& ip, uint16_t port, int conn_coun
 }
 
 void MyConnMgr::OnMessage(MyConnectionPtr conn, uint32_t msg_id, std::shared_ptr<std::string> data) {
-	//
+	conn->Send(msg_id, data->data(), data->size());
+	App::Instance()->IncQps();
 }

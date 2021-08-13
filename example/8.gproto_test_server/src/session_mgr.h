@@ -30,6 +30,7 @@ public:
 	void OnMessage(MySessionPtr conn, uint32_t msg_id, std::shared_ptr<std::string> data);
 
 	MySessionPtr FindSessionFromSid(uint64_t sid);
+	size_t size() const;
 
 private:
 	asyncio::EventLoop& m_event_loop;

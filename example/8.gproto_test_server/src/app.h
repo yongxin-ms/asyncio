@@ -11,6 +11,8 @@ public:
 	bool Init(uint16_t port);
 	void Run();
 	void Stop();
+	
+	void IncQps();
 
 private:
 	void OnOnSecondTimer();
@@ -20,4 +22,5 @@ private:
 	id_worker::IdWorker m_idwork;
 	MySessionMgr m_session_mgr;
 	std::shared_ptr<asyncio::DelayTimer> m_timer;
+	int m_cur_qps = 0;
 };

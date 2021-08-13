@@ -2,6 +2,7 @@
 #include "session_mgr.h"
 #include "my_session.h"
 #include "id_worker.h"
+#include "app.h"
 
 MySessionFactory::MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork)
 	: m_owner(owner)
@@ -44,6 +45,11 @@ MySessionPtr MySessionMgr::FindSessionFromSid(uint64_t sid) {
 	return it->second;
 }
 
+size_t MySessionMgr::size() const {
+	return m_sessions.size();
+}
+
 void MySessionMgr::OnMessage(MySessionPtr conn, uint32_t msg_id, std::shared_ptr<std::string> data) {
-	//
+	conn->Send(msg_id, data->data(), data->size());
+	App::Instance()->IncQps();
 }
