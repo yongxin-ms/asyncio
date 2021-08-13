@@ -23,6 +23,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 			if (m_ping_counter > 2) {
 				ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
 				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+				m_ping_counter = 0;
 			} else {
 				ASYNCIO_LOG_DEBUG("Ping Timer");
 				m_codec.send_ping(m_transport);

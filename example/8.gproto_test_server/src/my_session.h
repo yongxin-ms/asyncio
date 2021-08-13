@@ -29,7 +29,7 @@ private:
 	asyncio::CodecGProto m_codec;
 	const uint64_t m_sid;
 	asyncio::DelayTimerPtr m_ping_timer;
-	int m_ping_counter;
+	int m_ping_counter = 0;
 };
 
 using MySessionPtr = std::shared_ptr<MySession>;
