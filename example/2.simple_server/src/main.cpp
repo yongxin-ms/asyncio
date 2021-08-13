@@ -10,6 +10,7 @@ public:
 	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
+		m_rx_buffer.clear();
 		m_transport = transport;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
 	}

@@ -100,6 +100,7 @@ private:
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
+	m_codec.Reset();
 	m_transport = transport;
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionCreate(self); });

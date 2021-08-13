@@ -12,6 +12,7 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 }
 
 void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
+	m_codec.Reset();
 	m_transport = transport;
 	ASYNCIO_LOG_DEBUG("ConnectionMade");
 

@@ -13,6 +13,7 @@ std::pair<char*, size_t> MySession::GetRxBuffer() {
 }
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
+	m_codec.Reset();
 	m_transport = transport;
 	ASYNCIO_LOG_DEBUG("ConnectionMade sid:%llu", GetSid());
 

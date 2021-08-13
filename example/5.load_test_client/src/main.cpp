@@ -14,6 +14,7 @@ public:
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
+		m_codec.Reset();
 		m_transport = transport;
 
 		std::string msg("hello,world!");
