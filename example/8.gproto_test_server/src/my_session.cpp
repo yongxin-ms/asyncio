@@ -19,7 +19,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 
 	m_ping_counter = 0;
 	auto self = shared_from_this();
-	m_ping_timer = m_transport->CallLater(10000, [self, this]() {
+	m_ping_timer = m_transport->CallLater(30000, [self, this]() {
 		if (m_transport != nullptr) {
 			if (m_ping_counter > 2) {
 				ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());

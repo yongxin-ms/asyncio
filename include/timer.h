@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <functional>
 #include <asio.hpp>
+#include "log.h"
 
 namespace asyncio {
 class DelayTimer : public std::enable_shared_from_this<DelayTimer> {
@@ -21,6 +22,8 @@ public:
 		m_timer.async_wait([self](std::error_code ec) {
 			if (ec.value() == 0) {
 				self->m_func();
+			} else {
+				ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait ec:%d", ec.value());
 			}
 		});
 	}
