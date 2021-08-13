@@ -6,7 +6,7 @@ App::App()
 	, m_session_mgr(my_event_loop, m_idwork) {}
 
 bool App::Init(uint16_t port) {
-	asyncio::g_log->SetLogLevel(asyncio::Log::kInfo);
+	asyncio::g_log->SetLogLevel(asyncio::Log::kDebug);
 
 	if (!m_session_mgr.Init(port))
 		return false;

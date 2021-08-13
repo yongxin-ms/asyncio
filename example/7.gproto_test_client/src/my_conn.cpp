@@ -17,11 +17,11 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 
 	m_ping_counter = 0;
 	auto self = shared_from_this();
-	m_ping_timer = m_event_loop.CallLater(10000, [self, this]() {
+	m_ping_timer = m_transport->CallLater(10000, [self, this]() {
 		if (m_transport != nullptr) {
 			if (m_ping_counter > 2) {
-				ASYNCIO_LOG_WARN("ping failed, Closing");
-				Close();
+				ASYNCIO_LOG_WARN("Keep alive failed, Closing");
+				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
 			} else {
 				ASYNCIO_LOG_DEBUG("Ping Timer");
 				m_codec.send_ping(m_transport);

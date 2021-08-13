@@ -25,11 +25,11 @@ public:
 private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
-	asyncio::TransportPtr m_transport;
+	asyncio::TransportPtr m_transport; // 只能在io线程中被修改
 	asyncio::CodecGProto m_codec;
 	const uint64_t m_sid;
 	asyncio::DelayTimerPtr m_ping_timer;
-	int m_ping_counter = 0;
+	int m_ping_counter;
 };
 
 using MySessionPtr = std::shared_ptr<MySession>;

@@ -4,9 +4,9 @@
 
 namespace asyncio {
 class DelayTimer : public std::enable_shared_from_this<DelayTimer> {
+public:
 	using FUNC_CALLBACK = std::function<void()>;
 
-public:
 	DelayTimer(asio::io_context& context, int milliseconds, FUNC_CALLBACK&& func)
 		: m_milliseconds(milliseconds)
 		, m_func(std::move(func))

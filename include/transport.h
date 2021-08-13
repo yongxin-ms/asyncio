@@ -3,6 +3,7 @@
 #include <deque>
 #include <asio.hpp>
 #include "protocol.h"
+#include "timer.h"
 
 namespace asyncio {
 
@@ -86,6 +87,12 @@ public:
 	asio::ip::tcp::socket& GetSocket() { return m_socket; }
 	ProtocolPtr GetProtocol() { return m_protocol; }
 	IOContext& GetIOContext() { return m_context; }
+
+	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func) {
+		auto timer = std::make_shared<DelayTimer>(m_context, milliseconds, std::move(func));
+		timer->Start();
+		return timer;
+	}
 
 private:
 	void DoWrite() {
