@@ -126,6 +126,8 @@ public:
 	}
 
 	void send_ping(TransportPtr transport) {
+		ASYNCIO_LOG_DEBUG("send ping");
+
 		TcpMsgHeader ping;
 		ping.len = 0;
 		ping.ctrl = CTL_PING;
@@ -136,6 +138,8 @@ public:
 	}
 
 	void send_pong(TransportPtr transport) {
+		ASYNCIO_LOG_DEBUG("send pong");
+
 		TcpMsgHeader pong;
 		pong.len = 0;
 		pong.ctrl = CTL_PONG;

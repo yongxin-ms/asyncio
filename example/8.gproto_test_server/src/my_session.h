@@ -18,7 +18,7 @@ public:
 
 	uint64_t GetSid() { return m_sid; }
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
-	void Close();
+	void Kick();
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
 	void OnReceivedPong();
 

@@ -26,7 +26,6 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
 				m_ping_counter = 0;
 			} else {
-				ASYNCIO_LOG_DEBUG("Ping Timer");
 				m_codec.send_ping(m_transport);
 				m_ping_counter++;
 			}
@@ -63,7 +62,7 @@ size_t MySession::Send(uint32_t msg_id, const char* data, size_t len) {
 	return ret->size();
 }
 
-void MySession::Close() {
+void MySession::Kick() {
 	if (m_transport != nullptr) {
 		m_transport->Close(asyncio::EC_KICK);
 	}
