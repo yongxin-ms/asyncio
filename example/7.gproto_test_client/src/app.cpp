@@ -6,7 +6,7 @@ App::App()
 	, m_conn_mgr(my_event_loop) {}
 
 void App::Init(const std::string& ip, uint16_t port, int conn_count) {
-	asyncio::g_log->SetLogLevel(asyncio::Log::kInfo);
+	asyncio::g_log->SetLogLevel(asyncio::Log::kDebug);
 	m_conn_mgr.StartConnect(ip, port, conn_count);
 
 	m_timer = my_event_loop.CallLater(1000, [this]() {

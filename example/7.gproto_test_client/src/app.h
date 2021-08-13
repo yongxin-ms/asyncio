@@ -19,6 +19,6 @@ private:
 private:
 	asyncio::EventLoop my_event_loop;
 	MyConnMgr m_conn_mgr;
-	std::shared_ptr<asyncio::DelayTimer> m_timer;
+	asyncio::DelayTimerPtr m_timer;
 	int m_cur_qps = 0;
 };

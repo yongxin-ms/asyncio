@@ -3,6 +3,7 @@
 #include "codec.h"
 #include "bucket.h"
 #include "transport.h"
+#include "log.h"
 
 //
 // 这个解码器就是饥荒正在用的
@@ -13,9 +14,12 @@ namespace asyncio {
 class CodecGProto : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, std::shared_ptr<std::string>)>;
-	CodecGProto(USER_MSG_CALLBACK&& func, uint32_t packet_size_limit = 0)
+	using PONG_CALLBACK = std::function<void()>;
+
+	CodecGProto(USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func, uint32_t packet_size_limit = 0)
 		: Codec(packet_size_limit)
-		, m_user_msg_func(std::move(func)) {}
+		, m_user_msg_func(std::move(msg_func))
+		, m_pong_func(std::move(pong_func)) {}
 	virtual ~CodecGProto() {}
 
 	virtual void Decode(TransportPtr transport, size_t len) {
@@ -34,6 +38,8 @@ public:
 						bucket_.msg_id.reset();
 						uint32_t original_len = bucket_.header.get().len - sizeof(uint32_t);
 						if (packet_size_limit_ > 0 && original_len > packet_size_limit_) {
+							ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)",
+											 original_len, packet_size_limit_);
 							transport->Close(EC_PACKET_OVER_SIZE);
 							return;
 						}
@@ -41,27 +47,30 @@ public:
 						bucket_.data.reset(original_len);
 					} else if (ctrl == CTL_PING) {
 						if (bucket_.header.get().len != 0) {
+							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
+											 bucket_.header.get().len);
 							transport->Close(EC_KICK);
 							return;
 						}
 
-						// PRINTF("recieved ping\n");
-						//反射一个pong
-						send_pong(transport);
+						ASYNCIO_LOG_DEBUG("received ping");
+						send_pong(transport);	// 反射一个pong
 						bucket_.header.reset();
 						continue;
 					} else if (ctrl == CTL_PONG) {
 						if (bucket_.header.get().len != 0) {
+							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
+											 bucket_.header.get().len);
 							transport->Close(EC_KICK);
 							return;
 						}
 
-						// PRINTF("recieved pong\n");
-						//此处啥都没做
+						ASYNCIO_LOG_DEBUG("received pong");
+						m_pong_func();
 						bucket_.header.reset();
 						continue;
 					} else if (ctrl == CTL_CLOSE) {
-						// PRINTF("recieved close\n");
+						ASYNCIO_LOG_DEBUG("received close");
 						//对方要求关闭连接
 						transport->Close(EC_SHUT_DOWN);
 						return;
@@ -147,6 +156,7 @@ private:
 
 private:
 	USER_MSG_CALLBACK m_user_msg_func;
+	PONG_CALLBACK m_pong_func;
 	uint8_t ecnryptWord_ = 0;
 	TcpMsgBucket bucket_;
 };

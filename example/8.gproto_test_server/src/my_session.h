@@ -20,6 +20,7 @@ public:
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
 	void Close();
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
+	void OnReceivedPong();
 
 private:
 	MySessionMgr& m_owner;
@@ -27,6 +28,8 @@ private:
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecGProto m_codec;
 	const uint64_t m_sid;
+	asyncio::DelayTimerPtr m_ping_timer;
+	int m_ping_counter = 0;
 };
 
 using MySessionPtr = std::shared_ptr<MySession>;

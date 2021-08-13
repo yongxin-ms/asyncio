@@ -27,4 +27,6 @@ private:
 	asio::steady_timer m_timer;
 };
 
+using DelayTimerPtr = std::shared_ptr<asyncio::DelayTimer>;
+
 } // namespace asyncio

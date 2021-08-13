@@ -18,3 +18,4 @@ cmake-build-debug
 bin
 build
 build_release
+release

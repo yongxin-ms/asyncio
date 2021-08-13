@@ -4,7 +4,8 @@
 MyConnection::MyConnection(MyConnMgr& owner, asyncio::EventLoop& event_loop)
 	: m_owner(owner)
 	, m_event_loop(event_loop)
-	, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
+	, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
+			  std::bind(&MyConnection::OnReceivedPong, this)) {}
 
 std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 	return m_codec.GetRxBuffer();
@@ -14,8 +15,24 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	m_transport = transport;
 	ASYNCIO_LOG_DEBUG("ConnectionMade");
 
-	std::string msg("hello,world!");
-	Send(0, msg.data(), msg.size());
+	m_ping_counter = 0;
+	auto self = shared_from_this();
+	m_ping_timer = m_event_loop.CallLater(10000, [self, this]() {
+		if (m_transport != nullptr) {
+			if (m_ping_counter > 2) {
+				ASYNCIO_LOG_WARN("ping failed, Closing");
+				Close();
+			} else {
+				ASYNCIO_LOG_DEBUG("Ping Timer");
+				m_codec.send_ping(m_transport);
+				m_ping_counter++;
+			}
+		}
+		m_ping_timer->Start();
+	});
+
+	// std::string msg("hello,world!");
+	// Send(0, msg.data(), msg.size());
 }
 
 void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
@@ -55,6 +72,10 @@ void MyConnection::Close() {
 void MyConnection::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, msg_id, data]() { m_owner.OnMessage(self, msg_id, data); });
+}
+
+void MyConnection::OnReceivedPong() {
+	m_ping_counter = 0;
 }
 
 bool MyConnection::IsConnected() {

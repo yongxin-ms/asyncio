@@ -2,7 +2,7 @@
 #include "asyncio.h"
 
 int g_cur_qps = 0;
-std::shared_ptr<asyncio::DelayTimer> g_timer = nullptr;
+asyncio::DelayTimerPtr g_timer = nullptr;
 
 class MyConnection : public std::enable_shared_from_this<MyConnection>, public asyncio::Protocol {
 public:

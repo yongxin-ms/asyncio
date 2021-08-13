@@ -84,7 +84,7 @@ private:
 	// 还可以使用较小的缓冲区接收大包
 	//
 	asyncio::CodecX m_codec;
-	std::shared_ptr<asyncio::DelayTimer> m_say_timer;
+	asyncio::DelayTimerPtr m_say_timer;
 };
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {

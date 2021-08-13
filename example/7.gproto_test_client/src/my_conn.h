@@ -19,6 +19,7 @@ public:
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
 	void Close();
 	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
+	void OnReceivedPong();
 	bool IsConnected();
 
 private:
@@ -26,6 +27,8 @@ private:
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecGProto m_codec;
+	asyncio::DelayTimerPtr m_ping_timer;
+	int m_ping_counter = 0;
 };
 
 using MyConnectionPtr = std::shared_ptr<MyConnection>;
