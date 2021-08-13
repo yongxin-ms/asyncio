@@ -28,7 +28,7 @@ public:
 	void QueueInLoop(MSG_CALLBACK&& func);
 	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func);
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
-	std::unique_ptr<Listener> CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
+	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
 private:
 	IOContext m_main_context;
@@ -80,8 +80,8 @@ ProtocolPtr EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const
 }
 
 // 使用者应该保持这个监听器
-std::unique_ptr<Listener> EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
-	auto listener = std::make_unique<Listener>(m_main_context, m_worker_io, protocol_factory);
+ListenerPtr EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
+	auto listener = std::make_shared<Listener>(m_main_context, m_worker_io, protocol_factory);
 	if (!listener->Listen(port)) {
 		ASYNCIO_LOG_ERROR("Listen on %d failed", port);
 		return nullptr;

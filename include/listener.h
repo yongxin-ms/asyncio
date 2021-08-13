@@ -6,12 +6,17 @@
 
 namespace asyncio {
 
-class Listener {
+static void fail(asio::error_code ec, char const* what) {
+	ASYNCIO_LOG_ERROR("%s : %s", what, ec.message().data());
+}
+
+class Listener : public std::enable_shared_from_this<Listener> {
 public:
 	Listener(IOContext& main_context, std::shared_ptr<ContextPool> worker_io, ProtocolFactory& protocol_factory)
 		: m_main_context(main_context)
 		, m_worker_io(worker_io)
-		, m_protocol_factory(protocol_factory) {}
+		, m_protocol_factory(protocol_factory)
+		, m_acceptor(main_context) {}
 	Listener(const Listener&) = delete;
 	const Listener& operator=(const Listener&) = delete;
 	~Listener() { Stop(); }
@@ -19,45 +24,62 @@ public:
 	// 监听一个指定端口
 	bool Listen(uint16_t port) {
 		auto ep = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port);
-		m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(m_main_context);
-		m_acceptor->open(ep.protocol());
-		if (!m_acceptor->is_open()) {
-			return false;
-		}
-
-		// m_acceptor->set_option(asio::socket_base::reuse_address(true));
-		m_acceptor->set_option(asio::ip::tcp::no_delay(true));
 		asio::error_code ec;
-		m_acceptor->bind(ep, ec);
+		m_acceptor.open(ep.protocol(), ec);
 		if (ec) {
-			ASYNCIO_LOG_ERROR("bind port:%d failed, ec:%d", port, ec.value());
+			fail(ec, "open");
 			return false;
 		}
 
-		m_acceptor->listen();
+		m_acceptor.set_option(asio::socket_base::reuse_address(true), ec);
+		if (ec) {
+			fail(ec, "set_option reuse_address");
+			return false;
+		}
+
+		m_acceptor.set_option(asio::ip::tcp::no_delay(true), ec);
+		if (ec) {
+			fail(ec, "set_option no_delay");
+			return false;
+		}
+		
+		m_acceptor.bind(ep, ec);
+		if (ec) {
+			fail(ec, "bind");
+			return false;
+		}
+
+		m_acceptor.listen(asio::socket_base::max_listen_connections, ec);
+		if (ec) {
+			fail(ec, "listen");
+			return false;
+		}
+
 		Accept();
 		return true;
 	}
 
-	void Stop() { m_acceptor->close(); }
+	void Stop() { m_acceptor.close(); }
 
 private:
 	void Accept() {
 		auto session = std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(),
 												   m_protocol_factory.CreateProtocol());
-		m_acceptor->async_accept(session->GetSocket(), [this, session](std::error_code ec) {
+		auto self = shared_from_this();
+		m_acceptor.async_accept(session->GetSocket(), [self, this, session](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
 			// completion handler had a chance to run.
-			if (!m_acceptor->is_open()) {
+			if (!m_acceptor.is_open()) {
 				return;
 			}
 
 			if (!ec) {
 				std::string remote_ip;
-				asio::error_code ec;
 				auto endpoint = session->GetSocket().remote_endpoint(ec);
 				if (!ec) {
 					remote_ip = endpoint.address().to_string();
+				} else {
+					fail(ec, "remote_endpoint");
 				}
 
 				session->SetRemoteIp(remote_ip);
@@ -70,8 +92,7 @@ private:
 					session->DoReadData();
 				}
 			} else {
-				ASYNCIO_LOG_ERROR("Accept error:%s", ec.message().data());
-				// acceptor->close();
+				fail(ec, "accept");
 			}
 
 			Accept();
@@ -82,7 +103,9 @@ private:
 	IOContext& m_main_context;
 	std::shared_ptr<ContextPool> m_worker_io;
 	ProtocolFactory& m_protocol_factory;
-	std::unique_ptr<asio::ip::tcp::acceptor> m_acceptor;
+	asio::ip::tcp::acceptor m_acceptor;
 };
+
+using ListenerPtr = std::shared_ptr<Listener>;
 
 } // namespace asyncio

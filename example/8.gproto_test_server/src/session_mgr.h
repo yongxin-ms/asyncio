@@ -37,5 +37,5 @@ private:
 	asyncio::EventLoop& m_event_loop;
 	MySessionFactory m_session_factory;
 	std::unordered_map<uint64_t, MySessionPtr> m_sessions;
-	std::unique_ptr<asyncio::Listener> m_listener;
+	asyncio::ListenerPtr m_listener;
 };
