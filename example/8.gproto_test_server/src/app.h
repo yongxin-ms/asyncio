@@ -15,7 +15,7 @@ public:
 	void IncQps();
 
 private:
-	void OnOnSecondTimer();
+	void OnOneSecondTimer();
 
 private:
 	asyncio::EventLoop my_event_loop;
