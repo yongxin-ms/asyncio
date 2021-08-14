@@ -38,7 +38,7 @@ public:
 		bucket_.msg_name_len.reset();
 	}
 
-	virtual void Decode(TransportPtr transport, size_t len) {
+	virtual void Decode(TransportPtr transport, size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
