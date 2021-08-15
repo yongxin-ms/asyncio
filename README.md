@@ -126,18 +126,18 @@
 
 向我参考过的框架，还有一些讨论过的朋友（如果您愿意，您的名字会列在下面）致谢！当然还有伟大的asio和Python。
 
-| 编号 | 名称             | 地址                              |
-| ---- | ---------------- | --------------------------------- |
-| 1    | 奇虎的网络库evpp | https://github.com/Qihoo360/evpp  |
-| 2    | muduo            | https://github.com/chenshuo/muduo |
-| 3    | asio2            | https://github.com/zhllxt/asio2   |
-| 4    | brynet           | https://github.com/IronsDu/brynet |
-|      |                  |                                   |
-|      |                  |                                   |
-|      |                  |                                   |
-|      |                  |                                   |
-|      |                  |                                   |
-|      |                  |                                   |
+| 编号 | 名称             | 地址                                         |
+| ---- | ---------------- | -------------------------------------------- |
+| 1    | 奇虎的网络库evpp | https://github.com/Qihoo360/evpp             |
+| 2    | muduo            | https://github.com/chenshuo/muduo            |
+| 3    | asio2            | https://github.com/zhllxt/asio2              |
+| 4    | brynet           | https://github.com/IronsDu/brynet            |
+| 5    | redis-cpp17      | https://github.com/danielshaving/redis-cpp17 |
+|      |                  |                                              |
+|      |                  |                                              |
+|      |                  |                                              |
+|      |                  |                                              |
+|      |                  |                                              |
 
 
 
