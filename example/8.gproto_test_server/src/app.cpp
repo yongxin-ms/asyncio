@@ -16,7 +16,7 @@ bool App::Init(uint16_t port) {
 		return false;
 
 	m_timer = my_event_loop.CallLater(1000, [this]() {
-		OnOnSecondTimer();
+		OnOneSecondTimer();
 		m_timer->Start();
 	});
 
@@ -39,7 +39,7 @@ void App::IncQps() {
 	++m_cur_qps;
 }
 
-void App::OnOnSecondTimer() {
+void App::OnOneSecondTimer() {
 	if (m_cur_qps != 0) {
 		ASYNCIO_LOG_INFO("Cur qps:%d, ConnCount:%llu", m_cur_qps, m_session_mgr.size());
 		m_cur_qps = 0;
