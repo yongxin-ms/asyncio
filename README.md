@@ -10,7 +10,9 @@
 
 ​		asyncio是一个易于使用的、轻量的、高效的服务器框架，基于Reactor模型，可用于迅速开发网游服务器、微服务、压测工具等，它不仅仅是一个网络框架，它抽象了网络，虽然目前使用了ASIO，但是将来却不一定，我希望将来你我都能升级它的各种组件。
 
-​		一直以来想要一个用起来方便的网络组件，却一直没找到，只到我碰到了Python里面的asyncio，立刻被其优雅的接口和使用方式所折服，干脆自己写一个，所以就有了这个asyncio，连名字都一样，赫赫
+​		一直以来想要一个用起来方便的网络组件，却一直没找到，只到我碰到了Python里面的asyncio，立刻被其优雅的接口和使用方式所折服，干脆自己写一个，所以就有了这个asyncio，连名字都一样，赫赫！
+
+​		市面上已经有了很多种网络库，很多库也写得不错，比如muduo、evpp、brynet、libhv，为啥我还要再写一个？一方面我认为绝大多数网络库包括上面的这几个基本上都是为无状态服务设计的，对游戏这种有状态服务考虑的并不多，我坚持认为有状态服务的网络库要有一个SessionFactory去创建Session，网络接口应该是派生Session指针，并且Session的管理要在主线程中，还有好的解码器能让您的工作有积累，长期来看，这个方向会是时间的朋友。
 
 
 
@@ -84,7 +86,7 @@
 | 2    | 添加对HttpServer的支持                                       |      |
 | 3    | 添加支持CronTab表达式的定时器                                |      |
 | 4    | 用户态协议的支持                                             |      |
-|      |                                                              |      |
+| 5    | 把asyncio用多种网络库实现一遍，对比一下性能                  |      |
 |      |                                                              |      |
 |      |                                                              |      |
 |      |                                                              |      |
@@ -133,7 +135,7 @@
 | 3    | asio2            | https://github.com/zhllxt/asio2              |
 | 4    | brynet           | https://github.com/IronsDu/brynet            |
 | 5    | redis-cpp17      | https://github.com/danielshaving/redis-cpp17 |
-|      |                  |                                              |
+| 6    | libhv            | https://github.com/ithewei/libhv.git         |
 |      |                  |                                              |
 |      |                  |                                              |
 |      |                  |                                              |
