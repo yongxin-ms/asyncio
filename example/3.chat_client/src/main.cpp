@@ -4,24 +4,26 @@
 class MyConnection : public std::enable_shared_from_this<MyConnection>, public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop)
-		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
+		: m_event_loop(event_loop) {
+		m_rx_buffer.resize(1024);
+	}
 	virtual ~MyConnection() {}
 
-	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
+	virtual std::pair<char*, size_t> GetRxBuffer() override {
+		return std::make_pair(m_rx_buffer.data(), m_rx_buffer.size());
+	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
-		m_codec.Reset();
 		m_transport = transport;
-		ASYNCIO_LOG_DEBUG("ConnectionMade");
+		ASYNCIO_LOG_INFO("ConnectionMade");
 
 		//
 		// 连接建立之后每2秒钟发送一条消息
 		//
 		auto self = shared_from_this();
 		m_say_timer = m_event_loop.CallLater(2000, [self]() {
-			std::string msg("hello,world!");
-			self->Send(0, msg.data(), msg.size());
+			auto msg = std::make_shared<std::string>("hello,world!");
+			self->Send(msg);
 
 			if (self->m_say_timer != nullptr) {
 				self->m_say_timer->Start();
@@ -36,7 +38,7 @@ public:
 		// 网络断开之后每3秒钟尝试一次重连，只到连上为止
 		//
 		m_event_loop.CallLater(3000, [transport]() {
-			ASYNCIO_LOG_DEBUG("Start Reconnect");
+			ASYNCIO_LOG_INFO("Start Reconnect");
 			transport->Connect();
 		});
 
@@ -47,31 +49,27 @@ public:
 			m_say_timer = nullptr;
 		}
 		
-		ASYNCIO_LOG_DEBUG("ConnectionLost");
+		ASYNCIO_LOG_INFO("ConnectionLost");
 	}
 
 	virtual void DataReceived(size_t len) override {
-		m_codec.Decode(m_transport, len);
+		std::string content(m_rx_buffer.data(), len);
+		ASYNCIO_LOG_INFO("%s", content.data());
 	}
 
 	virtual void EofReceived() override { m_transport->WriteEof(); }
 
-	size_t Send(uint32_t msg_id, const char* data, size_t len) {
+	size_t Send(std::shared_ptr<std::string> data) {
 		if (!IsConnected())
 			return 0;
-		auto ret = m_codec.Encode(msg_id, data, len);
-		m_transport->Write(ret);
-		return ret->size();
+		m_transport->Write(data);
+		return data->size();
 	}
 
 	void Close() {
 		if (m_transport != nullptr) {
 			m_transport->Close(asyncio::EC_SHUT_DOWN);
 		}
-	}
-
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
-		ASYNCIO_LOG_DEBUG("OnMyMessageFunc: %s", data->data());
 	}
 
 	bool IsConnected() { return m_transport != nullptr; }
@@ -81,10 +79,10 @@ private:
 	asyncio::TransportPtr m_transport;
 
 	//
-	// 使用带消息id的解码器，解决了黏包问题
-	// 还可以使用较小的缓冲区接收大包
+	// ProActor模式使用预先分配的缓冲区接收数据
+	// 如果缓冲区不够，会分成多次接收
 	//
-	asyncio::CodecX m_codec;
+	std::string m_rx_buffer;
 	asyncio::DelayTimerPtr m_say_timer;
 };
 

@@ -3,6 +3,13 @@
 #include "asyncio.h"
 #include "util.h"
 
+
+/*
+* 测试方法：
+	nc 127.0.0.1 9000
+	或者 ./ChatClient
+*/
+
 class MySessionMgr;
 
 class MySession : public std::enable_shared_from_this<MySession>, public asyncio::Protocol{
