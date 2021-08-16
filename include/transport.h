@@ -62,6 +62,10 @@ public:
 	void DoReadData() {
 		auto self = shared_from_this();
 		auto rx_buffer = self->m_protocol->GetRxBuffer();
+		if (rx_buffer.first == nullptr || rx_buffer.second == 0) {
+			throw "wrong rx buffer";
+		}
+
 		m_socket.async_read_some(asio::buffer(rx_buffer.first, rx_buffer.second),
 								 [self](std::error_code ec, std::size_t length) {
 									 if (!ec) {
