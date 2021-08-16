@@ -88,6 +88,9 @@ public:
 
 	void SetRemoteIp(const std::string& remote_ip) { m_remote_ip = remote_ip; }
 	const std::string& GetRemoteIp() const { return m_remote_ip; }
+	void SetRemotePort(uint16_t remote_port) { m_remote_port = remote_port; }
+	uint16_t GetRemotePort() const { return m_remote_port; }
+
 	asio::ip::tcp::socket& GetSocket() { return m_socket; }
 	ProtocolPtr GetProtocol() { return m_protocol; }
 	IOContext& GetIOContext() { return m_context; }

@@ -75,14 +75,17 @@ private:
 
 			if (!ec) {
 				std::string remote_ip;
+				uint16_t remote_port = 0;
 				auto endpoint = session->GetSocket().remote_endpoint(ec);
 				if (!ec) {
 					remote_ip = endpoint.address().to_string();
+					remote_port = endpoint.port();
 				} else {
 					fail(ec, "remote_endpoint");
 				}
 
 				session->SetRemoteIp(remote_ip);
+				session->SetRemotePort(remote_port);
 				session->GetSocket().set_option(asio::ip::tcp::no_delay(true), ec);
 
 				session->GetProtocol()->ConnectionMade(session);

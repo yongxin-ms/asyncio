@@ -100,6 +100,22 @@ public:
 #endif
 	}
 
+	static std::string& Format(std::string& s, const char* fmt, ...) {
+		va_list args;
+		va_start(args, fmt);
+
+		va_list args_copy;
+		va_copy(args_copy, args);
+		size_t len = std::vsnprintf(nullptr, 0, fmt, args);
+		if (len > 0) {
+			s.resize(len + 1);
+			std::vsnprintf(s.data(), s.size(), fmt, args_copy);
+		}
+
+		va_end(args);
+		return s;
+	}
+
 	static std::string Format(const char* fmt, ...) {
 		std::string s;
 		va_list args;

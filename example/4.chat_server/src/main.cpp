@@ -1,6 +1,7 @@
 ﻿#include <functional>
 #include <unordered_map>
 #include "asyncio.h"
+#include "util.h"
 
 class MySessionMgr;
 
@@ -9,14 +10,17 @@ public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
 		, m_event_loop(event_loop)
-		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2))
-		, m_sid(sid) {}
+		, m_sid(sid) {
+		m_rx_buffer.resize(1024);
+	}
 	virtual ~MySession() {}
 
-	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
+	virtual std::pair<char*, size_t> GetRxBuffer() override {
+		return std::make_pair(m_rx_buffer.data(), m_rx_buffer.size());
+	}
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
-	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
+	virtual void DataReceived(size_t len) override;
 	virtual void EofReceived() override { 
 		ASYNCIO_LOG_DEBUG("EofReceived");
 		m_transport->WriteEof();
@@ -24,12 +28,11 @@ public:
 
 	uint64_t GetSid() { return m_sid; }
 
-	size_t Send(uint32_t msg_id, const char* data, size_t len) {
+	size_t Send(std::shared_ptr<std::string> data) {
 		if (m_transport == nullptr)
 			return 0;
-		auto ret = m_codec.Encode(msg_id, data, len);
-		m_transport->Write(ret);
-		return ret->size();
+		m_transport->Write(data);
+		return data->size();
 	}
 
 	void Close() {
@@ -38,18 +41,16 @@ public:
 		}
 	}
 
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
-
 private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
 
 	//
-	// 使用带消息id的解码器，解决了黏包问题
-	// 还可以使用较小的缓冲区接收大包
+	// ProActor模式使用预先分配的缓冲区接收数据
+	// 如果缓冲区不够，会分成多次接收
 	//
-	asyncio::CodecX m_codec;
+	std::string m_rx_buffer;
 	const uint64_t m_sid;
 };
 
@@ -97,10 +98,10 @@ public:
 		return it->second;
 	}
 
-	void BroadcastToAll(const std::string& words) {
+	void BroadcastToAll(std::shared_ptr<std::string> words) {
 		for (auto& it : m_sessions) {
 			auto& session = it.second;
-			session->Send(0, words.data(), words.size());
+			session->Send(words);
 		}
 	}
 
@@ -110,23 +111,42 @@ private:
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
-	m_codec.Reset();
 	m_transport = transport;
+
+	auto data = std::make_shared<std::string>();
+	asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
+								m_transport->GetRemotePort(), GetSid());
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() { m_owner.OnSessionCreate(self); });
+	m_event_loop.QueueInLoop([self, this, data]() {
+		m_owner.OnSessionCreate(self);
+		m_owner.BroadcastToAll(data);
+	});
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+	auto data = std::make_shared<std::string>();
+	asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] left\n", m_transport->GetRemoteIp().data(),
+								m_transport->GetRemotePort(), GetSid());
+
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
+	m_event_loop.QueueInLoop([self, this, data]() {
 		m_owner.OnSessionDestroy(self);
+		m_owner.BroadcastToAll(data);
 		m_transport = nullptr;
 	});
 }
 
-void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
+void MySession::DataReceived(size_t len) {
+	std::string content(m_rx_buffer.data(), len);
+	if (content.size() == 1 && (content[0] == '\n' || content[0] == '\r')) {
+		return;
+	}
+
+	auto data = std::make_shared<std::string>();
+	asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] say: %s", m_transport->GetRemoteIp().data(),
+								m_transport->GetRemotePort(), GetSid(), content.data());
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, data, this]() { m_owner.BroadcastToAll(*data); });
+	m_event_loop.QueueInLoop([self, data, this]() { m_owner.BroadcastToAll(data); });
 }
 
 int main() {
