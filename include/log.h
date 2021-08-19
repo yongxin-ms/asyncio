@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <functional>
 #include <cstdarg>
+#include "util.h"
 
 #define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                                 \
 	asyncio::g_log->DoLog(asyncio::Log::kDebug, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
