@@ -29,7 +29,7 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 				m_ping_counter++;
 			}
 		}
-		m_ping_timer->Start();
+		m_ping_timer->Reset();
 	});
 
 	std::string msg("hello,world!");

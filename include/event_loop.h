@@ -69,7 +69,7 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 
 DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func) {
 	auto timer = std::make_shared<DelayTimer>(m_main_context, milliseconds, std::move(func));
-	timer->Start();
+	timer->Reset();
 	return timer;
 }
 

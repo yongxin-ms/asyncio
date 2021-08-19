@@ -17,7 +17,7 @@ bool App::Init(uint16_t port) {
 
 	m_timer = my_event_loop.CallLater(1000, [this]() {
 		OnOneSecondTimer();
-		m_timer->Start();
+		m_timer->Reset();
 	});
 
 	return true;

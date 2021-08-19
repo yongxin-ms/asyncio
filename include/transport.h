@@ -72,7 +72,7 @@ public:
 										 self->m_protocol->DataReceived(length);
 										 self->DoReadData();
 									 } else {
-										 self->Close(ec.value());
+										 self->InnerClose(ec.value());
 									 }
 								 });
 	}
@@ -97,7 +97,7 @@ public:
 
 	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func) {
 		auto timer = std::make_shared<DelayTimer>(m_context, milliseconds, std::move(func));
-		timer->Start();
+		timer->Reset();
 		return timer;
 	}
 
@@ -112,9 +112,18 @@ private:
 									  self->DoWrite();
 								  }
 							  } else {
-								  self->Close(ec.value());
+								  self->InnerClose(ec.value());
 							  }
 						  });
+	}
+
+	//在io线程中关闭
+	void InnerClose(int err_code) {
+		if (!m_socket.is_open())
+			return;
+		m_socket.close();
+		auto self = shared_from_this();
+		m_protocol->ConnectionLost(self, err_code);
 	}
 
 private:
@@ -132,12 +141,7 @@ private:
 
 void Transport::Close(int err_code) {
 	auto self = shared_from_this();
-	asio::post(self->m_context, [self, this, err_code]() {
-		if (!m_socket.is_open())
-			return;
-		m_socket.close();
-		m_protocol->ConnectionLost(self, err_code);
-	});
+	asio::post(self->m_context, [self, this, err_code]() { InnerClose(err_code); });
 }
 
 void Transport::Write(const std::shared_ptr<std::string>& msg) {

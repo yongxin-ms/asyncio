@@ -20,15 +20,17 @@ public:
 		//
 		// 连接建立之后每2秒钟发送一条消息
 		//
-		auto self = shared_from_this();
-		m_say_timer = m_event_loop.CallLater(2000, [self]() {
-			auto msg = std::make_shared<std::string>("hello,world!");
-			self->Send(msg);
-
-			if (self->m_say_timer != nullptr) {
-				self->m_say_timer->Start();
-			}
-		});
+		
+		if (m_say_timer == nullptr) {
+			auto self = shared_from_this();
+			m_say_timer = m_event_loop.CallLater(2000, [self, this]() {
+				auto msg = std::make_shared<std::string>("hello,world!");
+				Send(msg);
+				m_say_timer->Reset();
+			});
+		} else {
+			m_say_timer->Reset();
+		}
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
@@ -46,7 +48,7 @@ public:
 		// 连接断开之后停止发送消息
 		//
 		if (m_say_timer != nullptr) {
-			m_say_timer = nullptr;
+			m_say_timer->Cancel();
 		}
 		
 		ASYNCIO_LOG_INFO("ConnectionLost");

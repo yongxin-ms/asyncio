@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
 			ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
 			g_cur_qps = 0;
 		}
-		g_timer->Start();
+		g_timer->Reset();
 	});
 
 	my_event_loop.RunForever();
