@@ -23,7 +23,7 @@ public:
 	virtual ~MySession() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
-		return std::make_pair(m_rx_buffer.data(), m_rx_buffer.size());
+		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
