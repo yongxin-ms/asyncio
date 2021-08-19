@@ -109,7 +109,7 @@ public:
 		size_t len = std::vsnprintf(nullptr, 0, fmt, args);
 		if (len > 0) {
 			s.resize(len + 1);
-			std::vsnprintf(s.data(), s.size(), fmt, args_copy);
+			std::vsnprintf(&s[0], s.size(), fmt, args_copy);
 		}
 
 		va_end(args);
@@ -126,7 +126,7 @@ public:
 		size_t len = std::vsnprintf(nullptr, 0, fmt, args);
 		if (len > 0) {
 			s.resize(len + 1);
-			std::vsnprintf(s.data(), s.size(), fmt, args_copy);
+			std::vsnprintf(&s[0], s.size(), fmt, args_copy);
 		}
 
 		va_end(args);
