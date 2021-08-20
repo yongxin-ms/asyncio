@@ -18,19 +18,21 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 
 	m_ping_counter = 0;
 	auto self = shared_from_this();
-	m_ping_timer = m_transport->CallLater(30000, [self, this]() {
-		if (m_transport != nullptr) {
-			if (m_ping_counter > 2) {
-				ASYNCIO_LOG_WARN("Keep alive failed, Closing");
-				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
-				m_ping_counter = 0;
-			} else {
-				m_codec.send_ping(m_transport);
-				m_ping_counter++;
+	m_ping_timer = m_transport->CallLater(
+		30000,
+		[self, this]() {
+			if (m_transport != nullptr) {
+				if (m_ping_counter > 2) {
+					ASYNCIO_LOG_WARN("Keep alive failed, Closing");
+					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+					m_ping_counter = 0;
+				} else {
+					m_codec.send_ping(m_transport);
+					m_ping_counter++;
+				}
 			}
-		}
-		m_ping_timer->Reset();
-	});
+		},
+		asyncio::DelayTimer::RUN_FOREVER);
 
 	std::string msg("hello,world!");
 	Send(0, msg.data(), msg.size());

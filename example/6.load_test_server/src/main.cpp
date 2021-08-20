@@ -130,13 +130,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	ASYNCIO_LOG_INFO("listen on %d suc", port);
-	g_timer = my_event_loop.CallLater(1000, []() {
-		if (g_cur_qps != 0) {
-			ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
-			g_cur_qps = 0;
-		}
-		g_timer->Reset();
-	});
+	g_timer = my_event_loop.CallLater(
+		1000,
+		[]() {
+			if (g_cur_qps != 0) {
+				ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
+				g_cur_qps = 0;
+			}
+		},
+		asyncio::DelayTimer::RUN_FOREVER);
 
 	my_event_loop.RunForever();
 	return 0;

@@ -95,9 +95,9 @@ public:
 	ProtocolPtr GetProtocol() { return m_protocol; }
 	IOContext& GetIOContext() { return m_context; }
 
-	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func) {
+	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE) {
 		auto timer = std::make_shared<DelayTimer>(m_context, milliseconds, std::move(func));
-		timer->Reset();
+		timer->Run(run_times);
 		return timer;
 	}
 

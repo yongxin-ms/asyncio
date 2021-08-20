@@ -13,10 +13,8 @@ void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	asyncio::g_log->SetLogLevel(asyncio::Log::kInfo);
 	m_conn_mgr.StartConnect(ip, port, conn_count);
 
-	m_timer = my_event_loop.CallLater(1000, [this]() {
-		OnOneSecondTimer();
-		m_timer->Reset();
-	});
+	m_timer = my_event_loop.CallLater(
+		1000, [this]() { OnOneSecondTimer(); }, asyncio::DelayTimer::RUN_FOREVER);
 }
 
 void App::Run() {

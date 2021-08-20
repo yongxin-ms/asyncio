@@ -23,13 +23,15 @@ public:
 		
 		if (m_say_timer == nullptr) {
 			auto self = shared_from_this();
-			m_say_timer = m_event_loop.CallLater(2000, [self, this]() {
-				auto msg = std::make_shared<std::string>("hello,world!");
-				Send(msg);
-				m_say_timer->Reset();
-			});
+			m_say_timer = m_event_loop.CallLater(
+				2000,
+				[self, this]() {
+					auto msg = std::make_shared<std::string>("hello,world!");
+					Send(msg);
+				},
+				asyncio::DelayTimer::RUN_FOREVER);
 		} else {
-			m_say_timer->Reset();
+			m_say_timer->Run(asyncio::DelayTimer::RUN_FOREVER);
 		}
 	}
 

@@ -15,10 +15,8 @@ bool App::Init(uint16_t port) {
 	if (!m_session_mgr.Init(port))
 		return false;
 
-	m_timer = my_event_loop.CallLater(1000, [this]() {
-		OnOneSecondTimer();
-		m_timer->Reset();
-	});
+	m_timer = my_event_loop.CallLater(
+		1000, [this]() { OnOneSecondTimer(); }, asyncio::DelayTimer::RUN_FOREVER);
 
 	return true;
 }

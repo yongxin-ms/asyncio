@@ -26,7 +26,7 @@ public:
 	void RunForever();
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
-	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func);
+	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE);
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
@@ -67,9 +67,9 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 	asio::post(m_main_context, std::move(func));
 }
 
-DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func) {
+DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
 	auto timer = std::make_shared<DelayTimer>(m_main_context, milliseconds, std::move(func));
-	timer->Reset();
+	timer->Run(run_times);
 	return timer;
 }
 
