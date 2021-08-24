@@ -88,7 +88,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(const std::string& msg_name, const std::string& msg) {
+	std::shared_ptr<std::string> Encode(const std::string& msg_name, const std::string& msg) const {
 		const int datalen = sizeof(uint32_t) + msg_name.size() + msg.size();
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + datalen, 0);
 		size_t cur = 0;

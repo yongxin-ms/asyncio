@@ -52,7 +52,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(const char* buf, size_t len) {
+	std::shared_ptr<std::string> Encode(const char* buf, size_t len) const {
 		if (len <= 0)
 			return nullptr;
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);

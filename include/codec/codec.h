@@ -39,14 +39,14 @@ public:
 		write_pos_ = read_pos_;
 	}
 
-	std::pair<char*, size_t> GetRxBuffer() {
+	std::pair<char*, size_t> GetRxBuffer() const {
 		return std::make_pair((char*)write_pos_, rx_buf_.size() - GetRemainedLen());
 	}
 
 	virtual void Decode(TransportPtr transport, size_t len) = 0;
 
 protected:
-	size_t GetRemainedLen() { return write_pos_ - read_pos_; }
+	size_t GetRemainedLen() const { return write_pos_ - read_pos_; }
 	void ReArrangePos() {
 		if (read_pos_ == rx_buf_.data())
 			return;

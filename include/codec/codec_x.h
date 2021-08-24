@@ -51,7 +51,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(uint32_t msgID, const char* buf, size_t len) {
+	std::shared_ptr<std::string> Encode(uint32_t msgID, const char* buf, size_t len) const {
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
 		header->len = BigLittleSwap32(len);
