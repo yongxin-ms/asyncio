@@ -14,17 +14,26 @@ typedef std::shared_ptr<Transport> TransportPtr;
 class Codec {
 public:
 	enum {
+		/*
+		 * 缺省缓冲区大小，空间换时间，缓冲区越大，接收超长报文的性能越好
+		*/
 		DEFAULT_RX_BUFFER_SIZE = 1024,
+
+		/*
+		 * 最大报文长度，超过此长度的报文会认为是非法的，解码器会断开连接，否则可能会把内存吃光造成崩溃
+		 */
+		MAX_PACKET_SIZE = 10 * 1024 * 1024,
 	};
 
-	Codec(uint32_t packet_size_limit)
-		: packet_size_limit_(packet_size_limit) {
+	Codec(uint32_t rx_buffer_size, uint32_t packet_size_limit)
+		: rx_buffer_size_(rx_buffer_size)
+		, packet_size_limit_(packet_size_limit) {
 		Reset();
 	}
 
-	virtual void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) {
-		if (rx_buf_.size() != size) {
-			rx_buf_.resize(size);
+	virtual void Reset() {
+		if (rx_buf_.size() != rx_buffer_size_) {
+			rx_buf_.resize(rx_buffer_size_);
 		}
 		read_pos_ = rx_buf_.data();
 		write_pos_ = read_pos_;
@@ -53,10 +62,15 @@ protected:
 		}
 	}
 
+	bool IsOverSize(uint32_t len) const { return packet_size_limit_ > 0 && len > packet_size_limit_; }
+
 protected:
 	const char* write_pos_ = nullptr;
 	const char* read_pos_ = nullptr;
+
+private:
 	std::string rx_buf_;
+	uint32_t rx_buffer_size_;
 	uint32_t packet_size_limit_;
 };
 

@@ -6,13 +6,14 @@ namespace asyncio {
 class CodecTrans : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(uint64_t trans_id, uint32_t msg_id, std::shared_ptr<std::string>)>;
-	CodecTrans(USER_MSG_CALLBACK&& func)
-		: Codec(0)
+	CodecTrans(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+			   uint32_t packet_size_limit = MAX_PACKET_SIZE)
+		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
 	virtual ~CodecTrans() {}
 
-	virtual void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) override {
-		Codec::Reset(size);
+	virtual void Reset() override {
+		Codec::Reset();
 		bucket_.header.reset();
 	}
 
@@ -28,10 +29,9 @@ public:
 
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					uint32_t original_len = BigLittleSwap32(bucket_.header.get().len);
-					if (packet_size_limit_ > 0 && original_len > packet_size_limit_) {
+					if (IsOverSize(original_len)) {
 						transport->Close(EC_PACKET_OVER_SIZE);
-						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len,
-										 packet_size_limit_);
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len);
 						return;
 					}
 

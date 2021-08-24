@@ -27,13 +27,14 @@ namespace asyncio {
 class CodecShelter : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(std::shared_ptr<std::string>, std::shared_ptr<std::string>)>;
-	CodecShelter(USER_MSG_CALLBACK&& func, uint32_t packet_size_limit = 0)
-		: Codec(packet_size_limit)
+	CodecShelter(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+				 uint32_t packet_size_limit = MAX_PACKET_SIZE)
+		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
 	virtual ~CodecShelter() {}
 
-	virtual void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) override {
-		Codec::Reset(size);
+	virtual void Reset() override {
+		Codec::Reset();
 		bucket_.header.reset();
 		bucket_.msg_name_len.reset();
 	}
@@ -53,11 +54,17 @@ public:
 				}
 
 				if (bucket_.header.fill(read_pos_, left_len) && bucket_.msg_name_len.fill(read_pos_, left_len)) {
-					uint32_t data_len = bucket_.header.get().datalen;
-					if (packet_size_limit_ > 0 && data_len > packet_size_limit_) {
+					if (IsOverSize(bucket_.msg_name_len.get())) {
 						transport->Close(EC_PACKET_OVER_SIZE);
-						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", data_len,
-										 packet_size_limit_);
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit",
+										 bucket_.msg_name_len.get());
+						return;
+					}
+
+					uint32_t data_len = bucket_.header.get().datalen;
+					if (IsOverSize(data_len)) {
+						transport->Close(EC_PACKET_OVER_SIZE);
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", data_len);
 						return;
 					}
 

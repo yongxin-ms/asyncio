@@ -12,14 +12,15 @@ public:
 	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, std::shared_ptr<std::string>)>;
 	using PONG_CALLBACK = std::function<void()>;
 
-	CodecGProto(USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func, uint32_t packet_size_limit = 0)
-		: Codec(packet_size_limit)
+	CodecGProto(USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func,
+				uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE, uint32_t packet_size_limit = MAX_PACKET_SIZE)
+		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(msg_func))
 		, m_pong_func(std::move(pong_func)) {}
 	virtual ~CodecGProto() {}
 
-	virtual void Reset(size_t size = DEFAULT_RX_BUFFER_SIZE) override {
-		Codec::Reset(size);
+	virtual void Reset() override {
+		Codec::Reset();
 		bucket_.header.reset();
 		bucket_.msg_id.reset();
 	}
@@ -45,9 +46,8 @@ public:
 
 						bucket_.msg_id.reset();
 						uint32_t original_len = bucket_.header.get().len - sizeof(uint32_t);
-						if (packet_size_limit_ > 0 && original_len > packet_size_limit_) {
-							ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)",
-											 original_len, packet_size_limit_);
+						if (IsOverSize(original_len)) {
+							ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", original_len);
 							transport->Close(EC_PACKET_OVER_SIZE);
 							return;
 						}
