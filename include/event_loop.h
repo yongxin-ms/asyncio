@@ -7,6 +7,7 @@
 #include "log.h"
 #include "listener.h"
 #include "timer.h"
+#include "http_server.h"
 
 namespace asyncio {
 
@@ -34,6 +35,7 @@ public:
 	*/
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
 	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
+	http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
 
 private:
 	IOContext m_main_context;
@@ -103,6 +105,11 @@ ListenerPtr EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t 
 		return nullptr;
 	}
 	return listener;
+}
+
+http::server_ptr EventLoop::CreateHttpServer(uint16_t port, http::request_handler handler) {
+	auto http_server = std::make_shared<http::server>(WorkerIOContext(), port, handler);
+	return http_server;
 }
 
 } // namespace asyncio

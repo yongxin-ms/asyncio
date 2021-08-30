@@ -5,6 +5,7 @@
 #include "transport.h"
 #include "event_loop.h"
 #include "context_pool.h"
+#include "http_base.h"
 #include "codec/codec.h"
 #include "codec/codec_x.h"
 #include "codec/codec_len.h"
