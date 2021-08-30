@@ -83,4 +83,13 @@ static Log g_default_log(
 
 static Log* g_log = &g_default_log;
 
+static void SetLogHandler(Log::LOG_FUNC&& func, Log::LogLevel log_level) {
+	if (g_log != nullptr && g_log != &g_default_log) {
+		delete g_log;
+		g_log = nullptr;
+	}
+
+	g_log = new Log(std::move(func), log_level);
+}
+
 } // namespace asyncio
