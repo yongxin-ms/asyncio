@@ -28,6 +28,11 @@ public:
 	void QueueInLoop(MSG_CALLBACK&& func);
 	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE);
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
+
+	/*
+	remote_addr形如 127.0.0.1:9000
+	*/
+	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
 	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 
 private:
@@ -77,6 +82,17 @@ ProtocolPtr EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const
 	auto transport = std::make_shared<Transport>(WorkerIOContext(), protocol_factory.CreateProtocol(), host, port);
 	transport->Connect();
 	return transport->GetProtocol();
+}
+
+ProtocolPtr EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr) {
+	std::vector<std::string> vec;
+	if (util::Text::SplitStr(vec, remote_addr, ':') != 2) {
+		return nullptr;
+	}
+
+	const std::string& host = vec[0];
+	uint16_t port = atoi(vec[1].data());
+	return CreateConnection(protocol_factory, host, port);
 }
 
 // 使用者应该保持这个监听器
