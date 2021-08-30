@@ -13,9 +13,9 @@ namespace asyncio {
 class ProtocolFactory;
 
 class EventLoop {
+public:
 	using MSG_CALLBACK = std::function<void()>;
 
-public:
 	EventLoop(size_t work_io_num = 0);
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
