@@ -58,5 +58,6 @@ private:
 };
 
 using DelayTimerPtr = std::shared_ptr<asyncio::DelayTimer>;
+using DelayTimerWeakPtr = std::weak_ptr<asyncio::DelayTimer>;
 
 } // namespace asyncio

@@ -8,6 +8,10 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #ifdef _WIN32
+#	ifndef NOMINMAX
+#		define NOMINMAX
+#	endif
+
 #	include <stdlib.h>
 #	include <windows.h>
 #	include <io.h>
