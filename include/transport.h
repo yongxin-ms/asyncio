@@ -4,6 +4,7 @@
 #include <asio.hpp>
 #include "protocol.h"
 #include "timer.h"
+#include "log.h"
 
 namespace asyncio {
 
@@ -46,13 +47,17 @@ public:
 				throw "not a client, i can't reconnect";
 			}
 
+			ASYNCIO_LOG_DEBUG("start connecting to %s:%d", m_remote_ip.data(), m_remote_port);
+
 			asio::ip::tcp::resolver resolver(m_context);
 			auto endpoints = resolver.resolve(m_remote_ip, std::to_string(m_remote_port));
-			asio::async_connect(m_socket, endpoints, [self](std::error_code ec, asio::ip::tcp::endpoint) {
+			asio::async_connect(m_socket, endpoints, [self, this](std::error_code ec, asio::ip::tcp::endpoint) {
 				if (!ec) {
+					ASYNCIO_LOG_DEBUG("connect to %s:%d suc", m_remote_ip.data(), m_remote_port);
 					self->m_protocol->ConnectionMade(self);
 					self->DoReadData();
 				} else {
+					ASYNCIO_LOG_DEBUG("connect to %s:%d failed", m_remote_ip.data(), m_remote_port);
 					self->m_protocol->ConnectionLost(self, ec.value());
 				}
 			});
@@ -119,6 +124,7 @@ private:
 
 	//在io线程中关闭
 	void InnerClose(int err_code) {
+		ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);
 		if (!m_socket.is_open())
 			return;
 		m_socket.close();

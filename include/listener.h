@@ -56,6 +56,7 @@ public:
 		}
 
 		Accept();
+		ASYNCIO_LOG_DEBUG("start listen %d", port);
 		return true;
 	}
 
@@ -83,6 +84,8 @@ private:
 				} else {
 					fail(ec, "remote_endpoint");
 				}
+
+				ASYNCIO_LOG_DEBUG("a client %s:%d connected", remote_ip.data(), remote_port);
 
 				session->SetRemoteIp(remote_ip);
 				session->SetRemotePort(remote_port);
