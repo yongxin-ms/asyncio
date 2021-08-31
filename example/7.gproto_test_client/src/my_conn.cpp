@@ -18,7 +18,7 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 
 	m_ping_counter = 0;
 	auto self = shared_from_this();
-	m_ping_timer = m_transport->CallLater(
+	m_ping_timer = m_event_loop.CallLater(
 		30000,
 		[self, this]() {
 			if (m_transport != nullptr) {
@@ -78,7 +78,8 @@ void MyConnection::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string>
 }
 
 void MyConnection::OnReceivedPong() {
-	m_ping_counter = 0;
+	auto self = shared_from_this();
+	m_event_loop.QueueInLoop([self, this]() { m_ping_counter = 0; });
 }
 
 bool MyConnection::IsConnected() {
