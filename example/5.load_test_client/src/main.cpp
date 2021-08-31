@@ -22,7 +22,9 @@ public:
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
-		m_transport = nullptr;
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this]() { m_transport = nullptr; });
+
 		m_event_loop.CallLater(3000, [transport]() {
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
 			transport->Connect();

@@ -22,15 +22,16 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_ping_timer = m_event_loop.CallLater(
 		30000,
 		[self, this]() {
-			if (m_transport != nullptr) {
-				if (m_ping_counter > 2) {
-					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
-					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
-					m_ping_counter = 0;
-				} else {
-					m_codec.send_ping(m_transport);
-					m_ping_counter++;
-				}
+			if (m_transport == nullptr)
+				return;
+
+			if (m_ping_counter > 2) {
+				ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
+				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+				m_ping_counter = 0;
+			} else {
+				m_codec.send_ping(m_transport);
+				m_ping_counter++;
 			}
 		},
 		asyncio::DelayTimer::RUN_FOREVER);
@@ -39,7 +40,6 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
-	m_ping_counter = 0;
 	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 
 	auto self = shared_from_this();

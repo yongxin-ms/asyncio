@@ -21,15 +21,16 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	m_ping_timer = m_event_loop.CallLater(
 		30000,
 		[self, this]() {
-			if (m_transport != nullptr) {
-				if (m_ping_counter > 2) {
-					ASYNCIO_LOG_WARN("Keep alive failed, Closing");
-					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
-					m_ping_counter = 0;
-				} else {
-					m_codec.send_ping(m_transport);
-					m_ping_counter++;
-				}
+			if (m_transport == nullptr)
+				return;
+
+			if (m_ping_counter > 2) {
+				ASYNCIO_LOG_WARN("Keep alive failed, Closing");
+				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+				m_ping_counter = 0;
+			} else {
+				m_codec.send_ping(m_transport);
+				m_ping_counter++;
 			}
 		},
 		asyncio::DelayTimer::RUN_FOREVER);
@@ -39,8 +40,9 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 }
 
 void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
-	m_transport = nullptr;
 	ASYNCIO_LOG_DEBUG("ConnectionLost");
+	auto self = shared_from_this();
+	m_event_loop.QueueInLoop([self, this]() { m_transport = nullptr; });
 
 	m_event_loop.CallLater(3000, [transport]() {
 		ASYNCIO_LOG_DEBUG("Start Reconnect");
