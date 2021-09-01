@@ -26,6 +26,9 @@ public:
 	}
 
 	virtual void Decode(TransportPtr transport, size_t len) override {
+		if (transport == nullptr)
+			return;
+
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度

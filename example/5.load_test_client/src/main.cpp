@@ -32,7 +32,13 @@ public:
 	}
 
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
-	virtual void EofReceived() override { m_transport->WriteEof(); }
+	virtual void EofReceived() override {
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this]() {
+			if (m_transport != nullptr)
+				m_transport->WriteEof();
+		});
+	}
 
 	size_t Send(const char* data, size_t len) {
 		if (!IsConnected()) {

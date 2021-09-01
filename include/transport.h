@@ -35,6 +35,7 @@ public:
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(false)
+		, m_remote_port(0)
 		, m_socket(m_context) {}
 
 	virtual ~Transport() {}
@@ -130,7 +131,7 @@ private:
 
 	// Protocol生命周期肯定比Transport长
 	ProtocolPtr m_protocol;
-	bool m_is_client = false;
+	bool m_is_client;
 	std::string m_remote_ip;
 	uint16_t m_remote_port;
 

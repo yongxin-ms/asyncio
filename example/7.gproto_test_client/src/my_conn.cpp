@@ -55,7 +55,11 @@ void MyConnection::DataReceived(size_t len) {
 }
 
 void MyConnection::EofReceived() {
-	m_transport->WriteEof();
+	auto self = shared_from_this();
+	m_event_loop.QueueInLoop([self, this]() {
+		if (m_transport != nullptr)
+			m_transport->WriteEof();
+	});
 }
 
 size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
