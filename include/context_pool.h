@@ -16,15 +16,15 @@ public:
 			throw std::runtime_error("asio::io_context size is 0");
 
 		for (size_t i = 0; i < pool_size; ++i) {
-			auto context = new IOContext;
+			auto context = std::make_unique<IOContext>();
 			auto io_worker = asio::make_work_guard(*context);
 			m_workers.emplace_back(std::move(io_worker));
-			m_contexts.emplace_back(context);
+			m_contexts.emplace_back(std::move(context));
 		}
 
 		for (size_t i = 0; i < pool_size; ++i) {
 			this->m_contextThreads.emplace_back(
-				new std::thread([this, i]() { this->m_contexts[i]->run(); }));
+				std::make_unique<std::thread>([this, i]() { this->m_contexts[i]->run(); }));
 		}
 	}
 
