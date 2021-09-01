@@ -3,18 +3,22 @@
 #include <cstdarg>
 #include "util.h"
 
-#define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                                 \
-	asyncio::g_log->DoLog(asyncio::Log::kDebug, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
-						  __func__, ##__VA_ARGS__)
-#define ASYNCIO_LOG_INFO(fmt, ...)                                                                                 \
-	asyncio::g_log->DoLog(asyncio::Log::kInfo, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
-						  __func__, ##__VA_ARGS__)
-#define ASYNCIO_LOG_WARN(fmt, ...)                                                                                    \
-	asyncio::g_log->DoLog(asyncio::Log::kWarning, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
-						  __func__, ##__VA_ARGS__)
-#define ASYNCIO_LOG_ERROR(fmt, ...)                                                                                 \
-	asyncio::g_log->DoLog(asyncio::Log::kError, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
-						  __func__, ##__VA_ARGS__)
+#define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                           \
+	if (asyncio::g_log != nullptr)                                                                            \
+		asyncio::g_log->DoLog(asyncio::Log::kDebug, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), \
+							  __LINE__, __func__, ##__VA_ARGS__);
+#define ASYNCIO_LOG_INFO(fmt, ...)                                                                                     \
+	if (asyncio::g_log != nullptr)                                                                                     \
+		asyncio::g_log->DoLog(asyncio::Log::kInfo, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
+							  __func__, ##__VA_ARGS__);
+#define ASYNCIO_LOG_WARN(fmt, ...)                                                                              \
+	if (asyncio::g_log != nullptr)                                                                              \
+		asyncio::g_log->DoLog(asyncio::Log::kWarning, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), \
+							  __LINE__, __func__, ##__VA_ARGS__);
+#define ASYNCIO_LOG_ERROR(fmt, ...)                                                                           \
+	if (asyncio::g_log != nullptr)                                                                            \
+		asyncio::g_log->DoLog(asyncio::Log::kError, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), \
+							  __LINE__, __func__, ##__VA_ARGS__);
 
 namespace asyncio {
 
@@ -59,32 +63,10 @@ private:
 	LogLevel m_log_level = kDebug;
 };
 
-static Log g_default_log(
-	[](asyncio::Log::LogLevel lv, const char* msg) {
-		std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
-		switch (lv) {
-		case asyncio::Log::kError:
-			printf("%s Error: %s\n", time_now.c_str(), msg);
-			break;
-		case asyncio::Log::kWarning:
-			printf("%s Warning: %s\n", time_now.c_str(), msg);
-			break;
-		case asyncio::Log::kInfo:
-			printf("%s Info: %s\n", time_now.c_str(), msg);
-			break;
-		case asyncio::Log::kDebug:
-			printf("%s Debug: %s\n", time_now.c_str(), msg);
-			break;
-		default:
-			break;
-		}
-	},
-	asyncio::Log::kDebug);
-
-static Log* g_log = &g_default_log;
+static Log* g_log = nullptr;
 
 static void SetLogHandler(Log::LOG_FUNC&& func, Log::LogLevel log_level) {
-	if (g_log != nullptr && g_log != &g_default_log) {
+	if (g_log != nullptr) {
 		delete g_log;
 		g_log = nullptr;
 	}

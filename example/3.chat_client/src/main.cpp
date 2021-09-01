@@ -104,6 +104,28 @@ private:
 };
 
 int main() {
+	asyncio::SetLogHandler(
+		[](asyncio::Log::LogLevel lv, const char* msg) {
+			std::string time_now = asyncio::util::Time::FormatDateTime(std::chrono::system_clock::now());
+			switch (lv) {
+			case asyncio::Log::kError:
+				printf("%s Error: %s\n", time_now.c_str(), msg);
+				break;
+			case asyncio::Log::kWarning:
+				printf("%s Warning: %s\n", time_now.c_str(), msg);
+				break;
+			case asyncio::Log::kInfo:
+				printf("%s Info: %s\n", time_now.c_str(), msg);
+				break;
+			case asyncio::Log::kDebug:
+				printf("%s Debug: %s\n", time_now.c_str(), msg);
+				break;
+			default:
+				break;
+			}
+		},
+		asyncio::Log::kDebug);
+
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
 	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
