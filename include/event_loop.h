@@ -13,6 +13,8 @@ namespace asyncio {
 
 class ProtocolFactory;
 
+using DelayTimerPtr = std::unique_ptr<DelayTimer>;
+
 class EventLoop {
 public:
 	using MSG_CALLBACK = std::function<void()>;
@@ -27,12 +29,16 @@ public:
 	void RunForever();
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
+
+	/*
+	 * 请通过持有返回值来控制定时器的生命周期
+	 */
 	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE);
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 
 	/*
-	remote_addr形如 127.0.0.1:9000
-	*/
+	 * remote_addr形如 127.0.0.1:9000
+	 */
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
 	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 	http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
@@ -75,7 +81,7 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 }
 
 DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
-	auto timer = std::make_shared<DelayTimer>(m_main_context, milliseconds, std::move(func));
+	auto timer = std::make_unique<DelayTimer>(m_main_context, milliseconds, std::move(func));
 	timer->Run(run_times);
 	return timer;
 }

@@ -42,7 +42,7 @@ public:
 		//
 		// 网络断开之后每3秒钟尝试一次重连，只到连上为止
 		//
-		m_event_loop.CallLater(3000, [transport]() {
+		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
 			ASYNCIO_LOG_INFO("Start Reconnect");
 			transport->Connect();
 		});
@@ -89,6 +89,7 @@ private:
 	//
 	std::string m_rx_buffer;
 	asyncio::DelayTimerPtr m_say_timer;
+	asyncio::DelayTimerPtr m_reconnect_timer;
 };
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {

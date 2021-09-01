@@ -21,6 +21,6 @@ private:
 	asyncio::EventLoop my_event_loop;
 	id_worker::IdWorker m_idwork;
 	MySessionMgr m_session_mgr;
-	asyncio::DelayTimerPtr m_timer;
+	asyncio::DelayTimerPtr m_1second_timer;
 	int m_cur_qps = 0;
 };
