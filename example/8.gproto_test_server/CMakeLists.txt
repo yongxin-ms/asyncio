@@ -10,7 +10,7 @@ if (WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 else()
-	find_package(asio CONFIG REQUIRED)
+	#find_package(asio CONFIG REQUIRED)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g -pthread")
 endif()
 
@@ -49,10 +49,11 @@ add_definitions(-DASIO_STANDALONE)
 add_definitions(-DASIO_NO_DEPRECATED)
 add_executable(${PROJECT_NAME} ${SELF_SRC_FILES})
 
-if (WIN32)
-	target_link_libraries(${PROJECT_NAME} jemalloc)
-else()
-	target_link_libraries(${PROJECT_NAME} 
-		PRIVATE asio asio::asio
-		)
-endif()
+#if (WIN32)
+#	target_link_libraries(${PROJECT_NAME} jemalloc)
+#else()
+#	target_link_libraries(${PROJECT_NAME} 
+#		PRIVATE asio asio::asio
+#		)
+#endif()
+
