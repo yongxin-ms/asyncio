@@ -42,7 +42,8 @@ public:
 		}
 
 		ASYNCIO_LOG_DEBUG("Send %lld byte(s): %s", len, data);
-		m_transport->Write(data, len);
+		auto s = std::make_shared<std::string>(data, len);
+		m_transport->Write(s);
 		return len;
 	}
 

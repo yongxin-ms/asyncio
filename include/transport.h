@@ -85,10 +85,6 @@ public:
 	void Close(int err_code);
 
 	void Write(const std::shared_ptr<std::string>& msg);
-	void Write(const char* msg, size_t len) {
-		auto data = std::make_shared<std::string>(msg, len);
-		Write(data);
-	}
 	void WriteEof();
 
 	void SetRemoteIp(const std::string& remote_ip) { m_remote_ip = remote_ip; }
