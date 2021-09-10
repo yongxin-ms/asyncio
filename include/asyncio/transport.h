@@ -2,8 +2,8 @@
 #include <exception>
 #include <deque>
 #include <asio.hpp>
-#include <asyncio/include/protocol.h>
-#include <asyncio/include/log.h>
+#include <asyncio/protocol.h>
+#include <asyncio/log.h>
 
 namespace asyncio {
 

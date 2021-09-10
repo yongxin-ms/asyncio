@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <string>
-#include <asyncio/include/transport.h>
-#include <asyncio/include/log.h>
-#include <asyncio/include/context_pool.h>
+#include <asyncio/transport.h>
+#include <asyncio/log.h>
+#include <asyncio/context_pool.h>
 
 namespace asyncio {
 

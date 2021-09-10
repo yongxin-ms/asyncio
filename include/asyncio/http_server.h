@@ -4,8 +4,8 @@
 #include <set>
 #include <map>
 #include <asio.hpp>
-#include <asyncio/include/http_base.h>
-#include <asyncio/include/util.h>
+#include <asyncio/http_base.h>
+#include <asyncio/util.h>
 
 namespace asyncio {
 namespace http {

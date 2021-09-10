@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include <asyncio/include/codec/codec.h>
-#include <asyncio/include/codec/bucket.h>
+#include <asyncio/codec/codec.h>
+#include <asyncio/codec/bucket.h>
 
 namespace asyncio {
 

@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include <functional>
-#include <asyncio/include/codec/codec.h>
-#include <asyncio/include/codec/bucket.h>
-#include <asyncio/include/transport.h>
-#include <asyncio/include/log.h>
+#include <asyncio/codec/codec.h>
+#include <asyncio/codec/bucket.h>
+#include <asyncio/transport.h>
+#include <asyncio/log.h>
 
 /*
 
