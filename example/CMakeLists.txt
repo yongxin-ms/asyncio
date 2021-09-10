@@ -36,6 +36,7 @@ else ()
 endif ()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../opt/asio-1.18.2/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/1.simple_client)
 add_subdirectory(${PROJECT_SOURCE_DIR}/2.simple_server)
