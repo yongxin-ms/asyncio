@@ -17,7 +17,6 @@ public:
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(msg_func))
 		, m_pong_func(std::move(pong_func)) {}
-	virtual ~CodecGProto() {}
 
 	virtual void Reset() override {
 		Codec::Reset();

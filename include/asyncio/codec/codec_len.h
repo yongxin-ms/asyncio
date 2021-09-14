@@ -12,7 +12,6 @@ public:
 			 uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
-	virtual ~CodecLen() {}
 
 	virtual void Reset() override {
 		Codec::Reset();

@@ -31,6 +31,8 @@ public:
 		Reset();
 	}
 
+	virtual ~Codec() {}
+
 	virtual void Reset() {
 		if (rx_buf_.size() != rx_buffer_size_) {
 			rx_buf_.resize(rx_buffer_size_);
