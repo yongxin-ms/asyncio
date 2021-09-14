@@ -8,6 +8,7 @@ namespace asyncio {
 class CodecLen : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(std::shared_ptr<std::string>)>;
+	
 	CodecLen(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 			 uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
