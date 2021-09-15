@@ -3,7 +3,6 @@
 class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
 public:
 	MyConnection() { m_rx_buffer.resize(1024); }
-	virtual ~MyConnection() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
@@ -63,7 +62,6 @@ private:
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	virtual ~MyConnectionFactory() {}
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(); }
 };
 

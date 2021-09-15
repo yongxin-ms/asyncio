@@ -6,7 +6,6 @@ class MyConnMgr;
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(MyConnMgr& owner, asyncio::EventLoop& event_loop);
-	virtual ~MyConnectionFactory();
 	virtual asyncio::ProtocolPtr CreateProtocol() override;
 
 private:

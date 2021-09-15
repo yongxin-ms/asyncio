@@ -9,8 +9,6 @@ MySessionFactory::MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& even
 	, m_event_loop(event_loop)
 	, m_idwork(idwork) {}
 
-MySessionFactory::~MySessionFactory() {}
-
 asyncio::ProtocolPtr MySessionFactory::CreateProtocol() {
 	return std::make_shared<MySession>(m_owner, m_event_loop, m_idwork.CreateId());
 }

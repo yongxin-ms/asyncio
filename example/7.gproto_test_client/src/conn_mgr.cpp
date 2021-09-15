@@ -7,8 +7,6 @@ MyConnectionFactory::MyConnectionFactory(MyConnMgr& owner, asyncio::EventLoop& e
 	: m_owner(owner)
 	, m_event_loop(event_loop) {}
 
-MyConnectionFactory::~MyConnectionFactory() {}
-
 asyncio::ProtocolPtr MyConnectionFactory::CreateProtocol() {
 	return std::make_shared<MyConnection>(m_owner, m_event_loop);
 }

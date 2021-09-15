@@ -20,6 +20,7 @@ using ProtocolPtr = std::shared_ptr<Protocol>;
 
 class ProtocolFactory {
 public:
+	virtual ~ProtocolFactory() {}
 	virtual ProtocolPtr CreateProtocol() = 0;
 };
 

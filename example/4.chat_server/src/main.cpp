@@ -18,7 +18,6 @@ public:
 		, m_sid(sid) {
 		m_rx_buffer.resize(1024);
 	}
-	virtual ~MySession() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
@@ -64,7 +63,6 @@ public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
 		: m_owner(owner)
 		, m_event_loop(event_loop) {}
-	virtual ~MySessionFactory() {}
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;

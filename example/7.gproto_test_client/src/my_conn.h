@@ -8,7 +8,6 @@ class MyConnection
 	, public asyncio::Protocol {
 public:
 	MyConnection(MyConnMgr& owner, asyncio::EventLoop& event_loop);
-	virtual ~MyConnection() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override;
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;

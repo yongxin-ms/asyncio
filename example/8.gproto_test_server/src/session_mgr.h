@@ -10,7 +10,6 @@ class IdWorker;
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork);
-	virtual ~MySessionFactory();
 	virtual asyncio::ProtocolPtr CreateProtocol() override;
 
 private:

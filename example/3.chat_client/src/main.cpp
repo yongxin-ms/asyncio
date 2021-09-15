@@ -7,7 +7,6 @@ public:
 		: m_event_loop(event_loop) {
 		m_rx_buffer.resize(1024);
 	}
-	virtual ~MyConnection() {}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
@@ -96,7 +95,6 @@ class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
-	virtual ~MyConnectionFactory() {}
 	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
 
 private:
