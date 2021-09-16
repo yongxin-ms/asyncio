@@ -29,6 +29,8 @@ public:
 	void RunForever();
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
+	bool IsInLoopThread() const { return m_thread_id == std::this_thread::get_id(); }
+	std::thread::id GetThreadId() const { return m_thread_id; }
 
 	/*
 	 * 请通过持有返回值来控制定时器的生命周期
@@ -47,10 +49,12 @@ private:
 	IOContext m_main_context;
 	IOWorker m_main_work;
 	std::shared_ptr<ContextPool> m_worker_io;
+	const std::thread::id m_thread_id;
 };
 
 EventLoop::EventLoop(size_t work_io_num)
-	: m_main_work(asio::make_work_guard(m_main_context)) {
+	: m_main_work(asio::make_work_guard(m_main_context))
+	, m_thread_id(std::this_thread::get_id()) {
 	if (work_io_num > 0) {
 		m_worker_io = std::make_shared<ContextPool>(work_io_num);
 		ASYNCIO_LOG_INFO("EventLoop init with %d io thread(s)", work_io_num);
@@ -81,7 +85,7 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 }
 
 DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
-	auto timer = std::make_unique<DelayTimer>(m_main_context, milliseconds, std::move(func));
+	auto timer = std::make_unique<DelayTimer>(GetThreadId(), m_main_context, milliseconds, std::move(func));
 	timer->Run(run_times);
 	return timer;
 }
