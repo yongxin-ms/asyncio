@@ -44,7 +44,7 @@ public:
 		auto self = shared_from_this();
 		asio::post(m_context, [self, this]() {
 			if (!m_is_client) {
-				throw "not a client, i can't reconnect";
+				throw std::runtime_error("not a client, i can't reconnect");
 			}
 
 			ASYNCIO_LOG_DEBUG("start connecting to %s:%d", m_remote_ip.data(), m_remote_port);
@@ -68,7 +68,7 @@ public:
 		auto self = shared_from_this();
 		auto rx_buffer = self->m_protocol->GetRxBuffer();
 		if (rx_buffer.first == nullptr || rx_buffer.second == 0) {
-			throw "wrong rx buffer";
+			throw std::runtime_error("wrong rx buffer");
 		}
 
 		m_socket.async_read_some(asio::buffer(rx_buffer.first, rx_buffer.second),

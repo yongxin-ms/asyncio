@@ -27,7 +27,7 @@ public:
 
 	void Run(int run_times = RUN_ONCE) {
 		if (run_times < 0) {
-			throw "wrong left_times";
+			throw std::runtime_error("wrong left_times");
 		}
 
 		m_run_times_left = run_times;
