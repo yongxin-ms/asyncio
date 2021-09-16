@@ -85,7 +85,11 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 }
 
 DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
-	auto timer = std::make_unique<DelayTimer>(GetThreadId(), m_main_context, milliseconds, std::move(func));
+	if (std::this_thread::get_id() != m_thread_id) {
+		throw std::runtime_error("this function can only be called in main loop thread");
+	}
+
+	auto timer = std::make_unique<DelayTimer>(m_thread_id, m_main_context, milliseconds, std::move(func));
 	timer->Run(run_times);
 	return timer;
 }
