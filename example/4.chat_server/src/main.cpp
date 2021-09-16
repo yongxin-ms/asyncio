@@ -27,7 +27,11 @@ public:
 	virtual void DataReceived(size_t len) override;
 	virtual void EofReceived() override { 
 		ASYNCIO_LOG_DEBUG("EofReceived");
-		m_transport->WriteEof();
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this]() {
+			if (m_transport != nullptr)
+				m_transport->WriteEof();
+		});
 	}
 
 	uint64_t GetSid() { return m_sid; }
@@ -114,25 +118,26 @@ private:
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
-	m_transport = transport;
-
-	auto data = std::make_shared<std::string>();
-	asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
-								m_transport->GetRemotePort(), GetSid());
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this, data]() {
+	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
+
+		auto data = std::make_shared<std::string>();
+		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
+									m_transport->GetRemotePort(), GetSid());
+
 		m_owner.OnSessionCreate(self);
 		m_owner.BroadcastToAll(data);
 	});
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
-	auto data = std::make_shared<std::string>();
-	asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] left\n", m_transport->GetRemoteIp().data(),
-								m_transport->GetRemotePort(), GetSid());
-
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this, data]() {
+	m_event_loop.QueueInLoop([self, this]() {
+		auto data = std::make_shared<std::string>();
+		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] left\n", m_transport->GetRemoteIp().data(),
+									m_transport->GetRemotePort(), GetSid());
+
 		m_owner.OnSessionDestroy(self);
 		m_owner.BroadcastToAll(data);
 		m_transport = nullptr;
@@ -140,16 +145,18 @@ void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 }
 
 void MySession::DataReceived(size_t len) {
-	std::string content(m_rx_buffer.data(), len);
-	if (content.size() == 1 && (content[0] == '\n' || content[0] == '\r')) {
+	auto content = std::make_shared<std::string>(m_rx_buffer.data(), len);
+	if (content->size() == 1 && (content->at(0) == '\n' || content->at(0) == '\r')) {
 		return;
 	}
 
-	auto data = std::make_shared<std::string>();
-	asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] say: %s", m_transport->GetRemoteIp().data(),
-								m_transport->GetRemotePort(), GetSid(), content.data());
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, data, this]() { m_owner.BroadcastToAll(data); });
+	m_event_loop.QueueInLoop([self, content, this]() {
+		auto data = std::make_shared<std::string>();
+		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] say: %s", m_transport->GetRemoteIp().data(),
+									m_transport->GetRemotePort(), GetSid(), content->data());
+		m_owner.BroadcastToAll(data);
+	});
 }
 
 int main() {

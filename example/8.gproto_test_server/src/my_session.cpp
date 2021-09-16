@@ -13,30 +13,32 @@ std::pair<char*, size_t> MySession::GetRxBuffer() {
 }
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
-	m_codec.Reset();
-	m_transport = transport;
 	ASYNCIO_LOG_DEBUG("ConnectionMade sid:%llu", GetSid());
+	m_codec.Reset();
 
-	m_ping_counter = 0;
 	auto self = shared_from_this();
-	m_ping_timer = m_event_loop.CallLater(
-		30000,
-		[self, this]() {
-			if (m_transport == nullptr)
-				return;
+	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
+		m_ping_counter = 0;
+		
+		m_ping_timer = m_event_loop.CallLater(
+			30000,
+			[self, this]() {
+				if (m_transport == nullptr)
+					return;
 
-			if (m_ping_counter > 2) {
-				ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
-				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
-				m_ping_counter = 0;
-			} else {
-				m_codec.send_ping(m_transport);
-				m_ping_counter++;
-			}
-		},
-		asyncio::DelayTimer::RUN_FOREVER);
-
-	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionCreate(self); });
+				if (m_ping_counter > 2) {
+					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
+					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+					m_ping_counter = 0;
+				} else {
+					m_codec.send_ping(m_transport);
+					m_ping_counter++;
+				}
+			},
+			asyncio::DelayTimer::RUN_FOREVER);
+		self->m_owner.OnSessionCreate(self);
+	});
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
@@ -54,6 +56,7 @@ void MySession::DataReceived(size_t len) {
 }
 
 void MySession::EofReceived() {
+	ASYNCIO_LOG_DEBUG("EofReceived");
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
 		if (m_transport != nullptr)

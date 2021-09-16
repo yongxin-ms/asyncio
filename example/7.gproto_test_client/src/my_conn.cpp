@@ -12,41 +12,44 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 }
 
 void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
-	m_codec.Reset();
-	m_transport = transport;
 	ASYNCIO_LOG_DEBUG("ConnectionMade");
+	m_codec.Reset();
 
-	m_ping_counter = 0;
 	auto self = shared_from_this();
-	m_ping_timer = m_event_loop.CallLater(
-		30000,
-		[self, this]() {
-			if (m_transport == nullptr)
-				return;
+	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
+		m_ping_counter = 0;
+		m_ping_timer = m_event_loop.CallLater(
+			30000,
+			[self, this]() {
+				if (m_transport == nullptr)
+					return;
 
-			if (m_ping_counter > 2) {
-				ASYNCIO_LOG_WARN("Keep alive failed, Closing");
-				m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
-				m_ping_counter = 0;
-			} else {
-				m_codec.send_ping(m_transport);
-				m_ping_counter++;
-			}
-		},
-		asyncio::DelayTimer::RUN_FOREVER);
+				if (m_ping_counter > 2) {
+					ASYNCIO_LOG_WARN("Keep alive failed, Closing");
+					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+					m_ping_counter = 0;
+				} else {
+					m_codec.send_ping(m_transport);
+					m_ping_counter++;
+				}
+			},
+			asyncio::DelayTimer::RUN_FOREVER);
 
-	std::string msg("hello,world!");
-	Send(0, msg.data(), msg.size());
+		std::string msg("hello,world!");
+		Send(0, msg.data(), msg.size());
+	});
 }
 
 void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	ASYNCIO_LOG_DEBUG("ConnectionLost");
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() { m_transport = nullptr; });
-
-	m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
-		ASYNCIO_LOG_DEBUG("Start Reconnect");
-		transport->Connect();
+	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = nullptr;
+		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+			ASYNCIO_LOG_DEBUG("Start Reconnect");
+			transport->Connect();
+		});
 	});
 }
 
@@ -55,6 +58,7 @@ void MyConnection::DataReceived(size_t len) {
 }
 
 void MyConnection::EofReceived() {
+	ASYNCIO_LOG_DEBUG("EofReceived");
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
 		if (m_transport != nullptr)

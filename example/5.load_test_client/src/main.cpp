@@ -14,24 +14,31 @@ public:
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_codec.Reset();
-		m_transport = transport;
 
-		std::string msg("hello,world!");
-		Send(msg.data(), msg.size());
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this, transport]() {
+			m_transport = transport;
+
+			std::string msg("hello,world!");
+			Send(msg.data(), msg.size());
+		});
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() { m_transport = nullptr; });
+		m_event_loop.QueueInLoop([self, this, transport]() {
+			m_transport = nullptr;
 
-		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
-			ASYNCIO_LOG_DEBUG("Start Reconnect");
-			transport->Connect();
+			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+				ASYNCIO_LOG_DEBUG("Start Reconnect");
+				transport->Connect();
+			});
 		});
 	}
 
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
 	virtual void EofReceived() override {
+		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
 			if (m_transport != nullptr)

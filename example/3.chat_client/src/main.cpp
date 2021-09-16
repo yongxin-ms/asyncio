@@ -13,47 +13,51 @@ public:
 	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
-		m_transport = transport;
-		ASYNCIO_LOG_INFO("ConnectionMade");
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this, transport]() {
+			m_transport = transport;
+			ASYNCIO_LOG_INFO("ConnectionMade");
 
-		//
-		// 连接建立之后每2秒钟发送一条消息
-		//
-		
-		if (m_say_timer == nullptr) {
-			auto self = shared_from_this();
-			m_say_timer = m_event_loop.CallLater(
-				2000,
-				[self, this]() {
-					auto msg = std::make_shared<std::string>("hello,world!");
-					Send(msg);
-				},
-				asyncio::DelayTimer::RUN_FOREVER);
-		} else {
-			m_say_timer->Run(asyncio::DelayTimer::RUN_FOREVER);
-		}
+			//
+			// 连接建立之后每2秒钟发送一条消息
+			//
+
+			if (m_say_timer == nullptr) {
+				m_say_timer = m_event_loop.CallLater(
+					2000,
+					[self, this]() {
+						auto msg = std::make_shared<std::string>("hello,world!");
+						Send(msg);
+					},
+					asyncio::DelayTimer::RUN_FOREVER);
+			} else {
+				m_say_timer->Run(asyncio::DelayTimer::RUN_FOREVER);
+			}
+		});
 	}
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() { m_transport = nullptr; });
+		m_event_loop.QueueInLoop([self, this, transport]() {
+			ASYNCIO_LOG_INFO("ConnectionLost");
 
-		//
-		// 网络断开之后每3秒钟尝试一次重连，只到连上为止
-		//
-		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
-			ASYNCIO_LOG_INFO("Start Reconnect");
-			transport->Connect();
+			//
+			// 网络断开之后每3秒钟尝试一次重连，只到连上为止
+			//
+			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+				ASYNCIO_LOG_INFO("Start Reconnect");
+				transport->Connect();
+			});
+
+			//
+			// 连接断开之后停止发送消息
+			//
+			if (m_say_timer != nullptr) {
+				m_say_timer->Cancel();
+			}
+
+			m_transport = nullptr;
 		});
-
-		//
-		// 连接断开之后停止发送消息
-		//
-		if (m_say_timer != nullptr) {
-			m_say_timer->Cancel();
-		}
-		
-		ASYNCIO_LOG_INFO("ConnectionLost");
 	}
 
 	virtual void DataReceived(size_t len) override {
@@ -61,7 +65,14 @@ public:
 		ASYNCIO_LOG_INFO("%s", content.data());
 	}
 
-	virtual void EofReceived() override { m_transport->WriteEof(); }
+	virtual void EofReceived() override {
+		ASYNCIO_LOG_DEBUG("EofReceived");
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this]() {
+			if (m_transport != nullptr)
+				m_transport->WriteEof();
+		});
+	}
 
 	size_t Send(std::shared_ptr<std::string> data) {
 		if (!IsConnected())

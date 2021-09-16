@@ -19,6 +19,7 @@ public:
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
 	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
 	virtual void EofReceived() override {
+		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
 			if (m_transport != nullptr)
@@ -105,9 +106,12 @@ private:
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_codec.Reset();
-	m_transport = transport;
+
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self]() { self->m_owner.OnSessionCreate(self); });
+	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
+		self->m_owner.OnSessionCreate(self);
+	});
 }
 
 void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
