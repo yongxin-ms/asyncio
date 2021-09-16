@@ -13,11 +13,11 @@ public:
 	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
+		m_transport = transport;
+		ASYNCIO_LOG_INFO("ConnectionMade");
+
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
-			m_transport = transport;
-			ASYNCIO_LOG_INFO("ConnectionMade");
-
 			//
 			// 连接建立之后每2秒钟发送一条消息
 			//

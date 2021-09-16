@@ -14,11 +14,10 @@ public:
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_codec.Reset();
+		m_transport = transport;
 
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
-			m_transport = transport;
-
 			std::string msg("hello,world!");
 			Send(msg.data(), msg.size());
 		});
