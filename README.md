@@ -139,7 +139,7 @@
 | 6    | libhv            | https://github.com/ithewei/libhv.git         |
 | 7    | wangle           | https://github.com/facebook/wangle           |
 | 8    | ZLToolKit        | https://github.com/ZLMediaKit/ZLToolKit      |
-|      |                  |                                              |
+| 9    | fizz             | https://github.com/facebookincubator/fizz    |
 |      |                  |                                              |
 
 

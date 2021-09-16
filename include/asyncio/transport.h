@@ -38,7 +38,7 @@ public:
 		, m_remote_port(0)
 		, m_socket(m_context) {}
 
-	virtual ~Transport() {}
+	virtual ~Transport() = default;
 
 	void Connect() {
 		auto self = shared_from_this();

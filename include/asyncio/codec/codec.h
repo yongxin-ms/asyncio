@@ -31,7 +31,7 @@ public:
 		Reset();
 	}
 
-	virtual ~Codec() {}
+	virtual ~Codec() = default;
 
 	virtual void Reset() {
 		if (rx_buf_.size() != rx_buffer_size_) {
