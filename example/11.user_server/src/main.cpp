@@ -6,10 +6,22 @@ asyncio::DelayTimerPtr g_timer = nullptr;
 
 class MySessionMgr;
 
+/*
+ * 注意：这个结构得是POD的
+ */
 struct MyHeader {
 	enum : uint32_t {
 		MAGIC_NUM = 0x1a2b3c4d,
 	};
+
+	MyHeader(uint16_t msg_id = 0, uint16_t version = 0, uint32_t sequence = 0)
+		: msg_id(msg_id)
+		, version(version)
+		, sequence(sequence) {}
+
+	uint16_t msg_id;
+	uint16_t version;
+	uint32_t sequence;
 };
 
 class MySession : public std::enable_shared_from_this<MySession>, public asyncio::Protocol {
