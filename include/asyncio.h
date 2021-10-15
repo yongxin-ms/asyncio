@@ -11,5 +11,6 @@
 #include <asyncio/codec/codec_len.h>
 #include <asyncio/codec/codec_trans.h>
 #include <asyncio/codec/codec_gproto.h>
+#include <asyncio/codec/codec_user_header.h>
 
 namespace asyncio {}
