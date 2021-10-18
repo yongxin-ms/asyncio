@@ -9,7 +9,9 @@ namespace asyncio {
 template <typename UserHeader, uint32_t MAGIC_NUM>
 class CodecUserHeader : public Codec {
 	struct TcpMsgHeader {
-		TcpMsgHeader() { memset(this, 0, size()); }
+		TcpMsgHeader()
+			: magic_num(0)
+			, body_len(0) {}
 		constexpr static size_t size() { return sizeof(TcpMsgHeader); }
 
 		uint32_t magic_num;
@@ -72,7 +74,6 @@ public:
 		ReArrangePos();
 	}
 
-	template <typename UserHeader>
 	std::shared_ptr<std::string> Encode(const UserHeader& user_header, const char* buf, uint32_t len) const {
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
