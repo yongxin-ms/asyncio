@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <asyncio.h>
+#include "codec/codec_gproto.h"
 
 class MySessionMgr;
 

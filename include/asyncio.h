@@ -7,10 +7,7 @@
 #include <asyncio/context_pool.h>
 #include <asyncio/http_base.h>
 #include <asyncio/codec/codec.h>
-#include <asyncio/codec/codec_x.h>
 #include <asyncio/codec/codec_len.h>
-#include <asyncio/codec/codec_trans.h>
-#include <asyncio/codec/codec_gproto.h>
 #include <asyncio/codec/codec_user_header.h>
 
 namespace asyncio {}
