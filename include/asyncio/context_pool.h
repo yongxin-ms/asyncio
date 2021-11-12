@@ -10,7 +10,7 @@ using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
 
 class ContextPool {
 public:
-	ContextPool(size_t pool_size)
+	explicit ContextPool(size_t pool_size)
 		: m_nextContextIndex(0) {
 		if (pool_size == 0)
 			throw std::runtime_error("asio::io_context size is 0");
