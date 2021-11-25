@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <asyncio/codec/codec.h>
+#include <asyncio/codec/bucket.h>
+#include <asyncio/transport.h>
 
 namespace asyncio {
 
@@ -12,15 +14,13 @@ public:
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
 
-	virtual void Reset() override {
+	void Init(const TransportPtr& transport) {
 		Codec::Reset();
 		bucket_.header.reset();
+		m_transport = transport;
 	}
 
-	virtual void Decode(TransportPtr transport, size_t len) override {
-		if (transport == nullptr)
-			return;
-
+	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -33,7 +33,7 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					uint32_t original_len = BigLittleSwap32(bucket_.header.get().len);
 					if (IsOverSize(original_len)) {
-						transport->Close(EC_PACKET_OVER_SIZE);
+						m_transport->Close(EC_PACKET_OVER_SIZE);
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len);
 						return;
 					}
@@ -82,6 +82,7 @@ private:
 private:
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
+	TransportPtr m_transport;
 };
 
 } // namespace asyncio

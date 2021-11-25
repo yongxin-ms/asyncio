@@ -18,7 +18,7 @@ public:
 		, m_user_msg_func(std::move(msg_func))
 		, m_pong_func(std::move(pong_func)) {}
 
-	void Init(TransportPtr transport) {
+	void Init(const TransportPtr& transport) {
 		Reset();
 		bucket_.header.reset();
 		bucket_.msg_id.reset();

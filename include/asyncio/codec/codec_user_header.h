@@ -7,7 +7,7 @@
 namespace asyncio {
 
 template <typename UserHeader, uint32_t MAGIC_NUM>
-class CodecUserHeader : public Codec {
+class CodecUserHeader final : public Codec {
 	struct TcpMsgHeader {
 		TcpMsgHeader()
 			: magic_num(0)
@@ -27,7 +27,7 @@ public:
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
 
-	void Init(TransportPtr transport) {
+	void Init(const TransportPtr& transport) {
 		Codec::Reset();
 		bucket_.header.reset();
 		m_transport = transport;

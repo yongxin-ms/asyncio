@@ -12,7 +12,7 @@ public:
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 
-	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
+	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
 		m_codec.Init(transport);
 		m_transport = transport;
 
@@ -25,7 +25,7 @@ public:
 		});
 	}
 
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
+	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			m_connected = false;

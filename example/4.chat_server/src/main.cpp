@@ -22,8 +22,8 @@ public:
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
-	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
+	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
+	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 	virtual void DataReceived(size_t len) override;
 	virtual void EofReceived() override { 
 		ASYNCIO_LOG_DEBUG("EofReceived");
@@ -117,7 +117,7 @@ private:
 	std::unordered_map<uint64_t, MySessionPtr> m_sessions;
 };
 
-void MySession::ConnectionMade(asyncio::TransportPtr transport) {
+void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 	m_transport = transport;
 
 	auto self = shared_from_this();
@@ -131,7 +131,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_code) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
 		auto data = std::make_shared<std::string>();

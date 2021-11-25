@@ -8,7 +8,7 @@ public:
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
 
-	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
+	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
 		m_transport = transport;
 		m_connected = true;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
@@ -17,7 +17,7 @@ public:
 		Send(msg.data(), msg.size());
 	}
 
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
+	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override {
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
 		m_connected = false;
 	}

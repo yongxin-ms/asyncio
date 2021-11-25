@@ -128,7 +128,7 @@ private:
 
 private:
 	IOContext& m_context;
-	Protocol& m_protocol;	// Protocol生命周期肯定比Transport长
+	Protocol& m_protocol;
 	bool m_is_client;
 	std::string m_remote_ip;
 	uint16_t m_remote_port;

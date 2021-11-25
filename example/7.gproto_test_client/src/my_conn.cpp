@@ -11,7 +11,7 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 	return m_codec.GetRxBuffer();
 }
 
-void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
+void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 	ASYNCIO_LOG_DEBUG("ConnectionMade");
 	m_codec.Init(transport);
 	m_transport = transport;
@@ -42,7 +42,7 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+void MyConnection::ConnectionLost(const asyncio::TransportPtr& transport, int err_code) {
 	ASYNCIO_LOG_DEBUG("ConnectionLost");
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {

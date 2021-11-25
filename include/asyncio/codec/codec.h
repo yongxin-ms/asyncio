@@ -29,6 +29,8 @@ public:
 	}
 
 	virtual ~Codec() = default;
+	Codec(const Codec&) = delete;
+	Codec& operator=(const Codec&) = delete;
 
 	std::pair<char*, size_t> GetRxBuffer() const {
 		return std::make_pair((char*)write_pos_, rx_buf_.size() - GetRemainedLen());

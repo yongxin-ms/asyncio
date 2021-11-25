@@ -5,7 +5,7 @@
 
 namespace asyncio {
 
-class CodecLen : public Codec {
+class CodecLen final : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(std::shared_ptr<std::string>)>;
 	
@@ -14,7 +14,7 @@ public:
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(func)) {}
 
-	void Init(TransportPtr transport) {
+	void Init(const TransportPtr& transport) {
 		Codec::Reset();
 		bucket_.head.reset();
 		m_transport = transport;

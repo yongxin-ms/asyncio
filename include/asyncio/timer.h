@@ -19,6 +19,9 @@ public:
 		, m_running(false) {}
 	~DelayTimer() { Cancel(); }
 
+	DelayTimer(const DelayTimer&) = delete;
+	DelayTimer& operator=(const DelayTimer&) = delete;
+
 	void Cancel() {
 		if (std::this_thread::get_id() != m_thread_id) {
 			throw std::runtime_error("this function can only be called in main loop thread");
