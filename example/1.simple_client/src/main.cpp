@@ -10,6 +10,7 @@ public:
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_transport = transport;
+		m_connected = true;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
 
 		std::string msg("hello,world!");
@@ -18,6 +19,7 @@ public:
 
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
+		m_connected = false;
 	}
 
 	virtual void DataReceived(size_t len) override {

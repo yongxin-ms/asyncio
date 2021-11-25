@@ -14,10 +14,11 @@ public:
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		m_codec.Init(transport);
+		m_transport = transport;
 
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
-			m_transport = transport;
+			m_connected = true;
 
 			std::string msg("hello,world!");
 			Send(msg.data(), msg.size());
@@ -27,6 +28,8 @@ public:
 	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
+			m_connected = false;
+
 			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
 				ASYNCIO_LOG_DEBUG("Start Reconnect");
 				transport->Connect();

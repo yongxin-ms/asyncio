@@ -14,10 +14,10 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	ASYNCIO_LOG_DEBUG("ConnectionMade");
 	m_codec.Init(transport);
+	m_transport = transport;
 
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
-		m_transport = transport;
 		m_connected = true;
 		m_ping_counter = 0;
 		m_ping_timer = m_event_loop.CallLater(

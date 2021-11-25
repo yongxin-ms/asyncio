@@ -118,9 +118,10 @@ private:
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
+	m_transport = transport;
+
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
-		m_transport = transport;
 		auto data = std::make_shared<std::string>();
 		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
 									m_transport->GetRemotePort(), GetSid());

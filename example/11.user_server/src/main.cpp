@@ -119,10 +119,10 @@ private:
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	m_codec.Init(transport);
+	m_transport = transport;
 
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
-		m_transport = transport;
 		m_owner.OnSessionCreate(self);
 	});
 }

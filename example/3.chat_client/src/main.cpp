@@ -14,14 +14,14 @@ public:
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
 		ASYNCIO_LOG_INFO("ConnectionMade");
+		m_transport = transport;
 
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			//
 			// 连接建立之后每2秒钟发送一条消息
 			//
-
-			m_transport = transport;
+			
 			m_connected = true;
 			if (m_say_timer == nullptr) {
 				m_say_timer = m_event_loop.CallLater(
