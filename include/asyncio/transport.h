@@ -22,7 +22,7 @@ enum ErrorCode {
 class Transport : public std::enable_shared_from_this<Transport> {
 public:
 	// 作为客户端去连接服务器
-	Transport(IOContext& context, ProtocolPtr protocol, const std::string& host, uint16_t port)
+	Transport(IOContext& context, Protocol& protocol, const std::string& host, uint16_t port)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(true)
@@ -31,14 +31,19 @@ public:
 		, m_socket(m_context) {}
 
 	// 作为服务器接受客户端的连接
-	Transport(IOContext& context, ProtocolPtr protocol)
+	Transport(IOContext& context, Protocol& protocol)
 		: m_context(context)
 		, m_protocol(protocol)
 		, m_is_client(false)
 		, m_remote_port(0)
 		, m_socket(m_context) {}
 
-	virtual ~Transport() = default;
+	virtual ~Transport() {
+		ASYNCIO_LOG_DEBUG("transport destroyed, is_client(%d), remote_ip(%s), remote_port(%d)", m_is_client,
+						  m_remote_ip.data(), m_remote_port);
+	}
+	Transport(const Transport&) = delete;
+	Transport& operator=(const Transport&) = delete;
 
 	void Connect() {
 		auto self = shared_from_this();
@@ -54,11 +59,11 @@ public:
 			asio::async_connect(m_socket, endpoints, [self, this](std::error_code ec, asio::ip::tcp::endpoint) {
 				if (!ec) {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d suc", m_remote_ip.data(), m_remote_port);
-					self->m_protocol->ConnectionMade(self);
+					self->m_protocol.ConnectionMade(self);
 					self->DoReadData();
 				} else {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d failed", m_remote_ip.data(), m_remote_port);
-					self->m_protocol->ConnectionLost(self, ec.value());
+					self->m_protocol.ConnectionLost(self, ec.value());
 				}
 			});
 		});
@@ -66,7 +71,7 @@ public:
 
 	void DoReadData() {
 		auto self = shared_from_this();
-		auto rx_buffer = self->m_protocol->GetRxBuffer();
+		auto rx_buffer = self->m_protocol.GetRxBuffer();
 		if (rx_buffer.first == nullptr || rx_buffer.second == 0) {
 			throw std::runtime_error("wrong rx buffer");
 		}
@@ -74,7 +79,7 @@ public:
 		m_socket.async_read_some(asio::buffer(rx_buffer.first, rx_buffer.second),
 								 [self](std::error_code ec, std::size_t length) {
 									 if (!ec) {
-										 self->m_protocol->DataReceived(length);
+										 self->m_protocol.DataReceived(length);
 										 self->DoReadData();
 									 } else {
 										 self->InnerClose(ec.value());
@@ -93,7 +98,6 @@ public:
 	uint16_t GetRemotePort() const { return m_remote_port; }
 
 	asio::ip::tcp::socket& GetSocket() { return m_socket; }
-	ProtocolPtr GetProtocol() { return m_protocol; }
 	IOContext& GetIOContext() { return m_context; }
 
 private:
@@ -119,14 +123,12 @@ private:
 			return;
 		m_socket.close();
 		auto self = shared_from_this();
-		m_protocol->ConnectionLost(self, err_code);
+		m_protocol.ConnectionLost(self, err_code);
 	}
 
 private:
 	IOContext& m_context;
-
-	// Protocol生命周期肯定比Transport长
-	ProtocolPtr m_protocol;
+	Protocol& m_protocol;	// Protocol生命周期肯定比Transport长
 	bool m_is_client;
 	std::string m_remote_ip;
 	uint16_t m_remote_port;

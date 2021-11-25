@@ -8,7 +8,11 @@ using TransportPtr = std::shared_ptr<Transport>;
 
 class Protocol {
 public:
+	Protocol() = default;
 	virtual ~Protocol() = default;
+	Protocol(const Protocol&) = delete;
+	Protocol& operator=(const Protocol&) = delete;
+
 	virtual std::pair<char*, size_t> GetRxBuffer() = 0;
 	virtual void ConnectionMade(TransportPtr transport) = 0;
 	virtual void ConnectionLost(TransportPtr transport, int err_code) = 0;

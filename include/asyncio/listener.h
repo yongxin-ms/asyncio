@@ -18,7 +18,7 @@ public:
 		, m_protocol_factory(protocol_factory)
 		, m_acceptor(main_context) {}
 	Listener(const Listener&) = delete;
-	const Listener& operator=(const Listener&) = delete;
+	Listener& operator=(const Listener&) = delete;
 	~Listener() { Stop(); }
 
 	// 监听一个指定端口
@@ -64,10 +64,11 @@ public:
 
 private:
 	void Accept() {
+		auto protocol = m_protocol_factory.CreateProtocol();
 		auto session = std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(),
-												   m_protocol_factory.CreateProtocol());
+												   *protocol);
 		auto self = shared_from_this();
-		m_acceptor.async_accept(session->GetSocket(), [self, this, session](std::error_code ec) {
+		m_acceptor.async_accept(session->GetSocket(), [self, this, session, protocol](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
 			// completion handler had a chance to run.
 			if (!m_acceptor.is_open()) {
@@ -91,7 +92,7 @@ private:
 				session->SetRemotePort(remote_port);
 				session->GetSocket().set_option(asio::ip::tcp::no_delay(true), ec);
 
-				session->GetProtocol()->ConnectionMade(session);
+				protocol->ConnectionMade(session);
 
 				//可以在连接建立之后立刻断开它（调用session->Close()），完成一些比如ip黑名单、连接数控制等功能
 				if (session->GetSocket().is_open()) {
