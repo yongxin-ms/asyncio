@@ -13,16 +13,17 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 
 void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	ASYNCIO_LOG_DEBUG("ConnectionMade");
-	m_codec.Reset();
-	m_transport = transport;
+	m_codec.Init(transport);
 
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
+		m_connected = true;
 		m_ping_counter = 0;
 		m_ping_timer = m_event_loop.CallLater(
 			30000,
 			[self, this]() {
-				if (m_transport == nullptr)
+				if (!IsConnected())
 					return;
 
 				if (m_ping_counter > 2) {
@@ -30,7 +31,7 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
 					m_ping_counter = 0;
 				} else {
-					m_codec.send_ping(m_transport);
+					m_codec.send_ping();
 					m_ping_counter++;
 				}
 			},
@@ -41,28 +42,27 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+void MyConnection::ConnectionLost(int err_code) {
 	ASYNCIO_LOG_DEBUG("ConnectionLost");
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this, transport]() {
-		m_transport = nullptr;
-		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+	m_event_loop.QueueInLoop([self, this]() {
+		m_connected = false;
+		m_reconnect_timer = m_event_loop.CallLater(3000, [self, this]() {
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
-			transport->Connect();
+			m_transport->Connect();
 		});
 	});
 }
 
 void MyConnection::DataReceived(size_t len) {
-	m_codec.Decode(m_transport, len);
+	m_codec.Decode(len);
 }
 
 void MyConnection::EofReceived() {
 	ASYNCIO_LOG_DEBUG("EofReceived");
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
-		if (m_transport != nullptr)
-			m_transport->WriteEof();
+		m_transport->WriteEof();
 	});
 }
 
@@ -77,7 +77,7 @@ size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
 }
 
 void MyConnection::Close() {
-	if (m_transport != nullptr) {
+	if (IsConnected()) {
 		m_transport->Close(asyncio::EC_SHUT_DOWN);
 	}
 }
@@ -93,5 +93,5 @@ void MyConnection::OnReceivedPong() {
 }
 
 bool MyConnection::IsConnected() {
-	return m_transport != nullptr;
+	return m_connected;
 }

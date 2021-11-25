@@ -13,7 +13,6 @@ public:
 	}
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
-		m_transport = transport;
 		ASYNCIO_LOG_INFO("ConnectionMade");
 
 		auto self = shared_from_this();
@@ -22,6 +21,8 @@ public:
 			// 连接建立之后每2秒钟发送一条消息
 			//
 
+			m_transport = transport;
+			m_connected = true;
 			if (m_say_timer == nullptr) {
 				m_say_timer = m_event_loop.CallLater(
 					2000,
@@ -36,17 +37,17 @@ public:
 		});
 	}
 
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
+	virtual void ConnectionLost(int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this, transport]() {
+		m_event_loop.QueueInLoop([self, this]() {
 			ASYNCIO_LOG_INFO("ConnectionLost");
 
 			//
 			// 网络断开之后每3秒钟尝试一次重连，只到连上为止
 			//
-			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+			m_reconnect_timer = m_event_loop.CallLater(3000, [self, this]() {
 				ASYNCIO_LOG_INFO("Start Reconnect");
-				transport->Connect();
+				m_transport->Connect();
 			});
 
 			//
@@ -56,7 +57,7 @@ public:
 				m_say_timer->Cancel();
 			}
 
-			m_transport = nullptr;
+			m_connected = false;
 		});
 	}
 
@@ -69,8 +70,7 @@ public:
 		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
-			if (m_transport != nullptr)
-				m_transport->WriteEof();
+			m_transport->WriteEof();
 		});
 	}
 
@@ -82,16 +82,16 @@ public:
 	}
 
 	void Close() {
-		if (m_transport != nullptr) {
+		if (IsConnected())
 			m_transport->Close(asyncio::EC_SHUT_DOWN);
-		}
 	}
 
-	bool IsConnected() { return m_transport != nullptr; }
+	bool IsConnected() { return m_connected; }
 
 private:
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
+	bool m_connected = false;
 
 	//
 	// ProActor模式使用预先分配的缓冲区接收数据

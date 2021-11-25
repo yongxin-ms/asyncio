@@ -34,31 +34,26 @@ public:
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
-	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
+	virtual void ConnectionLost(int err_code) override;
+	virtual void DataReceived(size_t len) override { m_codec.Decode(len); }
 	virtual void EofReceived() override {
 		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
-			if (m_transport != nullptr)
-				m_transport->WriteEof();
+			m_transport->WriteEof();
 		});
 	}
 
 	uint64_t GetSid() { return m_sid; }
 
 	size_t Send(const char* data, size_t len) {
-		if (m_transport == nullptr)
-			return 0;
 		auto ret = m_codec.Encode(MyHeader(), data, uint32_t(len));
 		m_transport->Write(ret);
 		return ret->size();
 	}
 
 	void Close() {
-		if (m_transport != nullptr) {
-			m_transport->Close(asyncio::EC_KICK);
-		}
+		m_transport->Close(asyncio::EC_KICK);
 	}
 
 	void OnMyMessageFunc(const MyHeader& header, std::shared_ptr<std::string> data) {
@@ -123,20 +118,19 @@ private:
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
-	m_codec.Reset();
-	m_transport = transport;
+	m_codec.Init(transport);
 
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
+	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
 		m_owner.OnSessionCreate(self);
 	});
 }
 
-void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+void MySession::ConnectionLost(int err_code) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self]() {
 		self->m_owner.OnSessionDestroy(self);
-		self->m_transport = nullptr;
 	});
 }
 

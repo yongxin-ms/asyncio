@@ -23,7 +23,7 @@ public:
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
+	virtual void ConnectionLost(int err_code) override;
 	virtual void DataReceived(size_t len) override;
 	virtual void EofReceived() override { 
 		ASYNCIO_LOG_DEBUG("EofReceived");
@@ -118,10 +118,9 @@ private:
 };
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
-	m_transport = transport;
-
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
 		auto data = std::make_shared<std::string>();
 		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
 									m_transport->GetRemotePort(), GetSid());
@@ -131,7 +130,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+void MySession::ConnectionLost(int err_code) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
 		auto data = std::make_shared<std::string>();
@@ -140,7 +139,6 @@ void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 
 		m_owner.OnSessionDestroy(self);
 		m_owner.BroadcastToAll(data);
-		m_transport = nullptr;
 	});
 }
 

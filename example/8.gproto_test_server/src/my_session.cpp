@@ -14,24 +14,21 @@ std::pair<char*, size_t> MySession::GetRxBuffer() {
 
 void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	ASYNCIO_LOG_DEBUG("ConnectionMade sid:%llu", GetSid());
-	m_codec.Reset();
-	m_transport = transport;
+	m_codec.Init(transport);
 
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
 		m_ping_counter = 0;
 		m_ping_timer = m_event_loop.CallLater(
 			30000,
 			[self, this]() {
-				if (m_transport == nullptr)
-					return;
-
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
 					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
 					m_ping_counter = 0;
 				} else {
-					m_codec.send_ping(m_transport);
+					m_codec.send_ping();
 					m_ping_counter++;
 				}
 			},
@@ -40,42 +37,35 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
+void MySession::ConnectionLost(int err_code) {
 	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
 		m_owner.OnSessionDestroy(self);
-		m_transport = nullptr;
 	});
 }
 
 void MySession::DataReceived(size_t len) {
-	m_codec.Decode(m_transport, len);
+	m_codec.Decode(len);
 }
 
 void MySession::EofReceived() {
 	ASYNCIO_LOG_DEBUG("EofReceived");
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this]() {
-		if (m_transport != nullptr)
-			m_transport->WriteEof();
+		m_transport->WriteEof();
 	});
 }
 
 size_t MySession::Send(uint32_t msg_id, const char* data, size_t len) {
-	if (m_transport == nullptr)
-		return 0;
-
 	auto ret = m_codec.Encode(msg_id, data, len);
 	m_transport->Write(ret);
 	return ret->size();
 }
 
 void MySession::Kick() {
-	if (m_transport != nullptr) {
-		m_transport->Close(asyncio::EC_KICK);
-	}
+	m_transport->Close(asyncio::EC_KICK);
 }
 
 void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {

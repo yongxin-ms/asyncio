@@ -33,14 +33,6 @@ public:
 
 	virtual ~Codec() = default;
 
-	virtual void Reset() {
-		if (rx_buf_.size() != rx_buffer_size_) {
-			rx_buf_.resize(rx_buffer_size_);
-		}
-		read_pos_ = rx_buf_.data();
-		write_pos_ = read_pos_;
-	}
-
 	std::pair<char*, size_t> GetRxBuffer() const {
 		return std::make_pair((char*)write_pos_, rx_buf_.size() - GetRemainedLen());
 	}
@@ -48,9 +40,17 @@ public:
 	/*
 	 * 如果在解码运行在io线程中， transport有可能被主线程清空，所以这里要判断transport的合法性
 	 */
-	virtual void Decode(TransportPtr transport, size_t len) = 0;
+	virtual void Decode(size_t len) = 0;
 
 protected:
+	void Reset() {
+		if (rx_buf_.size() != rx_buffer_size_) {
+			rx_buf_.resize(rx_buffer_size_);
+		}
+		read_pos_ = rx_buf_.data();
+		write_pos_ = read_pos_;
+	}
+
 	size_t GetRemainedLen() const { return write_pos_ - read_pos_; }
 	void ReArrangePos() {
 		if (read_pos_ == rx_buf_.data())

@@ -13,8 +13,7 @@ public:
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
 	}
 
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
-		m_transport = nullptr;
+	virtual void ConnectionLost(int err_code) override {
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
 	}
 
@@ -36,10 +35,6 @@ public:
 	}
 
 	size_t Send(const char* data, size_t len) {
-		if (m_transport == nullptr) {
-			return 0;
-		}
-
 		ASYNCIO_LOG_DEBUG("Send %lld byte(s): %s", len, data);
 		auto s = std::make_shared<std::string>(data, len);
 		m_transport->Write(s);
@@ -47,9 +42,7 @@ public:
 	}
 
 	void Close() {
-		if (m_transport != nullptr) {
-			m_transport->Close(asyncio::EC_KICK);
-		}
+		m_transport->Close(asyncio::EC_KICK);
 	}
 
 private:

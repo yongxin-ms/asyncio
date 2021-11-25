@@ -16,8 +16,7 @@ public:
 		Send(msg.data(), msg.size());
 	}
 
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
-		m_transport = nullptr;
+	virtual void ConnectionLost(int err_code) override {
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
 	}
 
@@ -36,7 +35,7 @@ public:
 	}
 
 	size_t Send(const char* data, size_t len) {
-		if (m_transport == nullptr)
+		if (!IsConnected())
 			return 0;
 		ASYNCIO_LOG_DEBUG("Send %lld byte(s): %s", len, data);
 		auto s = std::make_shared<std::string>(data, len);
@@ -45,13 +44,16 @@ public:
 	}
 
 	void Close() {
-		if (m_transport != nullptr) {
+		if (IsConnected()) {
 			m_transport->Close(asyncio::EC_SHUT_DOWN);
 		}
 	}
 
+	bool IsConnected() { return m_connected; }
+
 private:
 	asyncio::TransportPtr m_transport;
+	bool m_connected = false;
 
 	//
 	// ProActor模式使用预先分配的缓冲区接收数据

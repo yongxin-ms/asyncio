@@ -12,7 +12,7 @@ public:
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override;
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override;
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override;
+	virtual void ConnectionLost(int err_code) override;
 	virtual void DataReceived(size_t len) override;
 	virtual void EofReceived() override;
 
@@ -30,6 +30,7 @@ private:
 	asyncio::DelayTimerPtr m_reconnect_timer;
 	asyncio::DelayTimerPtr m_ping_timer;
 	int m_ping_counter = 0;
+	bool m_connected = false;
 };
 
 using MyConnectionPtr = std::shared_ptr<MyConnection>;

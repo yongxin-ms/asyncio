@@ -31,35 +31,34 @@ public:
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 
 	virtual void ConnectionMade(asyncio::TransportPtr transport) override {
-		m_codec.Reset();
-		m_transport = transport;
-
+		m_codec.Init(transport);
+		
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
+			m_transport = transport;
+			m_connected = true;
+
 			std::string msg("hello,world!");
 			Send(msg.data(), msg.size());
 		});
 	}
 
-	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
+	virtual void ConnectionLost(int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this, transport]() {
-			m_transport = nullptr;
-
-			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+		m_event_loop.QueueInLoop([self, this]() {
+			m_reconnect_timer = m_event_loop.CallLater(3000, [self, this]() {
 				ASYNCIO_LOG_DEBUG("Start Reconnect");
-				transport->Connect();
+				m_transport->Connect();
 			});
 		});
 	}
 
-	virtual void DataReceived(size_t len) override { m_codec.Decode(m_transport, len); }
+	virtual void DataReceived(size_t len) override { m_codec.Decode(len); }
 	virtual void EofReceived() override {
 		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
-			if (m_transport != nullptr)
-				m_transport->WriteEof();
+			m_transport->WriteEof();
 		});
 	}
 
@@ -74,7 +73,7 @@ public:
 	}
 
 	void Close() {
-		if (m_transport != nullptr) {
+		if (IsConnected()) {
 			m_transport->Close(asyncio::EC_SHUT_DOWN);
 		}
 	}
@@ -87,11 +86,12 @@ public:
 		});
 	}
 
-	bool IsConnected() { return m_transport != nullptr; }
+	bool IsConnected() { return m_connected; }
 
 private:
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
+	bool m_connected = false;
 	asyncio::CodecUserHeader<MyHeader, MyHeader::MAGIC_NUM> m_codec;
 	asyncio::DelayTimerPtr m_reconnect_timer;
 };

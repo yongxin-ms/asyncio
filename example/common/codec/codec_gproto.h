@@ -18,16 +18,14 @@ public:
 		, m_user_msg_func(std::move(msg_func))
 		, m_pong_func(std::move(pong_func)) {}
 
-	virtual void Reset() override {
-		Codec::Reset();
+	void Init(TransportPtr transport) {
+		Reset();
 		bucket_.header.reset();
 		bucket_.msg_id.reset();
+		m_transport = transport;
 	}
 
-	virtual void Decode(TransportPtr transport, size_t len) override {
-		if (transport == nullptr)
-			return;
-
+	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -42,7 +40,7 @@ public:
 					if (ctrl == CTL_DATA) {
 						if (bucket_.header.get().len < bucket_.msg_id.size()) {
 							ASYNCIO_LOG_WARN("Close transport because of packet length(%d)", bucket_.header.get().len);
-							transport->Close(EC_PACKET_OVER_SIZE);
+							m_transport->Close(EC_PACKET_OVER_SIZE);
 							return;
 						}
 
@@ -50,7 +48,7 @@ public:
 						uint32_t original_len = bucket_.header.get().len - sizeof(uint32_t);
 						if (IsOverSize(original_len)) {
 							ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", original_len);
-							transport->Close(EC_PACKET_OVER_SIZE);
+							m_transport->Close(EC_PACKET_OVER_SIZE);
 							return;
 						}
 
@@ -59,12 +57,12 @@ public:
 						if (bucket_.header.get().len != 0) {
 							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
 											 bucket_.header.get().len);
-							transport->Close(EC_KICK);
+							m_transport->Close(EC_KICK);
 							return;
 						}
 
 						ASYNCIO_LOG_DEBUG("received ping");
-						send_pong(transport); // 反射一个pong
+						send_pong(); // 反射一个pong
 						bucket_.header.reset();
 						bucket_.msg_id.reset();
 						continue;
@@ -72,7 +70,7 @@ public:
 						if (bucket_.header.get().len != 0) {
 							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
 											 bucket_.header.get().len);
-							transport->Close(EC_KICK);
+							m_transport->Close(EC_KICK);
 							return;
 						}
 
@@ -84,7 +82,7 @@ public:
 					} else if (ctrl == CTL_CLOSE) {
 						ASYNCIO_LOG_DEBUG("received close");
 						//对方要求关闭连接
-						transport->Close(EC_SHUT_DOWN);
+						m_transport->Close(EC_SHUT_DOWN);
 						return;
 					}
 				}
@@ -123,7 +121,7 @@ public:
 		return p;
 	}
 
-	void send_ping(TransportPtr transport) {
+	void send_ping() {
 		ASYNCIO_LOG_DEBUG("send ping");
 
 		TcpMsgHeader ping;
@@ -132,10 +130,10 @@ public:
 		ping.enc = ecnryptWord_;
 		auto data = std::make_shared<std::string>();
 		data->append((const char*)&ping, sizeof(ping));
-		transport->Write(data);
+		m_transport->Write(data);
 	}
 
-	void send_pong(TransportPtr transport) {
+	void send_pong() {
 		ASYNCIO_LOG_DEBUG("send pong");
 
 		TcpMsgHeader pong;
@@ -144,7 +142,7 @@ public:
 		pong.enc = ecnryptWord_;
 		auto data = std::make_shared<std::string>();
 		data->append((const char*)&pong, sizeof(pong));
-		transport->Write(data);
+		m_transport->Write(data);
 	}
 
 private:
@@ -175,6 +173,7 @@ private:
 	PONG_CALLBACK m_pong_func;
 	uint8_t ecnryptWord_ = 0;
 	TcpMsgBucket bucket_;
+	TransportPtr m_transport;
 };
 
 } // namespace asyncio
