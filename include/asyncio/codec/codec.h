@@ -2,9 +2,6 @@
 
 namespace asyncio {
 
-class Transport;
-typedef std::shared_ptr<Transport> TransportPtr;
-
 //
 // 解码器
 // 1.解决黏包问题
@@ -37,9 +34,6 @@ public:
 		return std::make_pair((char*)write_pos_, rx_buf_.size() - GetRemainedLen());
 	}
 
-	/*
-	 * 如果在解码运行在io线程中， transport有可能被主线程清空，所以这里要判断transport的合法性
-	 */
 	virtual void Decode(size_t len) = 0;
 
 protected:
