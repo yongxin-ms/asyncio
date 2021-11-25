@@ -37,7 +37,7 @@ void MySession::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MySession::ConnectionLost(int err_code) {
+void MySession::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 
 	auto self = shared_from_this();

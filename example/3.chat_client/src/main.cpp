@@ -37,17 +37,17 @@ public:
 		});
 	}
 
-	virtual void ConnectionLost(int err_code) override {
+	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() {
+		m_event_loop.QueueInLoop([self, this, transport]() {
 			ASYNCIO_LOG_INFO("ConnectionLost");
 
 			//
 			// 网络断开之后每3秒钟尝试一次重连，只到连上为止
 			//
-			m_reconnect_timer = m_event_loop.CallLater(3000, [self, this]() {
+			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
 				ASYNCIO_LOG_INFO("Start Reconnect");
-				m_transport->Connect();
+				transport->Connect();
 			});
 
 			//

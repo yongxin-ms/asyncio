@@ -43,12 +43,12 @@ public:
 		});
 	}
 
-	virtual void ConnectionLost(int err_code) override {
+	virtual void ConnectionLost(asyncio::TransportPtr transport, int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() {
-			m_reconnect_timer = m_event_loop.CallLater(3000, [self, this]() {
+		m_event_loop.QueueInLoop([self, this, transport]() {
+			m_reconnect_timer = m_event_loop.CallLater(3000, [self, this, transport]() {
 				ASYNCIO_LOG_DEBUG("Start Reconnect");
-				m_transport->Connect();
+				transport->Connect();
 			});
 		});
 	}

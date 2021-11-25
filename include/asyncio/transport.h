@@ -58,7 +58,7 @@ public:
 					self->DoReadData();
 				} else {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d failed", m_remote_ip.data(), m_remote_port);
-					self->m_protocol->ConnectionLost(ec.value());
+					self->m_protocol->ConnectionLost(self, ec.value());
 				}
 			});
 		});
@@ -119,7 +119,7 @@ private:
 			return;
 		m_socket.close();
 		auto self = shared_from_this();
-		m_protocol->ConnectionLost(err_code);
+		m_protocol->ConnectionLost(self, err_code);
 	}
 
 private:

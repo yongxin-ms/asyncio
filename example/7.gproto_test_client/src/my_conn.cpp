@@ -42,14 +42,14 @@ void MyConnection::ConnectionMade(asyncio::TransportPtr transport) {
 	});
 }
 
-void MyConnection::ConnectionLost(int err_code) {
+void MyConnection::ConnectionLost(asyncio::TransportPtr transport, int err_code) {
 	ASYNCIO_LOG_DEBUG("ConnectionLost");
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
+	m_event_loop.QueueInLoop([self, this, transport]() {
 		m_connected = false;
-		m_reconnect_timer = m_event_loop.CallLater(3000, [self, this]() {
+		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
 			ASYNCIO_LOG_DEBUG("Start Reconnect");
-			m_transport->Connect();
+			transport->Connect();
 		});
 	});
 }
