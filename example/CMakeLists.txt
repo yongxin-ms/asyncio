@@ -33,6 +33,7 @@ else ()
 		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 	endif(CCACHE_FOUND)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -pthread -Wno-error=deprecated-declarations -Wno-deprecated-declarations ")
 endif ()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../opt/asio-1.18.2/include)
