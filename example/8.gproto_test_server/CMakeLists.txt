@@ -11,7 +11,7 @@ if (WIN32)
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 else()
 	#find_package(asio CONFIG REQUIRED)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g -pthread")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wdeprecated-declarations -g -pthread")
 endif()
 
 INCLUDE_DIRECTORIES(
