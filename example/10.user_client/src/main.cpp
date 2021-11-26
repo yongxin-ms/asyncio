@@ -84,7 +84,7 @@ public:
 		}
 	}
 
-	void OnMyMessageFunc(const MyHeader& header, std::shared_ptr<std::string> data) {
+	void OnMyMessageFunc(const MyHeader& header, const std::shared_ptr<std::string>& data) {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, data]() {
 			self->Send(data->data(), data->size());

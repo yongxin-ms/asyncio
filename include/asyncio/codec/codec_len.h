@@ -7,7 +7,7 @@ namespace asyncio {
 
 class CodecLen final : public Codec {
 public:
-	using USER_MSG_CALLBACK = std::function<void(std::shared_ptr<std::string>)>;
+	using USER_MSG_CALLBACK = std::function<void(const StringPtr&)>;
 	
 	CodecLen(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 			 uint32_t packet_size_limit = MAX_PACKET_SIZE)
@@ -53,7 +53,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(const char* buf, size_t len) const {
+	StringPtr Encode(const char* buf, size_t len) const {
 		if (len <= 0)
 			return nullptr;
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);

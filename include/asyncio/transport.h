@@ -4,6 +4,7 @@
 #include <asio.hpp>
 #include <asyncio/protocol.h>
 #include <asyncio/log.h>
+#include <asyncio/type.h>
 
 namespace asyncio {
 
@@ -89,7 +90,7 @@ public:
 
 	void Close(int err_code);
 
-	void Write(const std::shared_ptr<std::string>& msg);
+	void Write(const StringPtr& msg);
 	void WriteEof();
 
 	void SetRemoteIp(const std::string& remote_ip) { m_remote_ip = remote_ip; }
@@ -134,7 +135,7 @@ private:
 	uint16_t m_remote_port;
 
 	asio::ip::tcp::socket m_socket;
-	std::deque<std::shared_ptr<std::string>> m_writeMsgs;
+	std::deque<StringPtr> m_writeMsgs;
 };
 
 void Transport::Close(int err_code) {
@@ -142,7 +143,7 @@ void Transport::Close(int err_code) {
 	asio::post(self->m_context, [self, this, err_code]() { InnerClose(err_code); });
 }
 
-void Transport::Write(const std::shared_ptr<std::string>& msg) {
+void Transport::Write(const StringPtr& msg) {
 	auto self = shared_from_this();
 	asio::post(self->m_context, [self, msg]() {
 		bool write_in_progress = !self->m_writeMsgs.empty();

@@ -7,7 +7,7 @@ namespace asyncio {
 
 class CodecTrans : public Codec {
 public:
-	using USER_MSG_CALLBACK = std::function<void(uint64_t trans_id, uint32_t msg_id, std::shared_ptr<std::string>)>;
+	using USER_MSG_CALLBACK = std::function<void(uint64_t trans_id, uint32_t msg_id, const StringPtr&)>;
 	
 	CodecTrans(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 			   uint32_t packet_size_limit = MAX_PACKET_SIZE)
@@ -52,7 +52,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(uint32_t msgID, uint64_t trans_sid, const char* buf, size_t len) const {
+	StringPtr Encode(uint32_t msgID, uint64_t trans_sid, const char* buf, size_t len) const {
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
 		header->len = BigLittleSwap32(len);

@@ -1,7 +1,9 @@
 ﻿#include <functional>
 #include <asyncio.h>
 
-class MyConnection : public std::enable_shared_from_this<MyConnection>, public asyncio::Protocol {
+class MyConnection
+	: public std::enable_shared_from_this<MyConnection>
+	, public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {
@@ -21,7 +23,7 @@ public:
 			//
 			// 连接建立之后每2秒钟发送一条消息
 			//
-			
+
 			m_connected = true;
 			if (m_say_timer == nullptr) {
 				auto weak_self = self->weak_from_this();
@@ -77,12 +79,10 @@ public:
 	virtual void EofReceived() override {
 		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() {
-			m_transport->WriteEof();
-		});
+		m_event_loop.QueueInLoop([self, this]() { m_transport->WriteEof(); });
 	}
 
-	size_t Send(std::shared_ptr<std::string> data) {
+	size_t Send(const asyncio::StringPtr& data) {
 		if (!IsConnected())
 			return 0;
 		m_transport->Write(data);

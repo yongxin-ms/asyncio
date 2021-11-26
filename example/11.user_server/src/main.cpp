@@ -31,6 +31,7 @@ public:
 		, m_event_loop(event_loop)
 		, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2))
 		, m_sid(sid) {}
+	virtual ~MySession() { ASYNCIO_LOG_DEBUG("MySession destroyed"); }
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
@@ -56,7 +57,7 @@ public:
 		m_transport->Close(asyncio::EC_KICK);
 	}
 
-	void OnMyMessageFunc(const MyHeader& header, std::shared_ptr<std::string> data) {
+	void OnMyMessageFunc(const MyHeader& header, const std::shared_ptr<std::string>& data) {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, data]() {
 			self->Send(data->data(), data->size());
@@ -98,9 +99,9 @@ public:
 
 	MySessionFactory& GetSessionFactory() { return m_session_factory; }
 
-	void OnSessionCreate(MySessionPtr session) { m_sessions[session->GetSid()] = session; }
+	void OnSessionCreate(const MySessionPtr& session) { m_sessions[session->GetSid()] = session; }
 
-	void OnSessionDestroy(MySessionPtr session) {
+	void OnSessionDestroy(const MySessionPtr& session) {
 		m_sessions.erase(session->GetSid());
 	}
 

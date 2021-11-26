@@ -28,7 +28,7 @@ void MyConnMgr::StartConnect(const std::string& ip, uint16_t port, int conn_coun
 	}
 }
 
-void MyConnMgr::OnMessage(MyConnectionPtr conn, uint32_t msg_id, std::shared_ptr<std::string> data) {
+void MyConnMgr::OnMessage(const MyConnectionPtr& conn, uint32_t msg_id, const std::shared_ptr<std::string>& data) {
 	conn->Send(msg_id, data->data(), data->size());
 	App::Instance()->IncQps();
 }

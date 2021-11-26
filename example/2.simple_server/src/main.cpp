@@ -3,6 +3,7 @@
 class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
 public:
 	MySession() { m_rx_buffer.resize(1024); }
+	virtual ~MySession() { ASYNCIO_LOG_DEBUG("MySession destroyed"); }
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());

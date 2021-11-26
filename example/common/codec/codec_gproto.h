@@ -9,7 +9,7 @@ namespace asyncio {
 
 class CodecGProto : public Codec {
 public:
-	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, std::shared_ptr<std::string>)>;
+	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, const StringPtr&)>;
 	using PONG_CALLBACK = std::function<void()>;
 
 	CodecGProto(USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func,
@@ -107,7 +107,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(uint32_t msgID, const char* buf, size_t len) const {
+	StringPtr Encode(uint32_t msgID, const char* buf, size_t len) const {
 		const size_t body_len = sizeof(msgID) + len;
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + body_len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);

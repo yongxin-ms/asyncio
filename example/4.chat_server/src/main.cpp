@@ -10,7 +10,9 @@
 
 class MySessionMgr;
 
-class MySession : public std::enable_shared_from_this<MySession>, public asyncio::Protocol{
+class MySession
+	: public std::enable_shared_from_this<MySession>
+	, public asyncio::Protocol {
 public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
@@ -19,13 +21,15 @@ public:
 		m_rx_buffer.resize(1024);
 	}
 
+	virtual ~MySession() { ASYNCIO_LOG_DEBUG("MySession destroyed"); }
+
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 	virtual void DataReceived(size_t len) override;
-	virtual void EofReceived() override { 
+	virtual void EofReceived() override {
 		ASYNCIO_LOG_DEBUG("EofReceived");
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
@@ -36,7 +40,7 @@ public:
 
 	uint64_t GetSid() { return m_sid; }
 
-	size_t Send(std::shared_ptr<std::string> data) {
+	size_t Send(const std::shared_ptr<std::string>& data) {
 		if (m_transport == nullptr)
 			return 0;
 		m_transport->Write(data);
@@ -87,12 +91,12 @@ public:
 
 	MySessionFactory& GetSessionFactory() { return m_session_factory; }
 
-	void OnSessionCreate(MySessionPtr session) { 
+	void OnSessionCreate(const MySessionPtr& session) {
 		m_sessions[session->GetSid()] = session;
 		ASYNCIO_LOG_DEBUG("session:%llu created", session->GetSid());
 	}
 
-	void OnSessionDestroy(MySessionPtr session) {
+	void OnSessionDestroy(const MySessionPtr& session) {
 		ASYNCIO_LOG_DEBUG("session:%llu destroyed", session->GetSid());
 		m_sessions.erase(session->GetSid());
 	}
@@ -105,7 +109,7 @@ public:
 		return it->second;
 	}
 
-	void BroadcastToAll(std::shared_ptr<std::string> words) {
+	void BroadcastToAll(const std::shared_ptr<std::string>& words) {
 		for (auto& it : m_sessions) {
 			auto& session = it.second;
 			session->Send(words);

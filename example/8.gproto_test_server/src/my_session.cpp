@@ -8,6 +8,10 @@ MySession::MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64
 			  std::bind(&MySession::OnReceivedPong, this))
 	, m_sid(sid) {}
 
+MySession::~MySession() {
+	ASYNCIO_LOG_DEBUG("MySession destroyed");
+}
+
 std::pair<char*, size_t> MySession::GetRxBuffer() {
 	return m_codec.GetRxBuffer();
 }
@@ -74,7 +78,7 @@ void MySession::Kick() {
 	m_transport->Close(asyncio::EC_KICK);
 }
 
-void MySession::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
+void MySession::OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, msg_id, data]() { m_owner.OnMessage(self, msg_id, data); });
 }

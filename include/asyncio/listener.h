@@ -113,6 +113,4 @@ private:
 	asio::ip::tcp::acceptor m_acceptor;
 };
 
-using ListenerPtr = std::shared_ptr<Listener>;
-
 } // namespace asyncio

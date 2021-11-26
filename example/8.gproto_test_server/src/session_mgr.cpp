@@ -28,10 +28,10 @@ bool MySessionMgr::Init(uint16_t port) {
 	return true;
 }
 
-void MySessionMgr::OnSessionCreate(MySessionPtr session) {
+void MySessionMgr::OnSessionCreate(const MySessionPtr& session) {
 	m_sessions[session->GetSid()] = session;
 }
-void MySessionMgr::OnSessionDestroy(MySessionPtr session) {
+void MySessionMgr::OnSessionDestroy(const MySessionPtr& session) {
 	m_sessions.erase(session->GetSid());
 }
 
@@ -47,7 +47,7 @@ size_t MySessionMgr::size() const {
 	return m_sessions.size();
 }
 
-void MySessionMgr::OnMessage(MySessionPtr conn, uint32_t msg_id, std::shared_ptr<std::string> data) {
+void MySessionMgr::OnMessage(const MySessionPtr& conn, uint32_t msg_id, const std::shared_ptr<std::string>& data) {
 	conn->Send(msg_id, data->data(), data->size());
 	App::Instance()->IncQps();
 }

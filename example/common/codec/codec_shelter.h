@@ -26,7 +26,7 @@ namespace asyncio {
 
 class CodecShelter : public Codec {
 public:
-	using USER_MSG_CALLBACK = std::function<void(std::shared_ptr<std::string>, std::shared_ptr<std::string>)>;
+	using USER_MSG_CALLBACK = std::function<void(const StringPtr&, const StringPtr&)>;
 	CodecShelter(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 				 uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
@@ -88,7 +88,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(const std::string& msg_name, const std::string& msg) const {
+	StringPtr Encode(const std::string& msg_name, const std::string& msg) const {
 		const int datalen = sizeof(uint32_t) + msg_name.size() + msg.size();
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + datalen, 0);
 		size_t cur = 0;

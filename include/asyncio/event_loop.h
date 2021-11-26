@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <asyncio/type.h>
 #include <asyncio/protocol.h>
 #include <asyncio/context_pool.h>
 #include <asyncio/log.h>
@@ -12,8 +13,6 @@
 namespace asyncio {
 
 class ProtocolFactory;
-
-using DelayTimerPtr = std::unique_ptr<DelayTimer>;
 
 class EventLoop {
 public:
@@ -114,7 +113,7 @@ ProtocolPtr EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const
 
 // 使用者应该保持这个监听器
 ListenerPtr EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
-	auto listener = std::make_shared<Listener>(m_main_context, m_worker_io, protocol_factory);
+	auto listener = std::make_unique<Listener>(m_main_context, m_worker_io, protocol_factory);
 	if (!listener->Listen(port)) {
 		ASYNCIO_LOG_ERROR("Listen on %d failed", port);
 		return nullptr;

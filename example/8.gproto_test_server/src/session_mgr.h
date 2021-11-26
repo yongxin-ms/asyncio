@@ -24,9 +24,9 @@ public:
 
 	bool Init(uint16_t port);
 
-	void OnSessionCreate(MySessionPtr session);
-	void OnSessionDestroy(MySessionPtr session);
-	void OnMessage(MySessionPtr conn, uint32_t msg_id, std::shared_ptr<std::string> data);
+	void OnSessionCreate(const MySessionPtr& session);
+	void OnSessionDestroy(const MySessionPtr& session);
+	void OnMessage(const MySessionPtr& conn, uint32_t msg_id, const std::shared_ptr<std::string>& data);
 
 	MySessionPtr FindSessionFromSid(uint64_t sid);
 	size_t size() const;

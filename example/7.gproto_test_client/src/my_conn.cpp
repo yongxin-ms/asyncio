@@ -7,6 +7,10 @@ MyConnection::MyConnection(MyConnMgr& owner, asyncio::EventLoop& event_loop)
 	, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
 			  std::bind(&MyConnection::OnReceivedPong, this)) {}
 
+MyConnection::~MyConnection() {
+	ASYNCIO_LOG_DEBUG("MyConnection destroyed");
+}
+
 std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 	return m_codec.GetRxBuffer();
 }
@@ -92,7 +96,7 @@ void MyConnection::Close() {
 	}
 }
 
-void MyConnection::OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data) {
+void MyConnection::OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, msg_id, data]() { m_owner.OnMessage(self, msg_id, data); });
 }

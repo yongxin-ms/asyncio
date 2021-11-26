@@ -9,6 +9,7 @@ class MySession
 	, public asyncio::Protocol {
 public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid);
+	virtual ~MySession();
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override;
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
@@ -19,7 +20,7 @@ public:
 	uint64_t GetSid() { return m_sid; }
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
 	void Kick();
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
+	void OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data);
 	void OnReceivedPong();
 
 private:

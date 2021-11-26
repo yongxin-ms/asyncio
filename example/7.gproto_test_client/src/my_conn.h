@@ -9,6 +9,7 @@ class MyConnection
 	, public asyncio::Protocol {
 public:
 	MyConnection(MyConnMgr& owner, asyncio::EventLoop& event_loop);
+	virtual ~MyConnection();
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override;
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
@@ -18,7 +19,7 @@ public:
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
 	void Close();
-	void OnMyMessageFunc(uint32_t msg_id, std::shared_ptr<std::string> data);
+	void OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data);
 	void OnReceivedPong();
 	bool IsConnected();
 

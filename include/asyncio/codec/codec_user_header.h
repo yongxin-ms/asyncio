@@ -19,7 +19,7 @@ class CodecUserHeader final : public Codec {
 		UserHeader user_header;
 	};
 
-	using USER_MSG_CALLBACK = std::function<void(const UserHeader&, std::shared_ptr<std::string>)>;
+	using USER_MSG_CALLBACK = std::function<void(const UserHeader&, const StringPtr&)>;
 
 public:
 	CodecUserHeader(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
@@ -72,7 +72,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(const UserHeader& user_header, const char* buf, uint32_t len) const {
+	StringPtr Encode(const UserHeader& user_header, const char* buf, uint32_t len) const {
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
 		header->magic_num = MAGIC_NUM;

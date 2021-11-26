@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <asyncio/util.h>
 #include <asyncio/log.h>
+#include <asyncio/type.h>
 #include <asyncio/protocol.h>
 #include <asyncio/transport.h>
 #include <asyncio/event_loop.h>

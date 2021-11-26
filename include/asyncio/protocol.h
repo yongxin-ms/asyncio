@@ -1,10 +1,8 @@
 ﻿#pragma once
 #include <memory>
+#include <asyncio/type.h>
 
 namespace asyncio {
-
-class Transport;
-using TransportPtr = std::shared_ptr<Transport>;
 
 class Protocol {
 public:
@@ -19,8 +17,6 @@ public:
 	virtual void DataReceived(size_t len) = 0;
 	virtual void EofReceived() = 0;
 };
-
-using ProtocolPtr = std::shared_ptr<Protocol>;
 
 class ProtocolFactory {
 public:
