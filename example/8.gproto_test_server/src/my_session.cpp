@@ -20,9 +20,15 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
 		m_ping_counter = 0;
+
+		auto weak_self = self->weak_from_this();
 		m_ping_timer = m_event_loop.CallLater(
 			30000,
-			[self, this]() {
+			[weak_self, this]() {
+				auto self = weak_self.lock();
+				if (self == nullptr)
+					return;
+
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
 					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);

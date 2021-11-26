@@ -24,11 +24,15 @@ public:
 			
 			m_connected = true;
 			if (m_say_timer == nullptr) {
+				auto weak_self = self->weak_from_this();
 				m_say_timer = m_event_loop.CallLater(
 					2000,
-					[self, this]() {
+					[weak_self]() {
+						auto self = weak_self.lock();
+						if (self == nullptr)
+							return;
 						auto msg = std::make_shared<std::string>("hello,world!");
-						Send(msg);
+						self->Send(msg);
 					},
 					asyncio::DelayTimer::RUN_FOREVER);
 			} else {
@@ -45,7 +49,11 @@ public:
 			//
 			// 网络断开之后每3秒钟尝试一次重连，只到连上为止
 			//
-			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+			auto weak_transport = transport->weak_from_this();
+			m_reconnect_timer = m_event_loop.CallLater(3000, [weak_transport]() {
+				auto transport = weak_transport.lock();
+				if (transport == nullptr)
+					return;
 				ASYNCIO_LOG_INFO("Start Reconnect");
 				transport->Connect();
 			});
