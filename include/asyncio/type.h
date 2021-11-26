@@ -13,7 +13,7 @@ class Protocol;
 using ProtocolPtr = std::shared_ptr<Protocol>;
 
 class Listener;
-using ListenerPtr = std::unique_ptr<Listener>;
+using ListenerPtr = std::shared_ptr<Listener>;
 
 class DelayTimer;
 using DelayTimerPtr = std::unique_ptr<DelayTimer>;
