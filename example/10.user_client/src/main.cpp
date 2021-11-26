@@ -48,11 +48,7 @@ public:
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			m_connected = false;
 
-			auto weak_transport = transport->weak_from_this();
-			m_reconnect_timer = m_event_loop.CallLater(3000, [weak_transport]() {
-				auto transport = weak_transport.lock();
-				if (transport == nullptr)
-					return;
+			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
 				ASYNCIO_LOG_DEBUG("Start Reconnect");
 				transport->Connect();
 			});
