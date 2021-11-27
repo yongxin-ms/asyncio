@@ -91,7 +91,12 @@ public:
 	void Close(int err_code);
 
 	// 解除引用，准备析构
-	void Release() { m_protocol = nullptr; }
+	void Release() {
+		if (m_socket.is_open()) {
+			InnerClose(EC_SHUT_DOWN);
+		}
+		m_protocol = nullptr;
+	}
 
 	void Write(const StringPtr& msg);
 	void WriteEof();
