@@ -16,6 +16,7 @@ public:
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 	virtual void DataReceived(size_t len) override;
 	virtual void EofReceived() override;
+	virtual void Release() override;
 
 	uint64_t GetSid() { return m_sid; }
 	size_t Send(uint32_t msg_id, const char* data, size_t len);

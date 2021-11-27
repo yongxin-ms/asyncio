@@ -46,6 +46,16 @@ public:
 		});
 	}
 
+	virtual void Release() override {
+		if (m_transport != nullptr) {
+			m_transport->Release();
+		}
+
+		if (m_reconnect_timer != nullptr) {
+			m_reconnect_timer = nullptr;
+		}
+	}
+
 	size_t Send(const char* data, size_t len) {
 		if (!IsConnected()) {
 			return 0;

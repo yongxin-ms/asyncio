@@ -49,12 +49,6 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	m_event_loop.QueueInLoop([self, this]() {
 		m_owner.OnSessionDestroy(self);
 	});
-
-	// 解除timer对session的引用，这个很重要，否则会话无法析构，会有内存泄露
-	if (m_ping_timer != nullptr) {
-		m_ping_timer->Cancel();
-		m_ping_timer = nullptr;
-	}
 }
 
 void MySession::DataReceived(size_t len) {
@@ -67,6 +61,16 @@ void MySession::EofReceived() {
 	m_event_loop.QueueInLoop([self, this]() {
 		m_transport->WriteEof();
 	});
+}
+
+void MySession::Release() {
+	if (m_transport != nullptr) {
+		m_transport->Release();
+	}
+
+	if (m_ping_timer != nullptr) {
+		m_ping_timer = nullptr;
+	}
 }
 
 size_t MySession::Send(uint32_t msg_id, const char* data, size_t len) {

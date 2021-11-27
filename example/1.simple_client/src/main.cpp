@@ -36,6 +36,12 @@ public:
 		m_transport->WriteEof();
 	}
 
+	virtual void Release() override {
+		if (m_transport != nullptr) {
+			m_transport->Release();
+		}
+	}
+
 	size_t Send(const char* data, size_t len) {
 		if (!IsConnected())
 			return 0;

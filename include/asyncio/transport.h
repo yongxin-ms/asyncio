@@ -90,6 +90,9 @@ public:
 
 	void Close(int err_code);
 
+	// 解除引用，准备析构
+	void Release() { m_protocol = nullptr; }
+
 	void Write(const StringPtr& msg);
 	void WriteEof();
 
@@ -127,11 +130,6 @@ private:
 				auto self = shared_from_this();
 				m_protocol->ConnectionLost(self, err_code);
 			}
-		}
-
-		// 对服务器来说，一旦连接断掉是不可恢复的，此时解除引用，准备析构
-		if (!m_is_client) {
-			m_protocol = nullptr;
 		}
 	}
 

@@ -74,6 +74,20 @@ public:
 		m_event_loop.QueueInLoop([self, this]() { m_transport->WriteEof(); });
 	}
 
+	virtual void Release() override {
+		if (m_transport != nullptr) {
+			m_transport->Release();
+		}
+
+		if (m_reconnect_timer != nullptr) {
+			m_reconnect_timer = nullptr;
+		}
+
+		if (m_say_timer != nullptr) {
+			m_say_timer = nullptr;
+		}
+	}
+
 	size_t Send(const asyncio::StringPtr& data) {
 		if (!IsConnected())
 			return 0;

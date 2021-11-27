@@ -16,6 +16,7 @@ public:
 	virtual void ConnectionLost(const TransportPtr& transport, int err_code) = 0;
 	virtual void DataReceived(size_t len) = 0;
 	virtual void EofReceived() = 0;
+	virtual void Release() = 0;
 };
 
 class ProtocolFactory {

@@ -35,6 +35,12 @@ public:
 		m_transport->WriteEof();
 	}
 
+	virtual void Release() override {
+		if (m_transport != nullptr) {
+			m_transport->Release();
+		}
+	}
+
 	size_t Send(const char* data, size_t len) {
 		ASYNCIO_LOG_DEBUG("Send %lld byte(s): %s", len, data);
 		auto s = std::make_shared<std::string>(data, len);

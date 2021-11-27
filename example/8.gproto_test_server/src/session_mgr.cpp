@@ -32,7 +32,11 @@ void MySessionMgr::OnSessionCreate(const MySessionPtr& session) {
 	m_sessions[session->GetSid()] = session;
 }
 void MySessionMgr::OnSessionDestroy(const MySessionPtr& session) {
-	m_sessions.erase(session->GetSid());
+	auto it = m_sessions.find(session->GetSid());
+	if (it != m_sessions.end()) {
+		session->Release();
+		it = m_sessions.erase(it);
+	}
 }
 
 MySessionPtr MySessionMgr::FindSessionFromSid(uint64_t sid) {

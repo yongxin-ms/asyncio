@@ -45,6 +45,12 @@ public:
 		});
 	}
 
+	virtual void Release() override {
+		if (m_transport != nullptr) {
+			m_transport->Release();
+		}
+	}
+
 	uint64_t GetSid() { return m_sid; }
 
 	size_t Send(const char* data, size_t len) {
@@ -102,7 +108,11 @@ public:
 	void OnSessionCreate(const MySessionPtr& session) { m_sessions[session->GetSid()] = session; }
 
 	void OnSessionDestroy(const MySessionPtr& session) {
-		m_sessions.erase(session->GetSid());
+		auto it = m_sessions.find(session->GetSid());
+		if (it != m_sessions.end()) {
+			session->Release();
+			it = m_sessions.erase(it);
+		}
 	}
 
 	MySessionPtr FindSessionFromSid(uint64_t sid) {

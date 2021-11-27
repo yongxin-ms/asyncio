@@ -38,6 +38,12 @@ public:
 		});
 	}
 
+	virtual void Release() override {
+		if (m_transport != nullptr) {
+			m_transport->Release();
+		}
+	}
+
 	uint64_t GetSid() { return m_sid; }
 
 	size_t Send(const std::shared_ptr<std::string>& data) {
@@ -98,7 +104,11 @@ public:
 
 	void OnSessionDestroy(const MySessionPtr& session) {
 		ASYNCIO_LOG_DEBUG("session:%llu destroyed", session->GetSid());
-		m_sessions.erase(session->GetSid());
+		auto it = m_sessions.find(session->GetSid());
+		if (it != m_sessions.end()) {
+			session->Release();
+			it = m_sessions.erase(it);
+		}
 	}
 
 	MySessionPtr FindSessionFromSid(uint64_t sid) {
