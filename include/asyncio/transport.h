@@ -131,14 +131,12 @@ private:
 
 	//在io线程中关闭
 	void InnerClose(int err_code) {
-		ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);
 		if (m_socket.is_open()) {
+			ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);
 			m_socket.close();
 
-			if (m_protocol != nullptr) {
-				auto self = shared_from_this();
-				m_protocol->ConnectionLost(self, err_code);
-			}
+			auto self = shared_from_this();
+			m_protocol->ConnectionLost(self, err_code);
 		}
 	}
 
