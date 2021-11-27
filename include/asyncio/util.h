@@ -8,28 +8,29 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #ifdef _WIN32
-#	ifndef NOMINMAX
-#		define NOMINMAX
-#	endif
+	#ifndef NOMINMAX
+		#define NOMINMAX
+	#endif
 
-#	include <stdlib.h>
-#	include <windows.h>
-#	include <io.h>
+	#include <stdlib.h>
+	#include <windows.h>
+	#include <io.h>
 #elif __APPLE__
-#	include <dirent.h>
-#	include <unistd.h>
+	#include <dirent.h>
+	#include <unistd.h>
 #else
-#	include <unistd.h>
-#	include <sys/io.h>
-#	include <dirent.h>
-#	include <sys/stat.h>
+	#include <unistd.h>
+	#include <sys/io.h>
+	#include <dirent.h>
+	#include <sys/stat.h>
 #endif
 
 namespace asyncio {
 namespace util {
 
 template <class T>
-inline void UNUSED(T const&) {}
+inline void UNUSED(T const&) {
+}
 
 class Random {
 public:
@@ -241,7 +242,9 @@ public:
 		return std::make_pair(fullPath, appName);
 	}
 
-	static std::string GetParentDir(const std::string& dir) { return dir.substr(0, dir.find_last_of('/')); }
+	static std::string GetParentDir(const std::string& dir) {
+		return dir.substr(0, dir.find_last_of('/'));
+	}
 
 	//获取一个目录下面所有的文件
 	static std::vector<std::string> GetAllFilesFromDir(const std::string& dir) {

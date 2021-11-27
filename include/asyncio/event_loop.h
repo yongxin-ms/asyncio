@@ -22,14 +22,21 @@ public:
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
 
-	IOContext& MainIOContext() { return m_main_context; }
-	IOContext& WorkerIOContext();
+	IOContext& MainIOContext() {
+		return m_main_context;
+	}
 
+	IOContext& WorkerIOContext();
 	void RunForever();
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
-	bool IsInLoopThread() const { return m_thread_id == std::this_thread::get_id(); }
-	std::thread::id GetThreadId() const { return m_thread_id; }
+	bool IsInLoopThread() const {
+		return m_thread_id == std::this_thread::get_id();
+	}
+
+	std::thread::id GetThreadId() const {
+		return m_thread_id;
+	}
 
 	/*
 	 * 请通过持有返回值来控制定时器的生命周期

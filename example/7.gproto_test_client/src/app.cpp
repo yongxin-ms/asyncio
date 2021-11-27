@@ -2,7 +2,8 @@
 
 App::App()
 	: my_event_loop(4)
-	, m_conn_mgr(my_event_loop) {}
+	, m_conn_mgr(my_event_loop) {
+}
 
 void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");

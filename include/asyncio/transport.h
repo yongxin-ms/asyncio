@@ -29,7 +29,8 @@ public:
 		, m_is_client(true)
 		, m_remote_ip(host)
 		, m_remote_port(port)
-		, m_socket(m_context) {}
+		, m_socket(m_context) {
+	}
 
 	// 作为服务器接受客户端的连接
 	Transport(IOContext& context, const ProtocolPtr& protocol)
@@ -37,7 +38,8 @@ public:
 		, m_protocol(protocol)
 		, m_is_client(false)
 		, m_remote_port(0)
-		, m_socket(m_context) {}
+		, m_socket(m_context) {
+	}
 
 	virtual ~Transport() {
 		ASYNCIO_LOG_DEBUG("transport destroyed, is_client(%d), remote_ip(%s), remote_port(%d)", m_is_client,
@@ -88,26 +90,28 @@ public:
 								 });
 	}
 
-	void Close(int err_code);
+	void Close(int err_code = EC_SHUT_DOWN);
+	void Write(const StringPtr& msg);
 
-	// 解除引用，准备析构
-	void Release() {
-		if (m_socket.is_open()) {
-			InnerClose(EC_SHUT_DOWN);
-		}
-		m_protocol = nullptr;
+	void SetRemoteIp(const std::string& remote_ip) {
+		m_remote_ip = remote_ip;
+	}
+	const std::string& GetRemoteIp() const {
+		return m_remote_ip;
+	}
+	void SetRemotePort(uint16_t remote_port) {
+		m_remote_port = remote_port;
+	}
+	uint16_t GetRemotePort() const {
+		return m_remote_port;
 	}
 
-	void Write(const StringPtr& msg);
-	void WriteEof();
-
-	void SetRemoteIp(const std::string& remote_ip) { m_remote_ip = remote_ip; }
-	const std::string& GetRemoteIp() const { return m_remote_ip; }
-	void SetRemotePort(uint16_t remote_port) { m_remote_port = remote_port; }
-	uint16_t GetRemotePort() const { return m_remote_port; }
-
-	asio::ip::tcp::socket& GetSocket() { return m_socket; }
-	IOContext& GetIOContext() { return m_context; }
+	asio::ip::tcp::socket& GetSocket() {
+		return m_socket;
+	}
+	IOContext& GetIOContext() {
+		return m_context;
+	}
 
 private:
 	void DoWrite() {
@@ -151,7 +155,10 @@ private:
 
 void Transport::Close(int err_code) {
 	auto self = shared_from_this();
-	asio::post(self->m_context, [self, this, err_code]() { InnerClose(err_code); });
+	asio::post(self->m_context, [self, this, err_code]() {
+		InnerClose(err_code);
+		m_protocol = nullptr;
+	});
 }
 
 void Transport::Write(const StringPtr& msg) {
@@ -164,7 +171,5 @@ void Transport::Write(const StringPtr& msg) {
 		}
 	});
 }
-
-void Transport::WriteEof() {}
 
 } // namespace asyncio

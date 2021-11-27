@@ -30,7 +30,8 @@ public:
 	CodecShelter(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 				 uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
-		, m_user_msg_func(std::move(func)) {}
+		, m_user_msg_func(std::move(func)) {
+	}
 
 	void Init(const TransportPtr& transport) {
 		Codec::Reset();
@@ -111,8 +112,12 @@ public:
 
 #pragma pack(push, 1)
 	struct TcpMsgHeader {
-		TcpMsgHeader() { memset(this, 0, size()); }
-		constexpr static size_t size() { return sizeof(TcpMsgHeader); }
+		TcpMsgHeader() {
+			memset(this, 0, size());
+		}
+		constexpr static size_t size() {
+			return sizeof(TcpMsgHeader);
+		}
 
 		uint16_t datalen;  //除掉此报文头的报文体长度
 		uint16_t checksum; //除掉此报文头的报文体校验和

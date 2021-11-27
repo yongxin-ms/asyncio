@@ -5,7 +5,8 @@ MyConnection::MyConnection(MyConnMgr& owner, asyncio::EventLoop& event_loop)
 	: m_owner(owner)
 	, m_event_loop(event_loop)
 	, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
-			  std::bind(&MyConnection::OnReceivedPong, this)) {}
+			  std::bind(&MyConnection::OnReceivedPong, this)) {
+}
 
 MyConnection::~MyConnection() {
 	ASYNCIO_LOG_DEBUG("MyConnection destroyed");
@@ -63,17 +64,9 @@ void MyConnection::DataReceived(size_t len) {
 	m_codec.Decode(len);
 }
 
-void MyConnection::EofReceived() {
-	ASYNCIO_LOG_DEBUG("EofReceived");
-	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
-		m_transport->WriteEof();
-	});
-}
-
-void MyConnection::Release() {
+void MyConnection::Close() {
 	if (m_transport != nullptr) {
-		m_transport->Release();
+		m_transport->Close();
 	}
 
 	if (m_reconnect_timer != nullptr) {
@@ -93,12 +86,6 @@ size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
 	auto ret = m_codec.Encode(msg_id, data, len);
 	m_transport->Write(ret);
 	return ret->size();
-}
-
-void MyConnection::Close() {
-	if (IsConnected()) {
-		m_transport->Close(asyncio::EC_SHUT_DOWN);
-	}
 }
 
 void MyConnection::OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data) {

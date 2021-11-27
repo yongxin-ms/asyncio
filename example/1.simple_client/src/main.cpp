@@ -1,8 +1,12 @@
 ﻿#include <asyncio.h>
 
-class MyConnection : public asyncio::Protocol, std::enable_shared_from_this<MyConnection> {
+class MyConnection
+	: public asyncio::Protocol
+	, std::enable_shared_from_this<MyConnection> {
 public:
-	MyConnection() { m_rx_buffer.resize(1024); }
+	MyConnection() {
+		m_rx_buffer.resize(1024);
+	}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
@@ -31,14 +35,9 @@ public:
 		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, m_rx_buffer.data());
 	}
 
-	virtual void EofReceived() override {
-		ASYNCIO_LOG_DEBUG("EofReceived");
-		m_transport->WriteEof();
-	}
-
-	virtual void Release() override {
+	virtual void Close() override {
 		if (m_transport != nullptr) {
-			m_transport->Release();
+			m_transport->Close();
 		}
 	}
 
@@ -51,13 +50,9 @@ public:
 		return len;
 	}
 
-	void Close() {
-		if (IsConnected()) {
-			m_transport->Close(asyncio::EC_SHUT_DOWN);
-		}
+	bool IsConnected() {
+		return m_connected;
 	}
-
-	bool IsConnected() { return m_connected; }
 
 private:
 	asyncio::TransportPtr m_transport;
@@ -72,7 +67,9 @@ private:
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(); }
+	virtual asyncio::ProtocolPtr CreateProtocol() override {
+		return std::make_shared<MyConnection>();
+	}
 };
 
 int main() {

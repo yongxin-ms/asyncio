@@ -16,8 +16,12 @@ public:
 		, m_milliseconds(milliseconds)
 		, m_func(std::move(func))
 		, m_timer(context)
-		, m_running(false) {}
-	~DelayTimer() { Cancel(); }
+		, m_running(false) {
+	}
+
+	~DelayTimer() {
+		Cancel();
+	}
 
 	DelayTimer(const DelayTimer&) = delete;
 	DelayTimer& operator=(const DelayTimer&) = delete;

@@ -10,7 +10,7 @@ public:
 	bool Init(uint16_t port);
 	void Run();
 	void Stop();
-	
+
 	void IncQps();
 
 private:

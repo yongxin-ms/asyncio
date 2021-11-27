@@ -18,7 +18,9 @@ public:
 		: state_(method_start){};
 
 	/// Reset to initial parser state.
-	void reset() { state_ = method_start; };
+	void reset() {
+		state_ = method_start;
+	};
 
 	/// Result of parse.
 	enum result_type { good, bad, indeterminate };
@@ -242,10 +244,14 @@ private:
 	}
 
 	/// Check if a byte is an HTTP character.
-	static bool is_char(int c) { return c >= 0 && c <= 127; }
+	static bool is_char(int c) {
+		return c >= 0 && c <= 127;
+	}
 
 	/// Check if a byte is an HTTP control character.
-	static bool is_ctl(int c) { return (c >= 0 && c <= 31) || (c == 127); }
+	static bool is_ctl(int c) {
+		return (c >= 0 && c <= 31) || (c == 127);
+	}
 
 	/// Check if a byte is defined as an HTTP tspecial character.
 	static bool is_tspecial(int c) {
@@ -276,7 +282,9 @@ private:
 	}
 
 	/// Check if a byte is a digit.
-	static bool is_digit(int c) { return c >= '0' && c <= '9'; }
+	static bool is_digit(int c) {
+		return c >= '0' && c <= '9';
+	}
 
 	/// The current state of the parser.
 	enum state {
@@ -617,7 +625,8 @@ public:
 	explicit connection(asio::ip::tcp::socket socket, connection_manager& manager, request_handler& handler)
 		: socket_(std::move(socket))
 		, connection_manager_(manager)
-		, request_handler_(handler) {}
+		, request_handler_(handler) {
+	}
 
 	connection(const connection&) = delete;
 	const connection& operator=(const connection&) = delete;
@@ -634,14 +643,22 @@ public:
 	}
 
 	/// Stop all asynchronous operations associated with the connection.
-	void stop() { socket_.close(); }
+	void stop() {
+		socket_.close();
+	}
 
 	/// Perform an asynchronous write operation.
 	inline void do_write();
 
-	const request& get_req() const { return request_; }
-	reply& get_rep() { return reply_; }
-	const std::string& get_remote_ip() const { return remote_ip_; }
+	const request& get_req() const {
+		return request_;
+	}
+	reply& get_rep() {
+		return reply_;
+	}
+	const std::string& get_remote_ip() const {
+		return remote_ip_;
+	}
 
 private:
 	/// Perform an asynchronous read operation.
@@ -676,7 +693,8 @@ private:
 class connection_manager {
 public:
 	/// Construct a connection manager.
-	connection_manager() {}
+	connection_manager() {
+	}
 	connection_manager(const connection_manager&) = delete;
 	const connection_manager& operator=(const connection_manager&) = delete;
 

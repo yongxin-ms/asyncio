@@ -7,7 +7,8 @@
 MySessionFactory::MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork)
 	: m_owner(owner)
 	, m_event_loop(event_loop)
-	, m_idwork(idwork) {}
+	, m_idwork(idwork) {
+}
 
 asyncio::ProtocolPtr MySessionFactory::CreateProtocol() {
 	return std::make_shared<MySession>(m_owner, m_event_loop, m_idwork.CreateId());
@@ -15,7 +16,8 @@ asyncio::ProtocolPtr MySessionFactory::CreateProtocol() {
 
 MySessionMgr::MySessionMgr(asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork)
 	: m_event_loop(event_loop)
-	, m_session_factory(*this, event_loop, idwork) {}
+	, m_session_factory(*this, event_loop, idwork) {
+}
 
 bool MySessionMgr::Init(uint16_t port) {
 	m_listener = m_event_loop.CreateServer(m_session_factory, port);
@@ -31,10 +33,11 @@ bool MySessionMgr::Init(uint16_t port) {
 void MySessionMgr::OnSessionCreate(const MySessionPtr& session) {
 	m_sessions[session->GetSid()] = session;
 }
+
 void MySessionMgr::OnSessionDestroy(const MySessionPtr& session) {
 	auto it = m_sessions.find(session->GetSid());
 	if (it != m_sessions.end()) {
-		session->Release();
+		session->Close();
 		it = m_sessions.erase(it);
 	}
 }

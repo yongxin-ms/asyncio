@@ -8,11 +8,12 @@ namespace asyncio {
 class CodecTrans : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(uint64_t trans_id, uint32_t msg_id, const StringPtr&)>;
-	
+
 	CodecTrans(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 			   uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
-		, m_user_msg_func(std::move(func)) {}
+		, m_user_msg_func(std::move(func)) {
+	}
 
 	void Init(const TransportPtr& transport) {
 		Codec::Reset();
@@ -66,8 +67,12 @@ public:
 
 private:
 	struct TcpMsgHeader {
-		TcpMsgHeader() { memset(this, 0, size()); }
-		constexpr static int size() { return sizeof(TcpMsgHeader); }
+		TcpMsgHeader() {
+			memset(this, 0, size());
+		}
+		constexpr static int size() {
+			return sizeof(TcpMsgHeader);
+		}
 
 		uint32_t len; //这个长度是指报文体的长度，没有包括报文头的长度
 		uint32_t msg_id;

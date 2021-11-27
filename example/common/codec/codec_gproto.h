@@ -16,7 +16,8 @@ public:
 				uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE, uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_user_msg_func(std::move(msg_func))
-		, m_pong_func(std::move(pong_func)) {}
+		, m_pong_func(std::move(pong_func)) {
+	}
 
 	void Init(const TransportPtr& transport) {
 		Reset();
@@ -154,8 +155,12 @@ private:
 	};
 
 	struct TcpMsgHeader {
-		TcpMsgHeader() { memset(this, 0, size()); }
-		constexpr static size_t size() { return sizeof(TcpMsgHeader); }
+		TcpMsgHeader() {
+			memset(this, 0, size());
+		}
+		constexpr static size_t size() {
+			return sizeof(TcpMsgHeader);
+		}
 
 		uint32_t len : 24; //这个长度是指报文体的长度，不包括此报文头的长度
 		uint32_t enc : 6;

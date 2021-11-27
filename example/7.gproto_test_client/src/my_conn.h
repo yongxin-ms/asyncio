@@ -15,11 +15,9 @@ public:
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 	virtual void DataReceived(size_t len) override;
-	virtual void EofReceived() override;
-	virtual void Release() override;
+	virtual void Close() override;
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
-	void Close();
 	void OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data);
 	void OnReceivedPong();
 	bool IsConnected();

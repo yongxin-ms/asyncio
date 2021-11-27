@@ -6,7 +6,8 @@ MySession::MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64
 	, m_event_loop(event_loop)
 	, m_codec(std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
 			  std::bind(&MySession::OnReceivedPong, this))
-	, m_sid(sid) {}
+	, m_sid(sid) {
+}
 
 MySession::~MySession() {
 	ASYNCIO_LOG_DEBUG("MySession destroyed");
@@ -46,26 +47,16 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
-		m_owner.OnSessionDestroy(self);
-	});
+	m_event_loop.QueueInLoop([self, this]() { m_owner.OnSessionDestroy(self); });
 }
 
 void MySession::DataReceived(size_t len) {
 	m_codec.Decode(len);
 }
 
-void MySession::EofReceived() {
-	ASYNCIO_LOG_DEBUG("EofReceived");
-	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
-		m_transport->WriteEof();
-	});
-}
-
-void MySession::Release() {
+void MySession::Close() {
 	if (m_transport != nullptr) {
-		m_transport->Release();
+		m_transport->Close();
 	}
 
 	if (m_ping_timer != nullptr) {
@@ -77,10 +68,6 @@ size_t MySession::Send(uint32_t msg_id, const char* data, size_t len) {
 	auto ret = m_codec.Encode(msg_id, data, len);
 	m_transport->Write(ret);
 	return ret->size();
-}
-
-void MySession::Kick() {
-	m_transport->Close(asyncio::EC_KICK);
 }
 
 void MySession::OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data) {

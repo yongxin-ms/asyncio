@@ -5,7 +5,8 @@
 
 MyConnectionFactory::MyConnectionFactory(MyConnMgr& owner, asyncio::EventLoop& event_loop)
 	: m_owner(owner)
-	, m_event_loop(event_loop) {}
+	, m_event_loop(event_loop) {
+}
 
 asyncio::ProtocolPtr MyConnectionFactory::CreateProtocol() {
 	return std::make_shared<MyConnection>(m_owner, m_event_loop);
@@ -13,7 +14,8 @@ asyncio::ProtocolPtr MyConnectionFactory::CreateProtocol() {
 
 MyConnMgr::MyConnMgr(asyncio::EventLoop& event_loop)
 	: m_event_loop(event_loop)
-	, m_conn_factory(*this, event_loop) {}
+	, m_conn_factory(*this, event_loop) {
+}
 
 void MyConnMgr::StartConnect(const std::string& ip, uint16_t port, int conn_count) {
 	for (auto& conn : m_conns) {

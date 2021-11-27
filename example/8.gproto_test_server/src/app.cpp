@@ -3,7 +3,8 @@
 App::App()
 	: my_event_loop(4)
 	, m_idwork(1, 1, [](const char* s) { ASYNCIO_LOG_DEBUG("{}", s); })
-	, m_session_mgr(my_event_loop, m_idwork) {}
+	, m_session_mgr(my_event_loop, m_idwork) {
+}
 
 bool App::Init(uint16_t port) {
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");

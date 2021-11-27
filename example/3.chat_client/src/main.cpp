@@ -68,15 +68,9 @@ public:
 		ASYNCIO_LOG_INFO("%s", content.data());
 	}
 
-	virtual void EofReceived() override {
-		ASYNCIO_LOG_DEBUG("EofReceived");
-		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() { m_transport->WriteEof(); });
-	}
-
-	virtual void Release() override {
+	virtual void Close() override {
 		if (m_transport != nullptr) {
-			m_transport->Release();
+			m_transport->Close();
 		}
 
 		if (m_reconnect_timer != nullptr) {
@@ -95,12 +89,9 @@ public:
 		return data->size();
 	}
 
-	void Close() {
-		if (IsConnected())
-			m_transport->Close(asyncio::EC_SHUT_DOWN);
+	bool IsConnected() {
+		return m_connected;
 	}
-
-	bool IsConnected() { return m_connected; }
 
 private:
 	asyncio::EventLoop& m_event_loop;
@@ -119,8 +110,12 @@ private:
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {}
-	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
+		: m_event_loop(event_loop) {
+	}
+
+	virtual asyncio::ProtocolPtr CreateProtocol() override {
+		return std::make_shared<MyConnection>(m_event_loop);
+	}
 
 private:
 	asyncio::EventLoop& m_event_loop;

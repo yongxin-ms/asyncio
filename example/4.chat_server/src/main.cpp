@@ -21,42 +21,33 @@ public:
 		m_rx_buffer.resize(1024);
 	}
 
-	virtual ~MySession() { ASYNCIO_LOG_DEBUG("MySession destroyed"); }
+	virtual ~MySession() {
+		ASYNCIO_LOG_DEBUG("MySession destroyed");
+	}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
+
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 	virtual void DataReceived(size_t len) override;
-	virtual void EofReceived() override {
-		ASYNCIO_LOG_DEBUG("EofReceived");
-		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() {
-			if (m_transport != nullptr)
-				m_transport->WriteEof();
-		});
-	}
 
-	virtual void Release() override {
+	virtual void Close() override {
 		if (m_transport != nullptr) {
-			m_transport->Release();
+			m_transport->Close();
 		}
 	}
 
-	uint64_t GetSid() { return m_sid; }
+	uint64_t GetSid() {
+		return m_sid;
+	}
 
 	size_t Send(const std::shared_ptr<std::string>& data) {
 		if (m_transport == nullptr)
 			return 0;
 		m_transport->Write(data);
 		return data->size();
-	}
-
-	void Close() {
-		if (m_transport != nullptr) {
-			m_transport->Close(asyncio::EC_KICK);
-		}
 	}
 
 private:
@@ -76,7 +67,9 @@ class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
 		: m_owner(owner)
-		, m_event_loop(event_loop) {}
+		, m_event_loop(event_loop) {
+	}
+
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
 		uint64_t sid = ++g_sid;
@@ -93,9 +86,12 @@ using MySessionPtr = std::shared_ptr<MySession>;
 class MySessionMgr {
 public:
 	MySessionMgr(asyncio::EventLoop& event_loop)
-		: m_session_factory(*this, event_loop) {}
+		: m_session_factory(*this, event_loop) {
+	}
 
-	MySessionFactory& GetSessionFactory() { return m_session_factory; }
+	MySessionFactory& GetSessionFactory() {
+		return m_session_factory;
+	}
 
 	void OnSessionCreate(const MySessionPtr& session) {
 		m_sessions[session->GetSid()] = session;
@@ -106,7 +102,7 @@ public:
 		ASYNCIO_LOG_DEBUG("session:%llu destroyed", session->GetSid());
 		auto it = m_sessions.find(session->GetSid());
 		if (it != m_sessions.end()) {
-			session->Release();
+			session->Close();
 			it = m_sessions.erase(it);
 		}
 	}

@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	int port = std::atoi(argv[1]);
-	
+
 	if (!App::Instance()->Init(port))
 		return 0;
 

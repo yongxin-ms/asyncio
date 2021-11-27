@@ -16,10 +16,13 @@ public:
 		: m_main_context(main_context)
 		, m_worker_io(worker_io)
 		, m_protocol_factory(protocol_factory)
-		, m_acceptor(main_context) {}
+		, m_acceptor(main_context) {
+	}
 	Listener(const Listener&) = delete;
 	Listener& operator=(const Listener&) = delete;
-	~Listener() { Stop(); }
+	~Listener() {
+		Stop();
+	}
 
 	// 监听一个指定端口
 	bool Listen(uint16_t port) {
@@ -42,7 +45,7 @@ public:
 			fail(ec, "set_option no_delay");
 			return false;
 		}
-		
+
 		m_acceptor.bind(ep, ec);
 		if (ec) {
 			fail(ec, "bind");
@@ -60,13 +63,15 @@ public:
 		return true;
 	}
 
-	void Stop() { m_acceptor.close(); }
+	void Stop() {
+		m_acceptor.close();
+	}
 
 private:
 	void Accept() {
 		auto protocol = m_protocol_factory.CreateProtocol();
-		auto session = std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(),
-												   protocol);
+		auto session =
+			std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(), protocol);
 		auto self = shared_from_this();
 		m_acceptor.async_accept(session->GetSocket(), [self, this, session, protocol](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this

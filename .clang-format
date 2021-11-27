@@ -3,7 +3,7 @@ AccessModifierOffset: '-4'
 AlignTrailingComments: 'true'
 AllowAllConstructorInitializersOnNextLine: 'true'
 AllowShortBlocksOnASingleLine: 'false'
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: None
 AlwaysBreakTemplateDeclarations: 'Yes'
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma

@@ -1,9 +1,16 @@
 ﻿#include <asyncio.h>
 
-class MySession : public asyncio::Protocol, std::enable_shared_from_this<MySession> {
+class MySession
+	: public asyncio::Protocol
+	, std::enable_shared_from_this<MySession> {
 public:
-	MySession() { m_rx_buffer.resize(1024); }
-	virtual ~MySession() { ASYNCIO_LOG_DEBUG("MySession destroyed"); }
+	MySession() {
+		m_rx_buffer.resize(1024);
+	}
+
+	virtual ~MySession() {
+		ASYNCIO_LOG_DEBUG("MySession destroyed");
+	}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
@@ -30,14 +37,9 @@ public:
 		Send(ack.data(), ack.size());
 	}
 
-	virtual void EofReceived() override {
-		ASYNCIO_LOG_DEBUG("EofReceived");
-		m_transport->WriteEof();
-	}
-
-	virtual void Release() override {
+	virtual void Close() override {
 		if (m_transport != nullptr) {
-			m_transport->Release();
+			m_transport->Close();
 		}
 	}
 
@@ -46,10 +48,6 @@ public:
 		auto s = std::make_shared<std::string>(data, len);
 		m_transport->Write(s);
 		return len;
-	}
-
-	void Close() {
-		m_transport->Close(asyncio::EC_KICK);
 	}
 
 private:
@@ -64,7 +62,9 @@ private:
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MySession>(); }
+	virtual asyncio::ProtocolPtr CreateProtocol() override {
+		return std::make_shared<MySession>();
+	}
 };
 
 int main() {

@@ -15,25 +15,31 @@ struct MyHeader {
 	MyHeader(uint16_t msg_id = 0, uint16_t version = 0, uint32_t sequence = 0)
 		: msg_id(msg_id)
 		, version(version)
-		, sequence(sequence) {}
+		, sequence(sequence) {
+	}
 
 	uint16_t msg_id;
 	uint16_t version;
 	uint32_t sequence;
 };
 
-class MyConnection : public std::enable_shared_from_this<MyConnection>, public asyncio::Protocol {
+class MyConnection
+	: public std::enable_shared_from_this<MyConnection>
+	, public asyncio::Protocol {
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
+		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {
+	}
 
-	virtual std::pair<char*, size_t> GetRxBuffer() override { return m_codec.GetRxBuffer(); }
+	virtual std::pair<char*, size_t> GetRxBuffer() override {
+		return m_codec.GetRxBuffer();
+	}
 
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
 		m_codec.Init(transport);
 		m_transport = transport;
-		
+
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			m_connected = true;
@@ -55,18 +61,13 @@ public:
 		});
 	}
 
-	virtual void DataReceived(size_t len) override { m_codec.Decode(len); }
-	virtual void EofReceived() override {
-		ASYNCIO_LOG_DEBUG("EofReceived");
-		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() {
-			m_transport->WriteEof();
-		});
+	virtual void DataReceived(size_t len) override {
+		m_codec.Decode(len);
 	}
 
-	virtual void Release() override {
+	virtual void Close() override {
 		if (m_transport != nullptr) {
-			m_transport->Release();
+			m_transport->Close();
 		}
 
 		if (m_reconnect_timer != nullptr) {
@@ -84,12 +85,6 @@ public:
 		return ret->size();
 	}
 
-	void Close() {
-		if (IsConnected()) {
-			m_transport->Close(asyncio::EC_SHUT_DOWN);
-		}
-	}
-
 	void OnMyMessageFunc(const MyHeader& header, const std::shared_ptr<std::string>& data) {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, data]() {
@@ -98,7 +93,9 @@ public:
 		});
 	}
 
-	bool IsConnected() { return m_connected; }
+	bool IsConnected() {
+		return m_connected;
+	}
 
 private:
 	asyncio::EventLoop& m_event_loop;
@@ -111,8 +108,12 @@ private:
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {}
-	virtual asyncio::ProtocolPtr CreateProtocol() override { return std::make_shared<MyConnection>(m_event_loop); }
+		: m_event_loop(event_loop) {
+	}
+
+	virtual asyncio::ProtocolPtr CreateProtocol() override {
+		return std::make_shared<MyConnection>(m_event_loop);
+	}
 
 private:
 	asyncio::EventLoop& m_event_loop;
