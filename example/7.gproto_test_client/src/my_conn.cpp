@@ -25,13 +25,9 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 		m_connected = true;
 		m_ping_counter = 0;
 
-		auto weak_self = self->weak_from_this();
 		m_ping_timer = m_event_loop.CallLater(
 			30000,
-			[weak_self, this]() {
-				auto self = weak_self.lock();
-				if (self == nullptr)
-					return;
+			[self, this]() {
 				if (!IsConnected())
 					return;
 

@@ -25,14 +25,9 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 	m_event_loop.QueueInLoop([self, this, transport]() {
 		m_ping_counter = 0;
 
-		auto weak_self = self->weak_from_this();
 		m_ping_timer = m_event_loop.CallLater(
 			30000,
-			[weak_self, this]() {
-				auto self = weak_self.lock();
-				if (self == nullptr)
-					return;
-
+			[self, this]() {
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
 					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
@@ -54,6 +49,12 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	m_event_loop.QueueInLoop([self, this]() {
 		m_owner.OnSessionDestroy(self);
 	});
+
+	// 解除timer对session的引用，这个很重要，否则会话无法析构，会有内存泄露
+	if (m_ping_timer != nullptr) {
+		m_ping_timer->Cancel();
+		m_ping_timer = nullptr;
+	}
 }
 
 void MySession::DataReceived(size_t len) {

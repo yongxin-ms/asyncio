@@ -26,13 +26,9 @@ public:
 
 			m_connected = true;
 			if (m_say_timer == nullptr) {
-				auto weak_self = self->weak_from_this();
 				m_say_timer = m_event_loop.CallLater(
 					2000,
-					[weak_self]() {
-						auto self = weak_self.lock();
-						if (self == nullptr)
-							return;
+					[self]() {
 						auto msg = std::make_shared<std::string>("hello,world!");
 						self->Send(msg);
 					},

@@ -66,7 +66,7 @@ private:
 	void Accept() {
 		auto protocol = m_protocol_factory.CreateProtocol();
 		auto session = std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(),
-												   *protocol);
+												   protocol);
 		auto self = shared_from_this();
 		m_acceptor.async_accept(session->GetSocket(), [self, this, session, protocol](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
