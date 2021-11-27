@@ -10,7 +10,7 @@ MySession::MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64
 }
 
 MySession::~MySession() {
-	ASYNCIO_LOG_DEBUG("MySession destroyed");
+	ASYNCIO_LOG_DEBUG("MySession:%llu destroyed", m_sid);
 }
 
 std::pair<char*, size_t> MySession::GetRxBuffer() {
@@ -57,6 +57,7 @@ void MySession::DataReceived(size_t len) {
 void MySession::Close() {
 	if (m_transport != nullptr) {
 		m_transport->Close();
+		m_transport = nullptr;
 	}
 
 	if (m_ping_timer != nullptr) {

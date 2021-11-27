@@ -71,6 +71,7 @@ public:
 	virtual void Close() override {
 		if (m_transport != nullptr) {
 			m_transport->Close();
+			m_transport = nullptr;
 		}
 
 		if (m_reconnect_timer != nullptr) {

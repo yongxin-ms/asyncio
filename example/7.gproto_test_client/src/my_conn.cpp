@@ -67,6 +67,7 @@ void MyConnection::DataReceived(size_t len) {
 void MyConnection::Close() {
 	if (m_transport != nullptr) {
 		m_transport->Close();
+		m_transport = nullptr;
 	}
 
 	if (m_reconnect_timer != nullptr) {

@@ -22,7 +22,7 @@ public:
 	}
 
 	virtual ~MySession() {
-		ASYNCIO_LOG_DEBUG("MySession destroyed");
+		ASYNCIO_LOG_DEBUG("MySession:%llu destroyed", m_sid);
 	}
 
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
@@ -36,6 +36,7 @@ public:
 	virtual void Close() override {
 		if (m_transport != nullptr) {
 			m_transport->Close();
+			m_transport = nullptr;
 		}
 	}
 
