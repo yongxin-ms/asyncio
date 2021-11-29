@@ -133,6 +133,7 @@ private:
 	void InnerClose(int err_code) {
 		if (m_socket.is_open()) {
 			ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);
+			m_socket.cancel();
 			m_socket.close();
 
 			auto self = shared_from_this();
