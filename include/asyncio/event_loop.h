@@ -78,6 +78,9 @@ IOContext& EventLoop::WorkerIOContext() {
 }
 
 void EventLoop::RunForever() {
+	auto thread_id = std::this_thread::get_id();
+	ASYNCIO_LOG_INFO("EventLoop thread_id:%d", thread_id);
+
 	m_main_context.run();
 }
 
@@ -91,7 +94,9 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 }
 
 DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
-	if (std::this_thread::get_id() != m_thread_id) {
+	auto cur_thread_id = std::this_thread::get_id();
+	if (cur_thread_id != m_thread_id) {
+		ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%d, m_thread_id:%d", cur_thread_id, m_thread_id);
 		throw std::runtime_error("this function can only be called in main loop thread");
 	}
 

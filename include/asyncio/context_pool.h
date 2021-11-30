@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <asio.hpp>
+#include <asyncio/log.h>
 
 namespace asyncio {
 
@@ -23,8 +24,13 @@ public:
 		}
 
 		for (size_t i = 0; i < pool_size; ++i) {
-			this->m_contextThreads.emplace_back(
-				std::make_unique<std::thread>([this, i]() { this->m_contexts[i]->run(); }));
+			this->m_contextThreads.emplace_back(std::make_unique<std::thread>([this, i]() {
+				auto thread_id = std::this_thread::get_id();
+				ASYNCIO_LOG_INFO("ContextPool thread:%d, thread_id:%d", i, thread_id);
+
+				//
+				this->m_contexts[i]->run();
+			}));
 		}
 	}
 
