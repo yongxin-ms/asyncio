@@ -5,23 +5,21 @@ class MyConnMgr;
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	MyConnectionFactory(MyConnMgr& owner, asyncio::EventLoop& event_loop);
+	MyConnectionFactory(MyConnMgr& owner);
 	virtual asyncio::ProtocolPtr CreateProtocol() override;
 
 private:
 	MyConnMgr& m_owner;
-	asyncio::EventLoop& m_event_loop;
 };
 
 class MyConnMgr {
 public:
-	MyConnMgr(asyncio::EventLoop& event_loop);
+	MyConnMgr();
 
 	void StartConnect(const std::string& ip, uint16_t port, int conn_count);
 	void OnMessage(const MyConnectionPtr& conn, uint32_t msg_id, const std::shared_ptr<std::string>& data);
 
 private:
-	asyncio::EventLoop& m_event_loop;
 	MyConnectionFactory m_conn_factory;
 	std::vector<MyConnectionPtr> m_conns;
 };

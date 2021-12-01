@@ -1,9 +1,7 @@
 ﻿#include "app.h"
 
 App::App()
-	: my_event_loop(4)
-	, m_conn_mgr(my_event_loop) {
-}
+	: m_event_loop(4) {}
 
 void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
@@ -13,12 +11,12 @@ void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	asyncio::g_log->SetLogLevel(asyncio::Log::kDebug);
 	m_conn_mgr.StartConnect(ip, port, conn_count);
 
-	m_1second_timer = my_event_loop.CallLater(
+	m_1second_timer = m_event_loop.CallLater(
 		1000, [this]() { OnOneSecondTimer(); }, asyncio::DelayTimer::RUN_FOREVER);
 }
 
 void App::Run() {
-	my_event_loop.RunForever();
+	m_event_loop.RunForever();
 	ASYNCIO_LOG_INFO("GProtoTestClient Stopped");
 }
 
@@ -27,7 +25,7 @@ void App::Stop() {
 	ASYNCIO_LOG_INFO("+            GProtoTestClient Stop            +");
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
 
-	my_event_loop.Stop();
+	m_event_loop.Stop();
 }
 
 void App::IncQps() {

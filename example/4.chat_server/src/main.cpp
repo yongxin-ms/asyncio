@@ -25,6 +25,15 @@ public:
 		ASYNCIO_LOG_DEBUG("MySession:%llu destroyed", m_sid);
 	}
 
+	uint64_t GetSid() {
+		return m_sid;
+	}
+
+	size_t Send(const std::shared_ptr<std::string>& data) {
+		return Write(data);
+	}
+
+private:
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
@@ -32,23 +41,21 @@ public:
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 	virtual void DataReceived(size_t len) override;
-
-	virtual void Close() override {
+	virtual size_t Write(const asyncio::StringPtr& s) override {
 		if (m_transport != nullptr) {
-			m_transport->Close();
-			m_transport = nullptr;
+			return m_transport->Write(s);
+		} else {
+			return 0;
 		}
 	}
 
-	uint64_t GetSid() {
-		return m_sid;
-	}
-
-	size_t Send(const std::shared_ptr<std::string>& data) {
-		if (m_transport == nullptr)
-			return 0;
-		m_transport->Write(data);
-		return data->size();
+	virtual void Close() override {
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this]() {
+			if (m_transport != nullptr) {
+				m_transport->Close();
+			}
+		});
 	}
 
 private:
@@ -68,8 +75,7 @@ class MySessionFactory : public asyncio::ProtocolFactory {
 public:
 	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop)
 		: m_owner(owner)
-		, m_event_loop(event_loop) {
-	}
+		, m_event_loop(event_loop) {}
 
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		static uint64_t g_sid = 0;
@@ -87,8 +93,7 @@ using MySessionPtr = std::shared_ptr<MySession>;
 class MySessionMgr {
 public:
 	MySessionMgr(asyncio::EventLoop& event_loop)
-		: m_session_factory(*this, event_loop) {
-	}
+		: m_session_factory(*this, event_loop) {}
 
 	MySessionFactory& GetSessionFactory() {
 		return m_session_factory;
@@ -101,11 +106,7 @@ public:
 
 	void OnSessionDestroy(const MySessionPtr& session) {
 		ASYNCIO_LOG_DEBUG("session:%llu destroyed", session->GetSid());
-		auto it = m_sessions.find(session->GetSid());
-		if (it != m_sessions.end()) {
-			session->Close();
-			it = m_sessions.erase(it);
-		}
+		m_sessions.erase(session->GetSid());
 	}
 
 	MySessionPtr FindSessionFromSid(uint64_t sid) {
@@ -129,13 +130,13 @@ private:
 };
 
 void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
-	m_transport = transport;
-
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
+		m_transport = transport;
+
 		auto data = std::make_shared<std::string>();
 		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
-									m_transport->GetRemotePort(), GetSid());
+			m_transport->GetRemotePort(), GetSid());
 
 		m_owner.OnSessionCreate(self);
 		m_owner.BroadcastToAll(data);
@@ -144,13 +145,14 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 
 void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_code) {
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() {
+	m_event_loop.QueueInLoop([self, this, err_code]() {
 		auto data = std::make_shared<std::string>();
 		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] left\n", m_transport->GetRemoteIp().data(),
-									m_transport->GetRemotePort(), GetSid());
+			m_transport->GetRemotePort(), GetSid());
 
 		m_owner.OnSessionDestroy(self);
 		m_owner.BroadcastToAll(data);
+		m_transport = nullptr;
 	});
 }
 
@@ -164,7 +166,7 @@ void MySession::DataReceived(size_t len) {
 	m_event_loop.QueueInLoop([self, content, this]() {
 		auto data = std::make_shared<std::string>();
 		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] say: %s", m_transport->GetRemoteIp().data(),
-									m_transport->GetRemotePort(), GetSid(), content->data());
+			m_transport->GetRemotePort(), GetSid(), content->data());
 		m_owner.BroadcastToAll(data);
 	});
 }

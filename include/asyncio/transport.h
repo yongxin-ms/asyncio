@@ -14,10 +14,7 @@ using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
 enum ErrorCode {
 	EC_OK = 0,
 	EC_ERROR = 20000,
-	EC_KEEP_ALIVE_FAIL,	 // 保持连接失败
-	EC_SHUT_DOWN,		 // 主动关闭
-	EC_KICK,			 // 踢人
-	EC_PACKET_OVER_SIZE, //报文超长
+	EC_SHUT_DOWN, // 主动关闭
 };
 
 class Transport : public std::enable_shared_from_this<Transport> {
@@ -29,8 +26,7 @@ public:
 		, m_is_client(true)
 		, m_remote_ip(host)
 		, m_remote_port(port)
-		, m_socket(m_context) {
-	}
+		, m_socket(m_context) {}
 
 	// 作为服务器接受客户端的连接
 	Transport(IOContext& context, const ProtocolPtr& protocol)
@@ -38,13 +34,13 @@ public:
 		, m_protocol(protocol)
 		, m_is_client(false)
 		, m_remote_port(0)
-		, m_socket(m_context) {
-	}
+		, m_socket(m_context) {}
 
 	virtual ~Transport() {
 		ASYNCIO_LOG_DEBUG("transport destroyed, is_client(%d), remote_ip(%s), remote_port(%d)", m_is_client,
-						  m_remote_ip.data(), m_remote_port);
+			m_remote_ip.data(), m_remote_port);
 	}
+
 	Transport(const Transport&) = delete;
 	Transport& operator=(const Transport&) = delete;
 
@@ -79,29 +75,32 @@ public:
 			throw std::runtime_error("wrong rx buffer");
 		}
 
-		m_socket.async_read_some(asio::buffer(rx_buffer.first, rx_buffer.second),
-								 [self](std::error_code ec, std::size_t length) {
-									 if (!ec) {
-										 self->m_protocol->DataReceived(length);
-										 self->DoReadData();
-									 } else {
-										 self->InnerClose(ec.value());
-									 }
-								 });
+		m_socket.async_read_some(
+			asio::buffer(rx_buffer.first, rx_buffer.second), [self](std::error_code ec, std::size_t length) {
+				if (!ec) {
+					self->m_protocol->DataReceived(length);
+					self->DoReadData();
+				} else {
+					self->InnerClose(ec.value());
+				}
+			});
 	}
 
-	void Close(int err_code = EC_SHUT_DOWN);
-	void Write(const StringPtr& msg);
+	void Close();
+	size_t Write(const StringPtr& msg);
 
 	void SetRemoteIp(const std::string& remote_ip) {
 		m_remote_ip = remote_ip;
 	}
+
 	const std::string& GetRemoteIp() const {
 		return m_remote_ip;
 	}
+
 	void SetRemotePort(uint16_t remote_port) {
 		m_remote_port = remote_port;
 	}
+
 	uint16_t GetRemotePort() const {
 		return m_remote_port;
 	}
@@ -109,35 +108,36 @@ public:
 	asio::ip::tcp::socket& GetSocket() {
 		return m_socket;
 	}
-	IOContext& GetIOContext() {
-		return m_context;
-	}
 
 private:
 	void DoWrite() {
 		auto self = shared_from_this();
 		asio::async_write(m_socket, asio::buffer(m_writeMsgs.front()->data(), m_writeMsgs.front()->size()),
-						  [self](std::error_code ec, std::size_t /*length*/) {
-							  if (!ec) {
-								  self->m_writeMsgs.pop_front();
-								  if (!self->m_writeMsgs.empty()) {
-									  self->DoWrite();
-								  }
-							  } else {
-								  self->InnerClose(ec.value());
-							  }
-						  });
+			[self](std::error_code ec, std::size_t /*length*/) {
+				if (!ec) {
+					self->m_writeMsgs.pop_front();
+					if (!self->m_writeMsgs.empty()) {
+						self->DoWrite();
+					}
+				} else {
+					self->InnerClose(ec.value());
+				}
+			});
 	}
 
 	//在io线程中关闭
 	void InnerClose(int err_code) {
 		if (m_socket.is_open()) {
 			ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);
-			//m_socket.cancel();
 			m_socket.close();
 
 			auto self = shared_from_this();
 			m_protocol->ConnectionLost(self, err_code);
+		}
+
+		// 客户端需要使用者手动调用Close()才能回收
+		if (!m_is_client || err_code == EC_SHUT_DOWN) {
+			m_protocol = nullptr;
 		}
 	}
 
@@ -152,15 +152,15 @@ private:
 	std::deque<StringPtr> m_writeMsgs;
 };
 
-void Transport::Close(int err_code) {
+void Transport::Close() {
 	auto self = shared_from_this();
+	int err_code = EC_SHUT_DOWN;
 	asio::post(self->m_context, [self, this, err_code]() {
 		InnerClose(err_code);
-		m_protocol = nullptr;
 	});
 }
 
-void Transport::Write(const StringPtr& msg) {
+size_t Transport::Write(const StringPtr& msg) {
 	auto self = shared_from_this();
 	asio::post(self->m_context, [self, msg]() {
 		bool write_in_progress = !self->m_writeMsgs.empty();
@@ -169,6 +169,8 @@ void Transport::Write(const StringPtr& msg) {
 			self->DoWrite();
 		}
 	});
+
+	return msg->size();
 }
 
 } // namespace asyncio

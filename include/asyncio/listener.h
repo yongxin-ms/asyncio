@@ -16,8 +16,7 @@ public:
 		: m_main_context(main_context)
 		, m_worker_io(worker_io)
 		, m_protocol_factory(protocol_factory)
-		, m_acceptor(main_context) {
-	}
+		, m_acceptor(main_context) {}
 	Listener(const Listener&) = delete;
 	Listener& operator=(const Listener&) = delete;
 	~Listener() {

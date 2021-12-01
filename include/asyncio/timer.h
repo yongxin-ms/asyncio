@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <asio.hpp>
-// #include <asyncio/log.h>
+#include <asyncio/log.h>
 
 namespace asyncio {
 class DelayTimer {
@@ -11,15 +11,15 @@ public:
 		RUN_FOREVER = 0, // 永远运行
 	};
 
-	DelayTimer(std::thread::id loop_thread_id, asio::io_context& context, int milliseconds, FUNC_CALLBACK&& func)
+	DelayTimer(std::thread::id loop_thread_id, IOContext& context, int milliseconds, FUNC_CALLBACK&& func)
 		: m_thread_id(loop_thread_id)
 		, m_milliseconds(milliseconds)
 		, m_func(std::move(func))
 		, m_timer(context)
-		, m_running(false) {
-	}
+		, m_running(false) {}
 
 	~DelayTimer() {
+		ASYNCIO_LOG_DEBUG("DelayTimer destroyed milliseconds:%d, times_left:%d", m_milliseconds, m_run_times_left);
 		Cancel();
 	}
 

@@ -1,25 +1,19 @@
 ﻿#pragma once
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
-#include <asyncio/transport.h>
+#include <asyncio/protocol.h>
 
 namespace asyncio {
 
 class CodecX : public Codec {
+	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, std::shared_ptr<std::string>)>;
+
 public:
-	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, const StringPtr&)>;
-
-	CodecX(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
-		   uint32_t packet_size_limit = MAX_PACKET_SIZE)
+	CodecX(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
-		, m_user_msg_func(std::move(func)) {
-	}
-
-	void Init(const TransportPtr& transport) {
-		Codec::Reset();
-		bucket_.header.reset();
-		m_transport = transport;
-	}
+		, m_protocol(protocol)
+		, m_user_msg_func(std::move(func)) {}
 
 	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
@@ -35,8 +29,9 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					uint32_t original_len = BigLittleSwap32(bucket_.header.get().len);
 					if (IsOverSize(original_len)) {
-						m_transport->Close(EC_PACKET_OVER_SIZE);
-						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len);
+						m_protocol.Close();
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len,
+							packet_size_limit_);
 						return;
 					}
 
@@ -54,7 +49,7 @@ public:
 		ReArrangePos();
 	}
 
-	StringPtr Encode(uint32_t msgID, const char* buf, size_t len) const {
+	std::shared_ptr<std::string> Encode(uint32_t msgID, const char* buf, size_t len) const {
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
 		header->len = BigLittleSwap32(len);
@@ -65,6 +60,7 @@ public:
 		return p;
 	}
 
+private:
 	struct TcpMsgHeader {
 		TcpMsgHeader() {
 			memset(this, 0, size());
@@ -77,16 +73,15 @@ public:
 		uint32_t msg_id;
 	};
 
-private:
 	struct TcpMsgBucket {
 		BucketPod<TcpMsgHeader> header;
 		BucketString data;
 	};
 
 private:
+	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
-	TransportPtr m_transport;
 };
 
 } // namespace asyncio

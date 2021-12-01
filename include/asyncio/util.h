@@ -29,8 +29,7 @@ namespace asyncio {
 namespace util {
 
 template <class T>
-inline void UNUSED(T const&) {
-}
+inline void UNUSED(T const&) {}
 
 class Random {
 public:
@@ -62,7 +61,7 @@ public:
 		tm this_tm = LocalTime(t);
 		char data[64] = {0};
 		std::snprintf(data, sizeof(data) - 1, "%d-%02d-%02d %02d:%02d:%02d", this_tm.tm_year + 1900, this_tm.tm_mon + 1,
-					  this_tm.tm_mday, this_tm.tm_hour, this_tm.tm_min, this_tm.tm_sec);
+			this_tm.tm_mday, this_tm.tm_hour, this_tm.tm_min, this_tm.tm_sec);
 		return std::string(data);
 	}
 
@@ -73,7 +72,7 @@ public:
 		char data[64] = {0};
 		tm this_tm = LocalTime(std::chrono::system_clock::to_time_t(t));
 		std::snprintf(data, sizeof(data) - 1, "%d-%02d-%02d %02d:%02d:%02d.%03" PRIu64 "", this_tm.tm_year + 1900,
-					  this_tm.tm_mon + 1, this_tm.tm_mday, this_tm.tm_hour, this_tm.tm_min, this_tm.tm_sec, mill);
+			this_tm.tm_mon + 1, this_tm.tm_mday, this_tm.tm_hour, this_tm.tm_min, this_tm.tm_sec, mill);
 		return std::string(data);
 	}
 
@@ -86,8 +85,8 @@ public:
 #else
 		sscanf(input,
 #endif
-				 "%d-%02d-%02d %02d:%02d:%02d", &this_tm.tm_year, &this_tm.tm_mon, &this_tm.tm_mday, &this_tm.tm_hour,
-				 &this_tm.tm_min, &this_tm.tm_sec);
+			"%d-%02d-%02d %02d:%02d:%02d", &this_tm.tm_year, &this_tm.tm_mon, &this_tm.tm_mday, &this_tm.tm_hour,
+			&this_tm.tm_min, &this_tm.tm_sec);
 		this_tm.tm_year -= 1900;
 		this_tm.tm_mon -= 1;
 		return mktime(&this_tm);

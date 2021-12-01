@@ -2,7 +2,6 @@
 #include <functional>
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
-#include <asyncio/transport.h>
 
 namespace asyncio {
 
@@ -12,7 +11,9 @@ class CodecUserHeader final : public Codec {
 		TcpMsgHeader()
 			: magic_num(0)
 			, body_len(0) {}
-		constexpr static size_t size() { return sizeof(TcpMsgHeader); }
+		constexpr static size_t size() {
+			return sizeof(TcpMsgHeader);
+		}
 
 		uint32_t magic_num;
 		uint32_t body_len; // only body length, not including header
@@ -22,16 +23,11 @@ class CodecUserHeader final : public Codec {
 	using USER_MSG_CALLBACK = std::function<void(const UserHeader&, const StringPtr&)>;
 
 public:
-	CodecUserHeader(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
-		   uint32_t packet_size_limit = MAX_PACKET_SIZE)
+	CodecUserHeader(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
+		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func)) {}
-
-	void Init(const TransportPtr& transport) {
-		Codec::Reset();
-		bucket_.header.reset();
-		m_transport = transport;
-	}
 
 	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
@@ -47,14 +43,14 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					auto body_len = bucket_.header.get().body_len;
 					if (IsOverSize(body_len)) {
-						m_transport->Close(EC_PACKET_OVER_SIZE);
+						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", body_len);
 						return;
 					}
 
 					auto magic_num = bucket_.header.get().magic_num;
 					if (magic_num != MAGIC_NUM) {
-						m_transport->Close(EC_ERROR);
+						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of wrong magic_num:0x%x", magic_num);
 						return;
 					}
@@ -91,9 +87,9 @@ private:
 	};
 
 private:
+	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
-	TransportPtr m_transport;
 };
 
 } // namespace asyncio

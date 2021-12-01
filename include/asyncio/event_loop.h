@@ -15,28 +15,15 @@ namespace asyncio {
 class ProtocolFactory;
 
 class EventLoop {
-public:
 	using MSG_CALLBACK = std::function<void()>;
-
+public:
 	explicit EventLoop(size_t work_io_num = 0);
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
 
-	IOContext& MainIOContext() {
-		return m_main_context;
-	}
-
-	IOContext& WorkerIOContext();
 	void RunForever();
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
-	bool IsInLoopThread() const {
-		return m_thread_id == std::this_thread::get_id();
-	}
-
-	std::thread::id GetThreadId() const {
-		return m_thread_id;
-	}
 
 	/*
 	 * 请通过持有返回值来控制定时器的生命周期
@@ -50,6 +37,21 @@ public:
 	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
 	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 	http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
+
+private:
+	IOContext& MainIOContext() {
+		return m_main_context;
+	}
+
+	IOContext& WorkerIOContext();
+
+	bool IsInLoopThread() const {
+		return m_thread_id == std::this_thread::get_id();
+	}
+
+	std::thread::id GetThreadId() const {
+		return m_thread_id;
+	}
 
 private:
 	IOContext m_main_context;

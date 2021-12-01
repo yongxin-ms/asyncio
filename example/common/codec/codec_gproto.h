@@ -2,28 +2,21 @@
 #include <functional>
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
-#include <asyncio/transport.h>
 #include <asyncio/log.h>
 
 namespace asyncio {
 
 class CodecGProto : public Codec {
-public:
 	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, const StringPtr&)>;
 	using PONG_CALLBACK = std::function<void()>;
 
-	CodecGProto(USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func,
+public:
+	CodecGProto(Protocol& protocol, USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func,
 				uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE, uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
+		, m_protocol(protocol)
 		, m_user_msg_func(std::move(msg_func))
 		, m_pong_func(std::move(pong_func)) {
-	}
-
-	void Init(const TransportPtr& transport) {
-		Reset();
-		bucket_.header.reset();
-		bucket_.msg_id.reset();
-		m_transport = transport;
 	}
 
 	virtual void Decode(size_t len) override {
@@ -41,7 +34,7 @@ public:
 					if (ctrl == CTL_DATA) {
 						if (bucket_.header.get().len < bucket_.msg_id.size()) {
 							ASYNCIO_LOG_WARN("Close transport because of packet length(%d)", bucket_.header.get().len);
-							m_transport->Close(EC_PACKET_OVER_SIZE);
+							m_protocol.Close();
 							return;
 						}
 
@@ -49,7 +42,7 @@ public:
 						uint32_t original_len = bucket_.header.get().len - sizeof(uint32_t);
 						if (IsOverSize(original_len)) {
 							ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", original_len);
-							m_transport->Close(EC_PACKET_OVER_SIZE);
+							m_protocol.Close();
 							return;
 						}
 
@@ -58,7 +51,7 @@ public:
 						if (bucket_.header.get().len != 0) {
 							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
 											 bucket_.header.get().len);
-							m_transport->Close(EC_KICK);
+							m_protocol.Close();
 							return;
 						}
 
@@ -71,7 +64,7 @@ public:
 						if (bucket_.header.get().len != 0) {
 							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
 											 bucket_.header.get().len);
-							m_transport->Close(EC_KICK);
+							m_protocol.Close();
 							return;
 						}
 
@@ -83,7 +76,7 @@ public:
 					} else if (ctrl == CTL_CLOSE) {
 						ASYNCIO_LOG_DEBUG("received close");
 						//对方要求关闭连接
-						m_transport->Close(EC_SHUT_DOWN);
+						m_protocol.Close();
 						return;
 					}
 				}
@@ -131,7 +124,7 @@ public:
 		ping.enc = ecnryptWord_;
 		auto data = std::make_shared<std::string>();
 		data->append((const char*)&ping, sizeof(ping));
-		m_transport->Write(data);
+		m_protocol.Write(data);
 	}
 
 	void send_pong() {
@@ -143,7 +136,7 @@ public:
 		pong.enc = ecnryptWord_;
 		auto data = std::make_shared<std::string>();
 		data->append((const char*)&pong, sizeof(pong));
-		m_transport->Write(data);
+		m_protocol.Write(data);
 	}
 
 private:
@@ -174,11 +167,11 @@ private:
 	};
 
 private:
+	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	PONG_CALLBACK m_pong_func;
 	uint8_t ecnryptWord_ = 0;
 	TcpMsgBucket bucket_;
-	TransportPtr m_transport;
 };
 
 } // namespace asyncio

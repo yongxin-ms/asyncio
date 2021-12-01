@@ -8,17 +8,12 @@ namespace asyncio {
 class CodecLen final : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(const StringPtr&)>;
-	
-	CodecLen(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
-			 uint32_t packet_size_limit = MAX_PACKET_SIZE)
-		: Codec(rx_buffer_size, packet_size_limit)
-		, m_user_msg_func(std::move(func)) {}
 
-	void Init(const TransportPtr& transport) {
-		Codec::Reset();
-		bucket_.head.reset();
-		m_transport = transport;
-	}
+	CodecLen(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+		uint32_t packet_size_limit = MAX_PACKET_SIZE)
+		: Codec(rx_buffer_size, packet_size_limit)
+		, m_protocol(protocol)
+		, m_user_msg_func(std::move(func)) {}
 
 	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
@@ -34,9 +29,9 @@ public:
 				if (bucket_.head.fill(read_pos_, left_len)) {
 					// 不允许报文长度为0，也不允许超长
 					if (bucket_.head.get().len <= 0 || IsOverSize(bucket_.head.get().len)) {
-						m_transport->Close(EC_PACKET_OVER_SIZE);
-						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit",
-										 bucket_.head.get().len);
+						m_protocol.Close();
+						ASYNCIO_LOG_WARN(
+							"Close transport because of packet length(%d) over limit", bucket_.head.get().len);
 						return;
 					}
 
@@ -67,8 +62,12 @@ public:
 
 private:
 	struct TcpMsgHeader {
-		TcpMsgHeader() { len = 0; }
-		constexpr static size_t size() { return sizeof(TcpMsgHeader); }
+		TcpMsgHeader() {
+			len = 0;
+		}
+		constexpr static size_t size() {
+			return sizeof(TcpMsgHeader);
+		}
 
 		uint32_t len; //这个长度是指报文体的长度，不包括此报文头的长度
 	};
@@ -79,9 +78,9 @@ private:
 	};
 
 private:
+	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
-	TransportPtr m_transport;
 };
 
 } // namespace asyncio

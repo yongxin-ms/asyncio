@@ -1,9 +1,11 @@
 ---
 AccessModifierOffset: '-4'
 AlignTrailingComments: 'true'
+AlignAfterOpenBracket: 'DontAlign'
 AllowAllConstructorInitializersOnNextLine: 'true'
 AllowShortBlocksOnASingleLine: 'false'
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: 'Empty'
+AllowShortLambdasOnASingleLine: 'None'
 AlwaysBreakTemplateDeclarations: 'Yes'
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma

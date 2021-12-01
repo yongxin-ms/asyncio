@@ -1,12 +1,11 @@
 ﻿#include "my_conn.h"
 #include "conn_mgr.h"
+#include "app.h"
 
-MyConnection::MyConnection(MyConnMgr& owner, asyncio::EventLoop& event_loop)
+MyConnection::MyConnection(MyConnMgr& owner)
 	: m_owner(owner)
-	, m_event_loop(event_loop)
-	, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
-			  std::bind(&MyConnection::OnReceivedPong, this)) {
-}
+	, m_codec(*this ,std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
+		  std::bind(&MyConnection::OnReceivedPong, this)) {}
 
 MyConnection::~MyConnection() {
 	ASYNCIO_LOG_DEBUG("MyConnection destroyed");
@@ -17,16 +16,12 @@ std::pair<char*, size_t> MyConnection::GetRxBuffer() {
 }
 
 void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
-	ASYNCIO_LOG_DEBUG("ConnectionMade");
-	m_codec.Init(transport);
-	m_transport = transport;
-
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this, transport]() {
-		m_connected = true;
+	g_EventLoop.QueueInLoop([self, this, transport]() {
+		ASYNCIO_LOG_DEBUG("ConnectionMade");
+		m_transport = transport;
 		m_ping_counter = 0;
-
-		m_ping_timer = m_event_loop.CallLater(
+		m_ping_timer = g_EventLoop.CallLater(
 			30000,
 			[self, this]() {
 				if (!IsConnected())
@@ -34,7 +29,7 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed, Closing");
-					m_transport->Close(asyncio::EC_KEEP_ALIVE_FAIL);
+					Close();
 					m_ping_counter = 0;
 				} else {
 					m_codec.send_ping();
@@ -49,14 +44,20 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 }
 
 void MyConnection::ConnectionLost(const asyncio::TransportPtr& transport, int err_code) {
-	ASYNCIO_LOG_DEBUG("ConnectionLost");
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this, transport]() {
-		m_connected = false;
-		m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
-			ASYNCIO_LOG_DEBUG("Start Reconnect");
-			transport->Connect();
-		});
+	g_EventLoop.QueueInLoop([self, this, transport, err_code]() {
+		ASYNCIO_LOG_DEBUG("ConnectionLost");
+		if (err_code == asyncio::EC_SHUT_DOWN) {
+			m_transport = nullptr;
+			m_reconnect_timer = nullptr;
+			m_ping_timer = nullptr;
+		} else {
+			m_transport = nullptr;
+			m_reconnect_timer = g_EventLoop.CallLater(3000, [transport]() {
+				ASYNCIO_LOG_DEBUG("Start Reconnect");
+				transport->Connect();
+			});
+		}
 	});
 }
 
@@ -64,41 +65,47 @@ void MyConnection::DataReceived(size_t len) {
 	m_codec.Decode(len);
 }
 
-void MyConnection::Close() {
+size_t MyConnection::Write(const asyncio::StringPtr& s) {
 	if (m_transport != nullptr) {
-		m_transport->Close();
-		m_transport = nullptr;
-	}
-
-	if (m_reconnect_timer != nullptr) {
-		m_reconnect_timer = nullptr;
-	}
-
-	if (m_ping_timer != nullptr) {
-		m_ping_timer = nullptr;
+		return m_transport->Write(s);
+	} else {
+		return 0;
 	}
 }
 
-size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
-	if (!IsConnected()) {
-		return 0;
-	}
+void MyConnection::Close() {
+	auto self = shared_from_this();
+	g_EventLoop.QueueInLoop([self, this]() {
+		if (m_transport != nullptr) {
+			m_transport->Close();
+		}
+	});
+}
 
+size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
 	auto ret = m_codec.Encode(msg_id, data, len);
-	m_transport->Write(ret);
+	Write(ret);
 	return ret->size();
+}
+
+void MyConnection::Disconnect() {
+	Close();
 }
 
 void MyConnection::OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data) {
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this, msg_id, data]() { m_owner.OnMessage(self, msg_id, data); });
+	g_EventLoop.QueueInLoop([self, this, msg_id, data]() {
+		m_owner.OnMessage(self, msg_id, data);
+	});
 }
 
 void MyConnection::OnReceivedPong() {
 	auto self = shared_from_this();
-	m_event_loop.QueueInLoop([self, this]() { m_ping_counter = 0; });
+	g_EventLoop.QueueInLoop([self, this]() {
+		m_ping_counter = 0;
+	});
 }
 
 bool MyConnection::IsConnected() {
-	return m_connected;
+	return m_transport != nullptr;
 }
