@@ -58,11 +58,15 @@ public:
 			asio::async_connect(m_socket, endpoints, [self, this](std::error_code ec, asio::ip::tcp::endpoint) {
 				if (!ec) {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d suc", m_remote_ip.data(), m_remote_port);
-					self->m_protocol->ConnectionMade(self);
+					if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+						protocol->ConnectionMade(self);
+					}
 					self->DoReadData();
 				} else {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d failed", m_remote_ip.data(), m_remote_port);
-					self->m_protocol->ConnectionLost(self, ec.value());
+					if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+						protocol->ConnectionLost(self, ec.value());
+					}
 				}
 			});
 		});
@@ -70,20 +74,24 @@ public:
 
 	void DoReadData() {
 		auto self = shared_from_this();
-		auto rx_buffer = self->m_protocol->GetRxBuffer();
-		if (rx_buffer.first == nullptr || rx_buffer.second == 0) {
-			throw std::runtime_error("wrong rx buffer");
-		}
+		if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+			auto rx_buffer = protocol->GetRxBuffer();
+			if (rx_buffer.first == nullptr || rx_buffer.second == 0) {
+				throw std::runtime_error("wrong rx buffer");
+			}
 
-		m_socket.async_read_some(
-			asio::buffer(rx_buffer.first, rx_buffer.second), [self](std::error_code ec, std::size_t length) {
-				if (!ec) {
-					self->m_protocol->DataReceived(length);
-					self->DoReadData();
-				} else {
-					self->InnerClose(ec.value());
-				}
-			});
+			m_socket.async_read_some(
+				asio::buffer(rx_buffer.first, rx_buffer.second), [self](std::error_code ec, std::size_t length) {
+					if (!ec) {
+						if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+							protocol->DataReceived(length);
+						}
+						self->DoReadData();
+					} else {
+						self->InnerClose(ec.value());
+					}
+				});
+		}
 	}
 
 	void Close();
@@ -131,19 +139,16 @@ private:
 			ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);
 			m_socket.close();
 
-			auto self = shared_from_this();
-			m_protocol->ConnectionLost(self, err_code);
-		}
-
-		// 客户端需要使用者手动调用Close()才能回收
-		if (!m_is_client || err_code == EC_SHUT_DOWN) {
-			m_protocol = nullptr;
+			if (auto protocol = m_protocol.lock(); protocol != nullptr) {
+				auto self = shared_from_this();
+				protocol->ConnectionLost(self, err_code);
+			}
 		}
 	}
 
 private:
 	IOContext& m_context;
-	ProtocolPtr m_protocol;
+	std::weak_ptr<Protocol> m_protocol;
 	const bool m_is_client;
 	std::string m_remote_ip;
 	uint16_t m_remote_port;

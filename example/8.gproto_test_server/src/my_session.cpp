@@ -44,6 +44,8 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	g_EventLoop.QueueInLoop([self, this]() {
 		ASYNCIO_LOG_DEBUG("ConnectionLost sid:%llu", GetSid());
 		m_owner.OnSessionDestroy(self);
+		m_ping_timer = nullptr;
+		m_transport = nullptr;
 	});
 }
 
