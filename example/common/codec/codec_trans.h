@@ -1,24 +1,20 @@
 ﻿#pragma once
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
-#include <asyncio/transport.h>
+#include <asyncio/protocol.h>
+#include <asyncio/log.h>
 
 namespace asyncio {
 
 class CodecTrans : public Codec {
-public:
 	using USER_MSG_CALLBACK = std::function<void(uint64_t trans_id, uint32_t msg_id, const StringPtr&)>;
 
-	CodecTrans(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+public:
+	CodecTrans(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 			   uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
+		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func)) {
-	}
-
-	void Init(const TransportPtr& transport) {
-		Codec::Reset();
-		bucket_.header.reset();
-		m_transport = transport;
 	}
 
 	virtual void Decode(size_t len) override {
@@ -34,7 +30,7 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					uint32_t original_len = BigLittleSwap32(bucket_.header.get().len);
 					if (IsOverSize(original_len)) {
-						m_transport->Close(EC_PACKET_OVER_SIZE);
+						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len);
 						return;
 					}
@@ -85,9 +81,9 @@ private:
 	};
 
 private:
+	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
-	TransportPtr m_transport;
 };
 
 } // namespace asyncio

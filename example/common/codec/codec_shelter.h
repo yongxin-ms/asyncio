@@ -2,7 +2,7 @@
 #include <functional>
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
-#include <asyncio/transport.h>
+#include <asyncio/protocol.h>
 #include <asyncio/log.h>
 
 /*
@@ -25,20 +25,14 @@ char[] msg;
 namespace asyncio {
 
 class CodecShelter : public Codec {
-public:
 	using USER_MSG_CALLBACK = std::function<void(const StringPtr&, const StringPtr&)>;
-	CodecShelter(USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
-				 uint32_t packet_size_limit = MAX_PACKET_SIZE)
-		: Codec(rx_buffer_size, packet_size_limit)
-		, m_user_msg_func(std::move(func)) {
-	}
 
-	void Init(const TransportPtr& transport) {
-		Codec::Reset();
-		bucket_.header.reset();
-		bucket_.msg_name_len.reset();
-		m_transport = transport;
-	}
+public:
+	CodecShelter(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+		uint32_t packet_size_limit = MAX_PACKET_SIZE)
+		: Codec(rx_buffer_size, packet_size_limit)
+		, m_protocol(protocol)
+		, m_user_msg_func(std::move(func)) {}
 
 	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
@@ -56,7 +50,7 @@ public:
 
 				if (bucket_.header.fill(read_pos_, left_len) && bucket_.msg_name_len.fill(read_pos_, left_len)) {
 					if (IsOverSize(bucket_.msg_name_len.get())) {
-						m_transport->Close(EC_PACKET_OVER_SIZE);
+						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit",
 										 bucket_.msg_name_len.get());
 						return;
@@ -64,7 +58,7 @@ public:
 
 					uint32_t data_len = bucket_.header.get().datalen;
 					if (IsOverSize(data_len)) {
-						m_transport->Close(EC_PACKET_OVER_SIZE);
+						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", data_len);
 						return;
 					}
@@ -90,13 +84,13 @@ public:
 	}
 
 	StringPtr Encode(const std::string& msg_name, const std::string& msg) const {
-		const int datalen = sizeof(uint32_t) + msg_name.size() + msg.size();
+		const size_t datalen = sizeof(uint32_t) + msg_name.size() + msg.size();
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + datalen, 0);
 		size_t cur = 0;
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(cur);
 		cur += TcpMsgHeader::size();
 
-		uint32_t msg_name_len = msg_name.size();
+		uint32_t msg_name_len = uint32_t(msg_name.size());
 		memcpy(&p->at(cur), &msg_name_len, sizeof(msg_name_len));
 		cur += sizeof(msg_name_len);
 
@@ -105,7 +99,7 @@ public:
 
 		memcpy(&p->at(cur), msg.data(), msg.size());
 
-		header->datalen = datalen;
+		header->datalen = uint16_t(datalen);
 		// header->checksum = ;
 		return p;
 	}
@@ -136,9 +130,9 @@ private:
 	};
 
 private:
+	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
-	TransportPtr m_transport;
 };
 
 } // namespace asyncio

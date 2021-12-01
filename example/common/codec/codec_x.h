@@ -2,11 +2,12 @@
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
 #include <asyncio/protocol.h>
+#include <asyncio/log.h>
 
 namespace asyncio {
 
 class CodecX : public Codec {
-	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, std::shared_ptr<std::string>)>;
+	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, const StringPtr&)>;
 
 public:
 	CodecX(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
@@ -49,7 +50,7 @@ public:
 		ReArrangePos();
 	}
 
-	std::shared_ptr<std::string> Encode(uint32_t msgID, const char* buf, size_t len) const {
+	StringPtr Encode(uint32_t msgID, const char* buf, size_t len) const {
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
 		header->len = BigLittleSwap32(len);
