@@ -13,9 +13,8 @@ public:
 	}
 
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
-		m_transport = transport;
-		m_connected = true;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
+		m_transport = transport;
 
 		std::string msg("hello,world!");
 		Send(msg.data(), msg.size());
@@ -23,7 +22,7 @@ public:
 
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override {
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
-		m_connected = false;
+		m_transport = nullptr;
 	}
 
 	virtual void DataReceived(size_t len) override {
@@ -35,29 +34,32 @@ public:
 		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, m_rx_buffer.data());
 	}
 
+	virtual size_t Write(const asyncio::StringPtr& s) override {
+		if (m_transport != nullptr) {
+			return m_transport->Write(s);
+		} else {
+			return 0;
+		}
+	}
+
 	virtual void Close() override {
 		if (m_transport != nullptr) {
 			m_transport->Close();
-			m_transport = nullptr;
 		}
 	}
 
 	size_t Send(const char* data, size_t len) {
-		if (!IsConnected())
-			return 0;
 		ASYNCIO_LOG_DEBUG("Send %lld byte(s): %s", len, data);
 		auto s = std::make_shared<std::string>(data, len);
-		m_transport->Write(s);
-		return len;
+		return Write(s);
 	}
 
 	bool IsConnected() {
-		return m_connected;
+		return m_transport != nullptr;
 	}
 
 private:
 	asyncio::TransportPtr m_transport;
-	bool m_connected = false;
 
 	//
 	// ProActor模式使用预先分配的缓冲区接收数据

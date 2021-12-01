@@ -17,12 +17,13 @@ public:
 	}
 
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
-		m_transport = transport;
 		ASYNCIO_LOG_DEBUG("ConnectionMade");
+		m_transport = transport;
 	}
 
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override {
 		ASYNCIO_LOG_DEBUG("ConnectionLost, ec:%d", err_code);
+		m_transport = nullptr;
 	}
 
 	virtual void DataReceived(size_t len) override {
@@ -37,10 +38,17 @@ public:
 		Send(ack.data(), ack.size());
 	}
 
+	virtual size_t Write(const asyncio::StringPtr& s) override {
+		if (m_transport != nullptr) {
+			return m_transport->Write(s);
+		} else {
+			return 0;
+		}
+	}
+
 	virtual void Close() override {
 		if (m_transport != nullptr) {
 			m_transport->Close();
-			m_transport = nullptr;
 		}
 	}
 

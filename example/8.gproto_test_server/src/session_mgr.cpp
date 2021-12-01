@@ -4,23 +4,18 @@
 #include "id_worker.h"
 #include "app.h"
 
-MySessionFactory::MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork)
-	: m_owner(owner)
-	, m_event_loop(event_loop)
-	, m_idwork(idwork) {
-}
+MySessionFactory::MySessionFactory(MySessionMgr& owner)
+	: m_owner(owner) {}
 
 asyncio::ProtocolPtr MySessionFactory::CreateProtocol() {
-	return std::make_shared<MySession>(m_owner, m_event_loop, m_idwork.CreateId());
+	return std::make_shared<MySession>(m_owner, App::Instance()->CreateId());
 }
 
-MySessionMgr::MySessionMgr(asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork)
-	: m_event_loop(event_loop)
-	, m_session_factory(*this, event_loop, idwork) {
-}
+MySessionMgr::MySessionMgr()
+	: m_session_factory(*this) {}
 
 bool MySessionMgr::Init(uint16_t port) {
-	m_listener = m_event_loop.CreateServer(m_session_factory, port);
+	m_listener = g_EventLoop.CreateServer(m_session_factory, port);
 	if (m_listener == nullptr) {
 		ASYNCIO_LOG_ERROR("listen on %d failed", port);
 		return false;
@@ -35,11 +30,7 @@ void MySessionMgr::OnSessionCreate(const MySessionPtr& session) {
 }
 
 void MySessionMgr::OnSessionDestroy(const MySessionPtr& session) {
-	auto it = m_sessions.find(session->GetSid());
-	if (it != m_sessions.end()) {
-		session->Close();
-		it = m_sessions.erase(it);
-	}
+	m_sessions.erase(session->GetSid());
 }
 
 MySessionPtr MySessionMgr::FindSessionFromSid(uint64_t sid) {

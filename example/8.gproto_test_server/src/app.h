@@ -11,15 +11,25 @@ public:
 	void Run();
 	void Stop();
 
+	uint64_t CreateId() {
+		return m_idwork.CreateId();
+	}
+
+	asyncio::EventLoop& GetEventLoop() {
+		return m_event_loop;
+	}
+
 	void IncQps();
 
 private:
 	void OnOneSecondTimer();
 
 private:
-	asyncio::EventLoop my_event_loop;
+	asyncio::EventLoop m_event_loop;
 	id_worker::IdWorker m_idwork;
 	MySessionMgr m_session_mgr;
 	asyncio::DelayTimerPtr m_1second_timer;
 	int m_cur_qps = 0;
 };
+
+#define g_EventLoop App::Instance()->GetEventLoop()

@@ -10,20 +10,26 @@ class MyConnection
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {
+		, m_codec(*this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {}
+
+	size_t Send(const char* data, size_t len) {
+		auto ret = m_codec.Encode(data, len);
+		return Write(ret);
 	}
 
+	bool IsConnected() {
+		return m_transport != nullptr;
+	}
+
+private:
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return m_codec.GetRxBuffer();
 	}
 
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
-		m_codec.Init(transport);
-		m_transport = transport;
-
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
-			m_connected = true;
+			m_transport = transport;
 
 			std::string msg("hello,world!");
 			Send(msg.data(), msg.size());
@@ -32,13 +38,17 @@ public:
 
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this, transport]() {
-			m_connected = false;
-
-			m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
-				ASYNCIO_LOG_DEBUG("Start Reconnect");
-				transport->Connect();
-			});
+		m_event_loop.QueueInLoop([self, this, transport, err_code]() {
+			if (err_code == asyncio::EC_SHUT_DOWN) {
+				m_transport = nullptr;
+				m_reconnect_timer = nullptr;
+			} else {
+				m_transport = nullptr;
+				m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+					ASYNCIO_LOG_DEBUG("Start Reconnect");
+					transport->Connect();
+				});
+			}
 		});
 	}
 
@@ -46,25 +56,21 @@ public:
 		m_codec.Decode(len);
 	}
 
-	virtual void Close() override {
+	virtual size_t Write(const asyncio::StringPtr& s) override {
 		if (m_transport != nullptr) {
-			m_transport->Close();
-			m_transport = nullptr;
-		}
-
-		if (m_reconnect_timer != nullptr) {
-			m_reconnect_timer = nullptr;
+			return m_transport->Write(s);
+		} else {
+			return 0;
 		}
 	}
 
-	size_t Send(const char* data, size_t len) {
-		if (!IsConnected()) {
-			return 0;
-		}
-
-		auto ret = m_codec.Encode(data, len);
-		m_transport->Write(ret);
-		return ret->size();
+	virtual void Close() override {
+		auto self = shared_from_this();
+		m_event_loop.QueueInLoop([self, this]() {
+			if (m_transport != nullptr) {
+				m_transport->Close();
+			}
+		});
 	}
 
 	void OnMyMessageFunc(const std::shared_ptr<std::string>& data) {
@@ -75,14 +81,9 @@ public:
 		});
 	}
 
-	bool IsConnected() {
-		return m_connected;
-	}
-
 private:
 	asyncio::EventLoop& m_event_loop;
 	asyncio::TransportPtr m_transport;
-	bool m_connected = false;
 	asyncio::CodecLen m_codec;
 	asyncio::DelayTimerPtr m_reconnect_timer;
 };
@@ -90,8 +91,7 @@ private:
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
 	MyConnectionFactory(asyncio::EventLoop& event_loop)
-		: m_event_loop(event_loop) {
-	}
+		: m_event_loop(event_loop) {}
 
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
 		return std::make_shared<MyConnection>(m_event_loop);

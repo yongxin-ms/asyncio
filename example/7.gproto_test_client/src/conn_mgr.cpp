@@ -4,16 +4,14 @@
 #include "app.h"
 
 MyConnectionFactory::MyConnectionFactory(MyConnMgr& owner)
-	: m_owner(owner) {
-}
+	: m_owner(owner) {}
 
 asyncio::ProtocolPtr MyConnectionFactory::CreateProtocol() {
 	return std::make_shared<MyConnection>(m_owner);
 }
 
 MyConnMgr::MyConnMgr()
-	: m_conn_factory(*this) {
-}
+	: m_conn_factory(*this) {}
 
 void MyConnMgr::StartConnect(const std::string& ip, uint16_t port, int conn_count) {
 	for (auto& conn : m_conns) {

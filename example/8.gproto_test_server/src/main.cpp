@@ -24,7 +24,9 @@ int main(int argc, char* argv[]) {
 		},
 		asyncio::Log::kDebug);
 
-	auto exit = [](int) { App::Instance()->Stop(); };
+	auto exit = [](int) {
+		App::Instance()->Stop();
+	};
 	::signal(SIGINT, exit);
 	::signal(SIGABRT, exit);
 	::signal(SIGSEGV, exit);

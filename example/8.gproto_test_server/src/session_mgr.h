@@ -9,18 +9,16 @@ class IdWorker;
 
 class MySessionFactory : public asyncio::ProtocolFactory {
 public:
-	MySessionFactory(MySessionMgr& owner, asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork);
+	MySessionFactory(MySessionMgr& owner);
 	virtual asyncio::ProtocolPtr CreateProtocol() override;
 
 private:
 	MySessionMgr& m_owner;
-	asyncio::EventLoop& m_event_loop;
-	id_worker::IdWorker& m_idwork;
 };
 
 class MySessionMgr {
 public:
-	MySessionMgr(asyncio::EventLoop& event_loop, id_worker::IdWorker& idwork);
+	MySessionMgr();
 
 	bool Init(uint16_t port);
 
@@ -32,7 +30,6 @@ public:
 	size_t size() const;
 
 private:
-	asyncio::EventLoop& m_event_loop;
 	MySessionFactory m_session_factory;
 	std::unordered_map<uint64_t, MySessionPtr> m_sessions;
 	asyncio::ListenerPtr m_listener;

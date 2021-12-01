@@ -1,10 +1,10 @@
 ﻿#include "app.h"
 
 App::App()
-	: my_event_loop(4)
-	, m_idwork(1, 1, [](const char* s) { ASYNCIO_LOG_DEBUG("{}", s); })
-	, m_session_mgr(my_event_loop, m_idwork) {
-}
+	: m_event_loop(4)
+	, m_idwork(1, 1, [](const char* s) {
+		ASYNCIO_LOG_DEBUG("{}", s);
+	}) {}
 
 bool App::Init(uint16_t port) {
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
@@ -16,14 +16,18 @@ bool App::Init(uint16_t port) {
 	if (!m_session_mgr.Init(port))
 		return false;
 
-	m_1second_timer = my_event_loop.CallLater(
-		1000, [this]() { OnOneSecondTimer(); }, asyncio::DelayTimer::RUN_FOREVER);
+	m_1second_timer = m_event_loop.CallLater(
+		1000,
+		[this]() {
+			OnOneSecondTimer();
+		},
+		asyncio::DelayTimer::RUN_FOREVER);
 
 	return true;
 }
 
 void App::Run() {
-	my_event_loop.RunForever();
+	m_event_loop.RunForever();
 	ASYNCIO_LOG_INFO("GProtoTestServer Stopped");
 }
 
@@ -31,7 +35,7 @@ void App::Stop() {
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
 	ASYNCIO_LOG_INFO("+            GProtoTestServer Stop            +");
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
-	my_event_loop.Stop();
+	m_event_loop.Stop();
 }
 
 void App::IncQps() {
