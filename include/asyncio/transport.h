@@ -75,7 +75,7 @@ public:
 	void DoReadData() {
 		auto self = shared_from_this();
 		if (auto protocol = m_protocol.lock(); protocol != nullptr) {
-			auto& [buffer, buffer_size] = protocol->GetRxBuffer();
+			auto [buffer, buffer_size] = protocol->GetRxBuffer();
 			if (buffer == nullptr || buffer_size == 0) {
 				throw std::runtime_error("wrong rx buffer");
 			}
