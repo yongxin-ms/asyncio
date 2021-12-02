@@ -10,7 +10,7 @@ public:
 		m_rx_buffer.resize(1024);
 	}
 
-	~MyConnection() {
+	virtual ~MyConnection() {
 		ASYNCIO_LOG_INFO("MyConnection destroyed");
 	}
 
