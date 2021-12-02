@@ -63,7 +63,7 @@ public:
 
 				m_func();
 			} else {
-				// ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait err_msg:%s", ec.message().data());
+				//ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait err_msg:%s", ec.message().data());
 			}
 		});
 	}

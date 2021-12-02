@@ -18,4 +18,7 @@ using ListenerPtr = std::shared_ptr<Listener>;
 class DelayTimer;
 using DelayTimerPtr = std::unique_ptr<DelayTimer>;
 
+class ContextPool;
+using ContextPoolPtr = std::shared_ptr<ContextPool>;
+
 } // namespace asyncio

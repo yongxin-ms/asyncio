@@ -21,6 +21,10 @@ public:
 	explicit EventLoop(size_t work_io_num = 0);
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
+	~EventLoop() {
+		m_worker_io = nullptr;
+		ASYNCIO_LOG_DEBUG("EventLoop destroyed");
+	}
 
 	void RunForever();
 	void Stop();
@@ -59,7 +63,7 @@ private:
 private:
 	IOContext m_main_context;
 	IOWorker m_main_work;
-	std::shared_ptr<ContextPool> m_worker_io;
+	ContextPoolPtr m_worker_io;
 	const std::thread::id m_thread_id;
 };
 
@@ -90,6 +94,7 @@ void EventLoop::RunForever() {
 }
 
 void EventLoop::Stop() {
+	m_main_work.reset();
 	m_main_context.stop();
 	ASYNCIO_LOG_INFO("EventLoop stopped");
 }
@@ -139,7 +144,11 @@ ListenerPtr EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t 
 }
 
 http::server_ptr EventLoop::CreateHttpServer(uint16_t port, http::request_handler handler) {
-	auto http_server = std::make_shared<http::server>(WorkerIOContext(), port, handler);
+	auto http_server = std::make_shared<http::server>(WorkerIOContext(), handler);
+	if (!http_server->listen(port)) {
+		ASYNCIO_LOG_ERROR("listen on %d failed", port);
+		return nullptr;
+	}
 	return http_server;
 }
 

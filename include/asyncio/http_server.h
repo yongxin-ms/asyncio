@@ -765,33 +765,70 @@ void connection::do_write() {
 }
 
 /// The top-level class of the HTTP server.
-class server {
+class server : public std::enable_shared_from_this<server> {
 public:
 	/// Construct the server to listen on the specified TCP address and port, and
 	/// serve up files from the given directory.
-	explicit server(asio::io_context& context, uint16_t port, request_handler handler)
+	explicit server(asio::io_context& context, request_handler handler)
 		: io_context_(context)
 		, acceptor_(io_context_)
 		, connection_manager_()
 		, request_handler_(handler) {
 		// Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
-		asio::ip::tcp::resolver resolver(io_context_);
-		auto endpoint = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port);
-		acceptor_.open(endpoint.protocol());
-		acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-		acceptor_.bind(endpoint);
-		acceptor_.listen();
-
-		do_accept();
+		
 	}
 
 	server(const server&) = delete;
 	const server& operator=(const server&) = delete;
 
+	bool listen(uint16_t port) {
+		asio::ip::tcp::resolver resolver(io_context_);
+		auto endpoint = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port);
+
+		asio::error_code ec;
+		acceptor_.open(endpoint.protocol(), ec);
+		if (ec) {
+			fail(ec, "open");
+			return false;
+		}
+
+		acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true), ec);
+		if (ec) {
+			fail(ec, "set_option reuse_address");
+			return false;
+		}
+
+		acceptor_.bind(endpoint, ec);
+		if (ec) {
+			fail(ec, "bind");
+			return false;
+		}
+
+		acceptor_.listen(asio::socket_base::max_listen_connections, ec);
+		if (ec) {
+			fail(ec, "listen");
+			return false;
+		}
+
+		do_accept();
+		ASYNCIO_LOG_DEBUG("start listen %d", port);
+		return true;
+	}
+
+	void Stop() {
+		acceptor_.close();
+		connection_manager_.stop_all();
+	}
+
 private:
+	static void fail(asio::error_code ec, char const* what) {
+		ASYNCIO_LOG_ERROR("%s : %s", what, ec.message().data());
+	}
+
 	/// Perform an asynchronous accept operation.
 	void do_accept() {
-		acceptor_.async_accept([this](std::error_code ec, asio::ip::tcp::socket socket) {
+		auto self = shared_from_this();
+		acceptor_.async_accept([self, this](std::error_code ec, asio::ip::tcp::socket socket) {
 			// Check whether the server was stopped by a signal before this
 			// completion handler had a chance to run.
 			if (!acceptor_.is_open()) {

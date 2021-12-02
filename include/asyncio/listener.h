@@ -12,7 +12,7 @@ static void fail(asio::error_code ec, char const* what) {
 
 class Listener : public std::enable_shared_from_this<Listener> {
 public:
-	Listener(IOContext& main_context, std::shared_ptr<ContextPool> worker_io, ProtocolFactory& protocol_factory)
+	Listener(IOContext& main_context, const ContextPoolPtr& worker_io, ProtocolFactory& protocol_factory)
 		: m_main_context(main_context)
 		, m_worker_io(worker_io)
 		, m_protocol_factory(protocol_factory)
@@ -20,7 +20,7 @@ public:
 	Listener(const Listener&) = delete;
 	Listener& operator=(const Listener&) = delete;
 	~Listener() {
-		Stop();
+		ASYNCIO_LOG_DEBUG("Listener destroyed");
 	}
 
 	// 监听一个指定端口
@@ -67,10 +67,17 @@ public:
 	}
 
 private:
+	IOContext& GetIOContext() {
+		auto worker_io = m_worker_io.lock();
+		if (worker_io == nullptr)
+			return m_main_context;
+		else
+			return worker_io->NextContext();
+	}
+
 	void Accept() {
 		auto protocol = m_protocol_factory.CreateProtocol();
-		auto session =
-			std::make_shared<Transport>(m_worker_io == nullptr ? m_main_context : m_worker_io->NextContext(), protocol);
+		auto session = std::make_shared<Transport>(GetIOContext(), protocol);
 		auto self = shared_from_this();
 		m_acceptor.async_accept(session->GetSocket(), [self, this, session, protocol](std::error_code ec) {
 			// Check whether the server was stopped by a signal before this
@@ -112,7 +119,7 @@ private:
 
 private:
 	IOContext& m_main_context;
-	std::shared_ptr<ContextPool> m_worker_io;
+	std::weak_ptr<ContextPool> m_worker_io;
 	ProtocolFactory& m_protocol_factory;
 	asio::ip::tcp::acceptor m_acceptor;
 };

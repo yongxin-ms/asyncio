@@ -58,13 +58,13 @@ public:
 			asio::async_connect(m_socket, endpoints, [self, this](std::error_code ec, asio::ip::tcp::endpoint) {
 				if (!ec) {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d suc", m_remote_ip.data(), m_remote_port);
-					if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+					if (auto protocol = m_protocol.lock(); protocol != nullptr) {
 						protocol->ConnectionMade(self);
 					}
-					self->DoReadData();
+					DoReadData();
 				} else {
 					ASYNCIO_LOG_DEBUG("connect to %s:%d failed", m_remote_ip.data(), m_remote_port);
-					if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+					if (auto protocol = m_protocol.lock(); protocol != nullptr) {
 						protocol->ConnectionLost(self, ec.value());
 					}
 				}
@@ -74,21 +74,21 @@ public:
 
 	void DoReadData() {
 		auto self = shared_from_this();
-		if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
-			auto rx_buffer = protocol->GetRxBuffer();
-			if (rx_buffer.first == nullptr || rx_buffer.second == 0) {
+		if (auto protocol = m_protocol.lock(); protocol != nullptr) {
+			auto& [buffer, buffer_size] = protocol->GetRxBuffer();
+			if (buffer == nullptr || buffer_size == 0) {
 				throw std::runtime_error("wrong rx buffer");
 			}
 
 			m_socket.async_read_some(
-				asio::buffer(rx_buffer.first, rx_buffer.second), [self](std::error_code ec, std::size_t length) {
+				asio::buffer(buffer, buffer_size), [self, this](std::error_code ec, std::size_t length) {
 					if (!ec) {
-						if (auto protocol = self->m_protocol.lock(); protocol != nullptr) {
+						if (auto protocol = m_protocol.lock(); protocol != nullptr) {
 							protocol->DataReceived(length);
 						}
-						self->DoReadData();
+						DoReadData();
 					} else {
-						self->InnerClose(ec.value());
+						InnerClose(ec.value());
 					}
 				});
 		}
@@ -121,14 +121,14 @@ private:
 	void DoWrite() {
 		auto self = shared_from_this();
 		asio::async_write(m_socket, asio::buffer(m_writeMsgs.front()->data(), m_writeMsgs.front()->size()),
-			[self](std::error_code ec, std::size_t /*length*/) {
+			[self, this](std::error_code ec, std::size_t /*length*/) {
 				if (!ec) {
-					self->m_writeMsgs.pop_front();
-					if (!self->m_writeMsgs.empty()) {
-						self->DoWrite();
+					m_writeMsgs.pop_front();
+					if (!m_writeMsgs.empty()) {
+						DoWrite();
 					}
 				} else {
-					self->InnerClose(ec.value());
+					InnerClose(ec.value());
 				}
 			});
 	}
@@ -160,18 +160,18 @@ private:
 void Transport::Close() {
 	auto self = shared_from_this();
 	int err_code = EC_SHUT_DOWN;
-	asio::post(self->m_context, [self, this, err_code]() {
+	asio::post(m_context, [self, this, err_code]() {
 		InnerClose(err_code);
 	});
 }
 
 size_t Transport::Write(const StringPtr& msg) {
 	auto self = shared_from_this();
-	asio::post(self->m_context, [self, msg]() {
-		bool write_in_progress = !self->m_writeMsgs.empty();
-		self->m_writeMsgs.push_back(msg);
+	asio::post(m_context, [self, this, msg]() {
+		bool write_in_progress = !m_writeMsgs.empty();
+		m_writeMsgs.push_back(msg);
 		if (!write_in_progress) {
-			self->DoWrite();
+			DoWrite();
 		}
 	});
 
