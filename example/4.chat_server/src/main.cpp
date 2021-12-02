@@ -118,8 +118,7 @@ public:
 	}
 
 	void BroadcastToAll(const std::shared_ptr<std::string>& words) {
-		for (auto& it : m_sessions) {
-			auto& session = it.second;
+		for (auto& [it, session] : m_sessions) {
 			session->Send(words);
 		}
 	}

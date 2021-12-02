@@ -10,7 +10,7 @@ public:
 		m_rx_buffer.resize(1024);
 	}
 
-	MyConnection::~MyConnection() {
+	~MyConnection() {
 		ASYNCIO_LOG_INFO("MyConnection destroyed");
 	}
 
@@ -146,7 +146,7 @@ int main() {
 
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
-	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
+	auto conn = my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
 	my_event_loop.RunForever();
 	return 0;
 }

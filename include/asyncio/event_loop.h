@@ -16,6 +16,7 @@ class ProtocolFactory;
 
 class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
+
 public:
 	explicit EventLoop(size_t work_io_num = 0);
 	EventLoop(const EventLoop&) = delete;
@@ -28,15 +29,17 @@ public:
 	/*
 	 * 请通过持有返回值来控制定时器的生命周期
 	 */
-	DelayTimerPtr CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE);
-	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
+	[[nodiscard]] DelayTimerPtr CallLater(
+		int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE);
+	[[nodiscard]] ProtocolPtr CreateConnection(
+		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 
 	/*
 	 * remote_addr形如 127.0.0.1:9000
 	 */
-	ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
-	ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
-	http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
+	[[nodiscard]] ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
+	[[nodiscard]] ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
+	[[nodiscard]] http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
 
 private:
 	IOContext& MainIOContext() {

@@ -12,6 +12,10 @@ public:
 		: m_event_loop(event_loop)
 		, m_codec(*this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1)) {}
 
+	~MyConnection() {
+		ASYNCIO_LOG_DEBUG("MyConnection destroyed");
+	}
+
 	size_t Send(const char* data, size_t len) {
 		auto ret = m_codec.Encode(data, len);
 		return Write(ret);
@@ -135,8 +139,9 @@ int main(int argc, char* argv[]) {
 
 	asyncio::EventLoop my_event_loop(4);
 	MyConnectionFactory my_conn_factory(my_event_loop);
+	std::vector<asyncio::ProtocolPtr> conns;
 	for (int i = 0; i < cli_num; i++) {
-		my_event_loop.CreateConnection(my_conn_factory, ip, port);
+		conns.push_back(my_event_loop.CreateConnection(my_conn_factory, ip, port));
 	}
 
 	g_timer = my_event_loop.CallLater(

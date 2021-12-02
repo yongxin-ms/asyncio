@@ -8,6 +8,10 @@ public:
 		m_rx_buffer.resize(1024);
 	}
 
+	~MyConnection() {
+		ASYNCIO_LOG_DEBUG("MyConnection destroyed");
+	}
+
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return std::make_pair(&m_rx_buffer[0], m_rx_buffer.size());
 	}
@@ -100,7 +104,7 @@ int main() {
 
 	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory;
-	my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
+	auto conn = my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
 	my_event_loop.RunForever();
 	return 0;
 }
