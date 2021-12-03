@@ -24,6 +24,39 @@ file(GLOB SELF_TEMP_SRC_FILES
 source_group(src FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
+file(GLOB SELF_TEMP_SRC_FILES
+	"../common/*.cpp"
+	"../common/*.h"
+	)
+source_group(common FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
+	"../common/codec/*.cpp"
+	"../common/codec/*.h"
+	)
+source_group(common\\codec FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/*.h"
+	)
+source_group(include FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/asyncio/*.h"
+	)
+source_group(include\\asyncio FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/asyncio/codec/*.h"
+	)
+source_group(include\\asyncio\\codec FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+
 add_definitions(-DASIO_STANDALONE)
 add_definitions(-DASIO_NO_DEPRECATED)
 add_executable(${PROJECT_NAME} ${SELF_SRC_FILES})
