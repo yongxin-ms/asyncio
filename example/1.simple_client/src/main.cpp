@@ -102,7 +102,7 @@ int main() {
 		},
 		asyncio::Log::kDebug);
 
-	asyncio::EventLoop my_event_loop;
+	asyncio::EventLoop my_event_loop(0);
 	MyConnectionFactory my_conn_factory;
 	auto conn = my_event_loop.CreateConnection(my_conn_factory, "127.0.0.1", 9000);
 	my_event_loop.RunForever();

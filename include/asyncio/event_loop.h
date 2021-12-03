@@ -14,11 +14,14 @@ namespace asyncio {
 
 class ProtocolFactory;
 
+// io线程太多并没有太大意义，一般情况下3个足矣
+static const int DEFAULT_IO_THREAD_NUM = std::min(uint32_t(3), std::thread::hardware_concurrency());
+
 class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
 
 public:
-	explicit EventLoop(size_t work_io_num = 0);
+	explicit EventLoop(size_t work_io_num = DEFAULT_IO_THREAD_NUM);
 	EventLoop(const EventLoop&) = delete;
 	EventLoop& operator=(const EventLoop&) = delete;
 	~EventLoop() {

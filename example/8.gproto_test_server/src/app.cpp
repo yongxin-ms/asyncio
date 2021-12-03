@@ -1,8 +1,7 @@
 ﻿#include "app.h"
 
 App::App()
-	: m_event_loop(4)
-	, m_idwork(1, 1, [](const char* s) {
+	: m_idwork(1, 1, [](const char* s) {
 		ASYNCIO_LOG_DEBUG("{}", s);
 	}) {}
 

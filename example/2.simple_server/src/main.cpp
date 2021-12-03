@@ -100,7 +100,7 @@ int main() {
 		asyncio::Log::kDebug);
 
 	int port = 9000;
-	asyncio::EventLoop my_event_loop;
+	asyncio::EventLoop my_event_loop(0);
 	MySessionFactory my_session_factory;
 	auto listener = my_event_loop.CreateServer(my_session_factory, port);
 	if (listener == nullptr) {

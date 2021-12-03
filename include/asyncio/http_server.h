@@ -6,7 +6,6 @@
 #include <asio.hpp>
 #include <asyncio/http_base.h>
 #include <asyncio/util.h>
-#include <asyncio/log.h>
 
 namespace asyncio {
 namespace http {
@@ -632,10 +631,6 @@ public:
 	connection(const connection&) = delete;
 	const connection& operator=(const connection&) = delete;
 
-	~connection() {
-		ASYNCIO_LOG_DEBUG("connection destroyed");
-	}
-
 	/// Start the first asynchronous operation for the connection.
 	void start() {
 		asio::error_code ec;
@@ -786,10 +781,6 @@ public:
 	server(const server&) = delete;
 	const server& operator=(const server&) = delete;
 
-	~server() {
-		ASYNCIO_LOG_DEBUG("server destroyed");
-	}
-
 	bool listen(uint16_t port) {
 		asio::ip::tcp::resolver resolver(io_context_);
 		auto endpoint = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port);
@@ -824,7 +815,7 @@ public:
 		return true;
 	}
 
-	void stop() {
+	void Stop() {
 		acceptor_.close();
 		connection_manager_.stop_all();
 	}
