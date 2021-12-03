@@ -26,19 +26,6 @@ public:
 	DelayTimer(const DelayTimer&) = delete;
 	DelayTimer& operator=(const DelayTimer&) = delete;
 
-	void Cancel() {
-		auto cur_thread_id = std::this_thread::get_id();
-		if (cur_thread_id != m_thread_id) {
-			ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%d, m_thread_id:%d", cur_thread_id, m_thread_id);
-			throw std::runtime_error("this function can only be called in main loop thread");
-		}
-
-		if (m_running) {
-			m_timer.cancel();
-			m_running = false;
-		}
-	}
-
 	void Run(int run_times = RUN_ONCE) {
 		auto cur_thread_id = std::this_thread::get_id();
 		if (cur_thread_id != m_thread_id) {
@@ -51,21 +38,29 @@ public:
 		}
 
 		m_run_times_left = run_times;
-		Cancel();
 		m_running = true;
 		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
 		m_timer.async_wait([this](std::error_code ec) {
 			if (!ec) {
-				m_running = false;
 				if (m_run_times_left == RUN_FOREVER || --m_run_times_left > 0) {
 					Run(m_run_times_left);
+				} else {
+					Cancel();
 				}
 
 				m_func();
-			} else {
-				//ASYNCIO_LOG_ERROR("DelayTimer m_timer.async_wait err_msg:%s", ec.message().data());
+			} else if (ec != asio::error::operation_aborted) {
+				ASYNCIO_LOG_ERROR("DelayTimer async_wait ec:%d err_msg:%s", ec.value(), ec.message().data());
 			}
 		});
+	}
+
+private:
+	void Cancel() {
+		if (m_running) {
+			m_timer.cancel();
+			m_running = false;
+		}
 	}
 
 private:
