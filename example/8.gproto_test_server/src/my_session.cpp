@@ -62,12 +62,9 @@ size_t MySession::Write(const asyncio::StringPtr& s) {
 }
 
 void MySession::Close() {
-	auto self = shared_from_this();
-	g_EventLoop.QueueInLoop([self, this]() {
-		if (m_transport != nullptr) {
-			m_transport->Close();
-		}
-	});
+	if (m_transport != nullptr) {
+		m_transport->Close();
+	}
 }
 
 size_t MySession::Send(uint32_t msg_id, const char* data, size_t len) {

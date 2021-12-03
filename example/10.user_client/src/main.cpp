@@ -88,12 +88,9 @@ private:
 	}
 
 	virtual void Close() override {
-		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, this]() {
-			if (m_transport != nullptr) {
-				m_transport->Close();
-			}
-		});
+		if (m_transport != nullptr) {
+			m_transport->Close();
+		}
 	}
 
 	void OnMyMessageFunc(const MyHeader& header, const std::shared_ptr<std::string>& data) {
