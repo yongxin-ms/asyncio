@@ -11,44 +11,34 @@ public:
 		RUN_FOREVER = 0, // 永远运行
 	};
 
-	DelayTimer(std::thread::id loop_thread_id, IOContext& context, int milliseconds, FUNC_CALLBACK&& func)
-		: m_thread_id(loop_thread_id)
-		, m_milliseconds(milliseconds)
-		, m_func(std::move(func))
-		, m_timer(context)
-		, m_running(false) {}
+	DelayTimer(IOContext& context, int milliseconds, FUNC_CALLBACK&& func, int run_times = RUN_ONCE)
+		: m_timer(context) {
+		Run(milliseconds, std::move(func), run_times);
+	}
 
 	~DelayTimer() {
-		ASYNCIO_LOG_DEBUG("DelayTimer destroyed milliseconds:%d, times_left:%d", m_milliseconds, m_run_times_left);
+		ASYNCIO_LOG_DEBUG("DelayTimer destroyed");
 		Cancel();
 	}
 
 	DelayTimer(const DelayTimer&) = delete;
 	DelayTimer& operator=(const DelayTimer&) = delete;
 
-	void Run(int run_times = RUN_ONCE) {
-		auto cur_thread_id = std::this_thread::get_id();
-		if (cur_thread_id != m_thread_id) {
-			ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%d, m_thread_id:%d", cur_thread_id, m_thread_id);
-			throw std::runtime_error("this function can only be called in main loop thread");
-		}
+	void Cancel() {
+		m_timer.cancel();
+	}
 
-		if (run_times < 0) {
-			throw std::runtime_error("wrong left_times");
-		}
-
-		m_run_times_left = run_times;
-		m_running = true;
-		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
-		m_timer.async_wait([this](std::error_code ec) {
+private:
+	void Run(int milliseconds, FUNC_CALLBACK&& func, int run_times) {
+		m_timer.expires_after(std::chrono::milliseconds(milliseconds));
+		m_timer.async_wait([func = std::move(func), this, run_times, milliseconds](std::error_code ec) mutable -> void {
 			if (!ec) {
-				if (m_run_times_left == RUN_FOREVER || --m_run_times_left > 0) {
-					Run(m_run_times_left);
-				} else {
-					Cancel();
+				func();
+				if (run_times == RUN_FOREVER) {
+					Run(milliseconds, std::move(func), run_times);
+				} else if (run_times > 0) {
+					Run(milliseconds, std::move(func), run_times - 1);
 				}
-
-				m_func();
 			} else if (ec != asio::error::operation_aborted) {
 				ASYNCIO_LOG_ERROR("DelayTimer async_wait ec:%d err_msg:%s", ec.value(), ec.message().data());
 			}
@@ -56,20 +46,7 @@ public:
 	}
 
 private:
-	void Cancel() {
-		if (m_running) {
-			m_timer.cancel();
-			m_running = false;
-		}
-	}
-
-private:
-	const std::thread::id m_thread_id;
-	const int m_milliseconds;
-	FUNC_CALLBACK m_func;
 	asio::steady_timer m_timer;
-	bool m_running;
-	int m_run_times_left;
 };
 
 } // namespace asyncio
