@@ -3,6 +3,7 @@
 #include <asyncio/log.h>
 
 namespace asyncio {
+
 class DelayTimer {
 public:
 	using FUNC_CALLBACK = std::function<void()>;
@@ -11,11 +12,12 @@ public:
 		RUN_FOREVER = 0, // 永远运行
 	};
 
-	DelayTimer(std::thread::id thread_id, IOContext& context, int milliseconds, FUNC_CALLBACK&& func,
-		int run_times = RUN_ONCE)
+	DelayTimer(std::thread::id thread_id, IOContext& context, int milliseconds, FUNC_CALLBACK&& func, int run_times)
 		: m_thread_id(thread_id)
-		, m_timer(context) {
-		Run(milliseconds, std::move(func), run_times);
+		, m_milliseconds(milliseconds)
+		, m_timer(context)
+		, m_running(false) {
+		Run(std::move(func), run_times);
 	}
 
 	~DelayTimer() {
@@ -26,26 +28,35 @@ public:
 	DelayTimer(const DelayTimer&) = delete;
 	DelayTimer& operator=(const DelayTimer&) = delete;
 
+private:
 	void Cancel() {
-		auto cur_thread_id = std::this_thread::get_id();
-		if (cur_thread_id != m_thread_id) {
-			ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%d, m_thread_id:%d", cur_thread_id, m_thread_id);
-			throw std::runtime_error("this function can only be called in main loop thread");
+		if (m_running) {
+			m_running = false;
+
+			auto cur_thread_id = std::this_thread::get_id();
+			if (cur_thread_id != m_thread_id) {
+				ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%d, m_thread_id:%d", cur_thread_id, m_thread_id);
+				throw std::runtime_error("this function can only be called in main loop thread");
+			}
+			m_timer.cancel();
 		}
-		m_timer.cancel();
 	}
 
-private:
-	void Run(int milliseconds, FUNC_CALLBACK&& func, int run_times) {
-		m_timer.expires_after(std::chrono::milliseconds(milliseconds));
-		m_timer.async_wait([func = std::move(func), this, run_times, milliseconds](std::error_code ec) mutable -> void {
+	void Run(FUNC_CALLBACK&& func, int run_times) {
+		m_running = true;
+		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
+		m_timer.async_wait([func = std::move(func), this, run_times](std::error_code ec) mutable -> void {
 			if (!ec) {
-				func();
+				auto func_(func);
 				if (run_times == RUN_FOREVER) {
-					Run(milliseconds, std::move(func), run_times);
-				} else if (run_times > 0) {
-					Run(milliseconds, std::move(func), run_times - 1);
+					Run(std::move(func), run_times);
+				} else if (run_times >= 2) {
+					Run(std::move(func), run_times - 1);
+				} else {
+					Cancel();
 				}
+
+				func_();
 			} else if (ec != asio::error::operation_aborted) {
 				ASYNCIO_LOG_ERROR("DelayTimer async_wait ec:%d err_msg:%s", ec.value(), ec.message().data());
 			}
@@ -54,7 +65,9 @@ private:
 
 private:
 	const std::thread::id m_thread_id;
+	const int m_milliseconds;
 	asio::steady_timer m_timer;
+	bool m_running;
 };
 
 } // namespace asyncio
