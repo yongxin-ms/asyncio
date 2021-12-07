@@ -117,7 +117,7 @@ DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&&
 		throw std::runtime_error("this function can only be called in main loop thread");
 	}
 
-	auto timer = std::make_unique<DelayTimer>(m_main_context, milliseconds, std::move(func), run_times);
+	auto timer = std::make_unique<DelayTimer>(cur_thread_id, m_main_context, milliseconds, std::move(func), run_times);
 	return timer;
 }
 

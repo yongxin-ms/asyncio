@@ -11,8 +11,10 @@ public:
 		RUN_FOREVER = 0, // 永远运行
 	};
 
-	DelayTimer(IOContext& context, int milliseconds, FUNC_CALLBACK&& func, int run_times = RUN_ONCE)
-		: m_timer(context) {
+	DelayTimer(std::thread::id thread_id, IOContext& context, int milliseconds, FUNC_CALLBACK&& func,
+		int run_times = RUN_ONCE)
+		: m_thread_id(thread_id)
+		, m_timer(context) {
 		Run(milliseconds, std::move(func), run_times);
 	}
 
@@ -25,6 +27,11 @@ public:
 	DelayTimer& operator=(const DelayTimer&) = delete;
 
 	void Cancel() {
+		auto cur_thread_id = std::this_thread::get_id();
+		if (cur_thread_id != m_thread_id) {
+			ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%d, m_thread_id:%d", cur_thread_id, m_thread_id);
+			throw std::runtime_error("this function can only be called in main loop thread");
+		}
 		m_timer.cancel();
 	}
 
@@ -46,6 +53,7 @@ private:
 	}
 
 private:
+	const std::thread::id m_thread_id;
 	asio::steady_timer m_timer;
 };
 
