@@ -16,6 +16,7 @@ public:
 		: m_thread_id(thread_id)
 		, m_milliseconds(milliseconds)
 		, m_timer(context)
+		, m_expire(std::chrono::steady_clock::now())
 		, m_running(false) {
 		Run(std::move(func), run_times);
 	}
@@ -43,8 +44,10 @@ private:
 	}
 
 	void Run(FUNC_CALLBACK&& func, int run_times) {
+		m_expire += std::chrono::milliseconds(m_milliseconds);
+		m_timer.expires_at(m_expire);
+
 		m_running = true;
-		m_timer.expires_after(std::chrono::milliseconds(m_milliseconds));
 		m_timer.async_wait([func = std::move(func), this, run_times](std::error_code ec) mutable -> void {
 			if (!ec) {
 				auto func_(func);
@@ -67,6 +70,7 @@ private:
 	const std::thread::id m_thread_id;
 	const int m_milliseconds;
 	asio::steady_timer m_timer;
+	std::chrono::steady_clock::time_point m_expire;
 	bool m_running;
 };
 
