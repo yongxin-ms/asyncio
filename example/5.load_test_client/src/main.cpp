@@ -31,6 +31,7 @@ private:
 	}
 
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override {
+		transport->SetNoDelay(false);
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			m_transport = transport;

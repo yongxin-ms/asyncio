@@ -121,6 +121,7 @@ private:
 };
 
 void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
+	transport->SetNoDelay(false);
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, transport]() {
 		m_transport = transport;

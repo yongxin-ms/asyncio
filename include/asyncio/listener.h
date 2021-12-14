@@ -39,12 +39,6 @@ public:
 			return false;
 		}
 
-		m_acceptor.set_option(asio::ip::tcp::no_delay(true), ec);
-		if (ec) {
-			fail(ec, "set_option no_delay");
-			return false;
-		}
-
 		m_acceptor.bind(ep, ec);
 		if (ec) {
 			fail(ec, "bind");
@@ -101,7 +95,6 @@ private:
 
 				session->SetRemoteIp(remote_ip);
 				session->SetRemotePort(remote_port);
-				session->GetSocket().set_option(asio::ip::tcp::no_delay(true), ec);
 
 				protocol->ConnectionMade(session);
 

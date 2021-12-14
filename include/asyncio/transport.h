@@ -117,6 +117,11 @@ public:
 		return m_socket;
 	}
 
+	void SetNoDelay(bool b) {
+		std::error_code ec;
+		m_socket.set_option(asio::ip::tcp::no_delay(b), ec);
+	}
+
 private:
 	void DoWrite() {
 		auto self = shared_from_this();
