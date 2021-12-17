@@ -22,6 +22,13 @@ bool App::Init(uint16_t port) {
 		},
 		asyncio::DelayTimer::RUN_FOREVER);
 
+	m_1minute_timer = m_event_loop.CallLater(
+		60 * 1000,
+		[this]() {
+			OnOneMinuteTimer();
+		},
+		asyncio::DelayTimer::RUN_FOREVER);
+
 	return true;
 }
 
@@ -46,4 +53,8 @@ void App::OnOneSecondTimer() {
 		ASYNCIO_LOG_INFO("Cur qps:%d, ConnCount:%llu", m_cur_qps, m_session_mgr.size());
 		m_cur_qps = 0;
 	}
+}
+
+void App::OnOneMinuteTimer() {
+	asyncio::LogObjCounter();
 }

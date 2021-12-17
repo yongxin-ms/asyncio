@@ -11,4 +11,21 @@
 #include <asyncio/codec/codec_len.h>
 #include <asyncio/codec/codec_user_header.h>
 
-namespace asyncio {}
+namespace asyncio {
+static void LogObjCounter() {
+	ASYNCIO_LOG_INFO("DelayTimer count:%d/%d", asyncio::ObjCounter<asyncio::DelayTimer>::GetCount(),
+		asyncio::ObjCounter<asyncio::DelayTimer>::GetMaxCount());
+
+	ASYNCIO_LOG_INFO("Listener count:%d/%d", asyncio::ObjCounter<asyncio::Listener>::GetCount(),
+		asyncio::ObjCounter<asyncio::Listener>::GetMaxCount());
+	ASYNCIO_LOG_INFO("Transport count:%d/%d", asyncio::ObjCounter<asyncio::Transport>::GetCount(),
+		asyncio::ObjCounter<asyncio::Transport>::GetMaxCount());
+	ASYNCIO_LOG_INFO("Protocol count:%d/%d", asyncio::ObjCounter<asyncio::Protocol>::GetCount(),
+		asyncio::ObjCounter<asyncio::Protocol>::GetMaxCount());
+
+	ASYNCIO_LOG_INFO("http::server count:%d/%d", asyncio::ObjCounter<asyncio::http::server>::GetCount(),
+		asyncio::ObjCounter<asyncio::http::server>::GetMaxCount());
+	ASYNCIO_LOG_INFO("http::connection count:%d/%d", asyncio::ObjCounter<asyncio::http::connection>::GetCount(),
+		asyncio::ObjCounter<asyncio::http::connection>::GetMaxCount());
+}
+} // namespace asyncio

@@ -3,6 +3,7 @@
 #include <asyncio/transport.h>
 #include <asyncio/log.h>
 #include <asyncio/context_pool.h>
+#include <asyncio/obj_counter.h>
 
 namespace asyncio {
 
@@ -10,7 +11,9 @@ static void fail(asio::error_code ec, char const* what) {
 	ASYNCIO_LOG_ERROR("%s : %s", what, ec.message().data());
 }
 
-class Listener : public std::enable_shared_from_this<Listener> {
+class Listener
+	: public std::enable_shared_from_this<Listener>
+	, public ObjCounter<Listener> {
 public:
 	Listener(IOContext& main_context, const ContextPoolPtr& worker_io, ProtocolFactory& protocol_factory)
 		: m_main_context(main_context)

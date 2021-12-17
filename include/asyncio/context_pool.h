@@ -3,13 +3,14 @@
 #include <memory>
 #include <asio.hpp>
 #include <asyncio/log.h>
+#include <asyncio/obj_counter.h>
 
 namespace asyncio {
 
 using IOContext = asio::io_context;
 using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
 
-class ContextPool {
+class ContextPool : public ObjCounter<ContextPool> {
 public:
 	explicit ContextPool(size_t pool_size)
 		: m_nextContextIndex(0) {

@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include <memory>
 #include <asyncio/type.h>
+#include <asyncio/obj_counter.h>
 
 namespace asyncio {
 
-class Protocol {
+class Protocol : public ObjCounter<Protocol> {
 public:
 	Protocol() = default;
 	virtual ~Protocol() = default;

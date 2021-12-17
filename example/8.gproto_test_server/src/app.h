@@ -23,12 +23,14 @@ public:
 
 private:
 	void OnOneSecondTimer();
+	void OnOneMinuteTimer();
 
 private:
 	asyncio::EventLoop m_event_loop;
 	id_worker::IdWorker m_idwork;
 	MySessionMgr m_session_mgr;
 	asyncio::DelayTimerPtr m_1second_timer;
+	asyncio::DelayTimerPtr m_1minute_timer;
 	int m_cur_qps = 0;
 };
 

@@ -5,6 +5,7 @@
 #include <asyncio/protocol.h>
 #include <asyncio/log.h>
 #include <asyncio/type.h>
+#include <asyncio/obj_counter.h>
 
 namespace asyncio {
 
@@ -17,7 +18,9 @@ enum ErrorCode {
 	EC_SHUT_DOWN, // 主动关闭
 };
 
-class Transport : public std::enable_shared_from_this<Transport> {
+class Transport
+	: public std::enable_shared_from_this<Transport>
+	, public ObjCounter<Transport> {
 public:
 	// 作为客户端去连接服务器
 	Transport(IOContext& context, const ProtocolPtr& protocol, const std::string& host, uint16_t port)

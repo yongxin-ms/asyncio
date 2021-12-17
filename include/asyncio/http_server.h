@@ -6,6 +6,7 @@
 #include <asio.hpp>
 #include <asyncio/http_base.h>
 #include <asyncio/util.h>
+#include <asyncio/obj_counter.h>
 
 namespace asyncio {
 namespace http {
@@ -619,7 +620,9 @@ reply reply::stock_reply(reply::status_type status) {
 	return rep;
 }
 
-class connection : public std::enable_shared_from_this<connection> {
+class connection
+	: public std::enable_shared_from_this<connection>
+	, public ObjCounter<connection> {
 public:
 	/// Construct a connection with the given socket.
 	explicit connection(asio::ip::tcp::socket socket, connection_manager& manager, request_handler& handler)
@@ -765,7 +768,9 @@ void connection::do_write() {
 }
 
 /// The top-level class of the HTTP server.
-class server : public std::enable_shared_from_this<server> {
+class server
+	: public std::enable_shared_from_this<server>
+	, public ObjCounter<server> {
 public:
 	/// Construct the server to listen on the specified TCP address and port, and
 	/// serve up files from the given directory.

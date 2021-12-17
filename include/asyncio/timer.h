@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include <asio.hpp>
 #include <asyncio/log.h>
+#include <asyncio/obj_counter.h>
 
 namespace asyncio {
 
-class DelayTimer {
+class DelayTimer : public ObjCounter<DelayTimer> {
 public:
 	using FUNC_CALLBACK = std::function<void()>;
 	enum {
