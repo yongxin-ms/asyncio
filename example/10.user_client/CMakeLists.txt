@@ -7,7 +7,6 @@ set(CMAKE_UNITY_BUILD yes)
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 16)
 
 if (WIN32)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 else()
 	#find_package(asio CONFIG REQUIRED)
@@ -42,8 +41,6 @@ file(GLOB SELF_TEMP_SRC_FILES
 source_group(include\\asyncio\\codec FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
-add_definitions(-DASIO_STANDALONE)
-add_definitions(-DASIO_NO_DEPRECATED)
 add_executable(${PROJECT_NAME} ${SELF_SRC_FILES})
 
 #if (WIN32)
