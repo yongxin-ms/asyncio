@@ -36,8 +36,9 @@ public:
 	/*
 	 * 请通过持有返回值来控制定时器的生命周期
 	 */
-	[[nodiscard]] DelayTimerPtr CallLater(
-		int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times = DelayTimer::RUN_ONCE);
+	template <class Rep, class Period>
+	[[nodiscard]] DelayTimerPtr CallLater(const std::chrono::duration<Rep, Period>& timeout,
+		DelayTimer::FUNC_CALLBACK&& func, int run_times = RUN_ONCE);
 	[[nodiscard]] ProtocolPtr CreateConnection(
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 
@@ -106,7 +107,9 @@ void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
 	asio::post(m_main_context, std::move(func));
 }
 
-DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
+template <class Rep, class Period>
+DelayTimerPtr EventLoop::CallLater(
+	const std::chrono::duration<Rep, Period>& timeout, DelayTimer::FUNC_CALLBACK&& func, int run_times) {
 	if (run_times < 0) {
 		throw std::runtime_error("wrong run_times");
 	}
@@ -117,7 +120,7 @@ DelayTimerPtr EventLoop::CallLater(int milliseconds, DelayTimer::FUNC_CALLBACK&&
 		throw std::runtime_error("this function can only be called in main loop thread");
 	}
 
-	auto timer = std::make_unique<DelayTimer>(cur_thread_id, m_main_context, milliseconds, std::move(func), run_times);
+	auto timer = std::make_unique<DelayTimer>(cur_thread_id, m_main_context, timeout, std::move(func), run_times);
 	return timer;
 }
 

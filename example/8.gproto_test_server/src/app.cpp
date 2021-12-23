@@ -16,18 +16,18 @@ bool App::Init(uint16_t port) {
 		return false;
 
 	m_1second_timer = m_event_loop.CallLater(
-		1000,
+		std::chrono::seconds(1),
 		[this]() {
 			OnOneSecondTimer();
 		},
-		asyncio::DelayTimer::RUN_FOREVER);
+		asyncio::RUN_FOREVER);
 
 	m_1minute_timer = m_event_loop.CallLater(
-		60 * 1000,
+		std::chrono::minutes(1),
 		[this]() {
 			OnOneMinuteTimer();
 		},
-		asyncio::DelayTimer::RUN_FOREVER);
+		asyncio::RUN_FOREVER);
 
 	return true;
 }

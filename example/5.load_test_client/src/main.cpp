@@ -49,7 +49,7 @@ private:
 				m_reconnect_timer = nullptr;
 			} else {
 				m_transport = nullptr;
-				m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+				m_reconnect_timer = m_event_loop.CallLater(std::chrono::seconds(3), [transport]() {
 					ASYNCIO_LOG_DEBUG("Start Reconnect");
 					transport->Connect();
 				});
@@ -143,14 +143,14 @@ int main(int argc, char* argv[]) {
 	}
 
 	g_timer = my_event_loop.CallLater(
-		1000,
+		std::chrono::seconds(1),
 		[]() {
 			if (g_cur_qps != 0) {
 				ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
 				g_cur_qps = 0;
 			}
 		},
-		asyncio::DelayTimer::RUN_FOREVER);
+		asyncio::RUN_FOREVER);
 
 	my_event_loop.RunForever();
 	return 0;

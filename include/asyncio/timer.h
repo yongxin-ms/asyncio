@@ -4,22 +4,23 @@
 #include <asyncio/obj_counter.h>
 
 namespace asyncio {
+enum {
+	RUN_ONCE = 1,	 // 运行一次
+	RUN_FOREVER = 0, // 永远运行
+};
 
 class DelayTimer : public ObjCounter<DelayTimer> {
 public:
 	using FUNC_CALLBACK = std::function<void()>;
-	enum {
-		RUN_ONCE = 1,	 // 运行一次
-		RUN_FOREVER = 0, // 永远运行
-	};
 
-	DelayTimer(std::thread::id thread_id, IOContext& context, int milliseconds, FUNC_CALLBACK&& func, int run_times)
+	template <class Rep, class Period>
+	DelayTimer(std::thread::id thread_id, IOContext& context, const std::chrono::duration<Rep, Period>& timeout,
+		FUNC_CALLBACK&& func, int run_times)
 		: m_thread_id(thread_id)
-		, m_milliseconds(milliseconds)
 		, m_timer(context)
 		, m_expire(std::chrono::steady_clock::now())
 		, m_running(false) {
-		Run(std::move(func), run_times);
+		Run(timeout, std::move(func), run_times);
 	}
 
 	~DelayTimer() {
@@ -44,18 +45,19 @@ private:
 		}
 	}
 
-	void Run(FUNC_CALLBACK&& func, int run_times) {
-		m_expire += std::chrono::milliseconds(m_milliseconds);
+	template <class Rep, class Period>
+	void Run(const std::chrono::duration<Rep, Period>& timeout, FUNC_CALLBACK&& func, int run_times) {
+		m_expire += timeout;
 		m_timer.expires_at(m_expire);
 
 		m_running = true;
-		m_timer.async_wait([func = std::move(func), this, run_times](std::error_code ec) mutable -> void {
+		m_timer.async_wait([timeout, func = std::move(func), this, run_times](std::error_code ec) mutable -> void {
 			if (!ec) {
 				auto func_(func);
 				if (run_times == RUN_FOREVER) {
-					Run(std::move(func), run_times);
+					Run(timeout, std::move(func), run_times);
 				} else if (run_times >= 2) {
-					Run(std::move(func), run_times - 1);
+					Run(timeout, std::move(func), run_times - 1);
 				} else {
 					Cancel();
 				}
@@ -69,7 +71,6 @@ private:
 
 private:
 	const std::thread::id m_thread_id;
-	const int m_milliseconds;
 	asio::steady_timer m_timer;
 	std::chrono::steady_clock::time_point m_expire;
 	bool m_running;

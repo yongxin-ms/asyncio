@@ -22,7 +22,7 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 		m_transport = transport;
 		m_ping_counter = 0;
 		m_ping_timer = g_EventLoop.CallLater(
-			30000,
+			std::chrono::seconds(30),
 			[self, this]() {
 				if (!IsConnected())
 					return;
@@ -36,7 +36,7 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 					m_ping_counter++;
 				}
 			},
-			asyncio::DelayTimer::RUN_FOREVER);
+			asyncio::RUN_FOREVER);
 
 		std::string msg("hello,world!");
 		Send(0, msg.data(), msg.size());
@@ -53,7 +53,7 @@ void MyConnection::ConnectionLost(const asyncio::TransportPtr& transport, int er
 			m_ping_timer = nullptr;
 		} else {
 			m_transport = nullptr;
-			m_reconnect_timer = g_EventLoop.CallLater(3000, [transport]() {
+			m_reconnect_timer = g_EventLoop.CallLater(std::chrono::seconds(3), [transport]() {
 				ASYNCIO_LOG_DEBUG("Start Reconnect");
 				transport->Connect();
 			});

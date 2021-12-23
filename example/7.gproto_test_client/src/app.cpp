@@ -9,11 +9,11 @@ void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	m_conn_mgr.StartConnect(ip, port, conn_count);
 
 	m_1second_timer = m_event_loop.CallLater(
-		1000,
+		std::chrono::seconds(1),
 		[this]() {
 			OnOneSecondTimer();
 		},
-		asyncio::DelayTimer::RUN_FOREVER);
+		asyncio::RUN_FOREVER);
 }
 
 void App::Run() {

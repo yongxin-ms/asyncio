@@ -34,14 +34,14 @@ private:
 			//
 
 			m_say_timer = m_event_loop.CallLater(
-				2000,
+				std::chrono::seconds(2),
 				[self, this]() {
 					if (!IsConnected())
 						return;
 					auto msg = std::make_shared<std::string>("hello,world!");
 					Write(msg);
 				},
-				asyncio::DelayTimer::RUN_FOREVER);
+				asyncio::RUN_FOREVER);
 		});
 	}
 
@@ -60,7 +60,7 @@ private:
 				//
 				// 网络断开之后每3秒钟尝试一次重连，只到连上为止
 				//
-				m_reconnect_timer = m_event_loop.CallLater(3000, [transport]() {
+				m_reconnect_timer = m_event_loop.CallLater(std::chrono::seconds(3), [transport]() {
 					ASYNCIO_LOG_INFO("Start Reconnect");
 					transport->Connect();
 				});

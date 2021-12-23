@@ -12,7 +12,7 @@
 #include <asyncio/codec/codec_user_header.h>
 
 namespace asyncio {
-static void LogObjCounter() {
+inline void LogObjCounter() {
 	ASYNCIO_LOG_INFO("DelayTimer count:%d/%d", asyncio::ObjCounter<asyncio::DelayTimer>::GetCount(),
 		asyncio::ObjCounter<asyncio::DelayTimer>::GetMaxCount());
 

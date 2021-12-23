@@ -23,7 +23,7 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 		m_transport = transport;
 		m_ping_counter = 0;
 		m_ping_timer = g_EventLoop.CallLater(
-			30000,
+			std::chrono::seconds(30),
 			[self, this]() {
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
@@ -34,7 +34,7 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 					m_ping_counter++;
 				}
 			},
-			asyncio::DelayTimer::RUN_FOREVER);
+			asyncio::RUN_FOREVER);
 		m_owner.OnSessionCreate(self);
 	});
 }
