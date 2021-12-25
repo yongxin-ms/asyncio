@@ -11,11 +11,11 @@ public:
 	void Run();
 	void Stop();
 
-	uint64_t CreateId() {
+	auto CreateId() {
 		return m_idwork.CreateId();
 	}
 
-	asyncio::EventLoop& GetEventLoop() {
+	auto& GetEventLoop() {
 		return m_event_loop;
 	}
 

@@ -8,7 +8,7 @@ public:
 	void Run();
 	void Stop();
 
-	asyncio::EventLoop& GetEventLoop() {
+	auto& GetEventLoop() {
 		return m_event_loop;
 	}
 

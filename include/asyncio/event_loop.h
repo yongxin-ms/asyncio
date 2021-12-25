@@ -50,7 +50,7 @@ public:
 	[[nodiscard]] http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
 
 private:
-	IOContext& MainIOContext() {
+	auto& MainIOContext() {
 		return m_main_context;
 	}
 
@@ -60,7 +60,7 @@ private:
 		return m_thread_id == std::this_thread::get_id();
 	}
 
-	std::thread::id GetThreadId() const {
+	auto GetThreadId() const {
 		return m_thread_id;
 	}
 

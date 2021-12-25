@@ -167,6 +167,20 @@ public:
 		return number_result.size();
 	}
 
+	// 拆分用特殊字符分隔的布尔字符串
+	static size_t SplitBool(std::vector<bool>& vec, const std::string& is, const char c) {
+		std::vector<std::string> vec_string;
+		SplitStr(vec_string, is, c);
+
+		vec.clear();
+		for (size_t i = 0; i < vec_string.size(); i++) {
+			const std::string& value = vec_string[i];
+			vec.push_back(atoi(value.data()) != 0);
+		}
+
+		return vec.size();
+	};
+
 	static std::vector<std::string> ParseParam(const std::string& is, char c) {
 		std::vector<std::string> result;
 		ParseParam(result, is, c);

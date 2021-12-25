@@ -72,7 +72,7 @@ public:
 		m_filled_size = 0;
 	}
 
-	const std::shared_ptr<std::string>& get() const {
+	const auto& get() const {
 		return m_str;
 	}
 

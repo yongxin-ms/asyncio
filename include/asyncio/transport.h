@@ -104,7 +104,7 @@ public:
 		m_remote_ip = remote_ip;
 	}
 
-	const std::string& GetRemoteIp() const {
+	const auto& GetRemoteIp() const {
 		return m_remote_ip;
 	}
 
@@ -112,11 +112,11 @@ public:
 		m_remote_port = remote_port;
 	}
 
-	uint16_t GetRemotePort() const {
+	auto GetRemotePort() const {
 		return m_remote_port;
 	}
 
-	asio::ip::tcp::socket& GetSocket() {
+	auto& GetSocket() {
 		return m_socket;
 	}
 

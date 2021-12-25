@@ -11,7 +11,7 @@ public:
 	MySession(MySessionMgr& owner, uint64_t sid);
 	virtual ~MySession();
 
-	uint64_t GetSid() {
+	auto GetSid() {
 		return m_sid;
 	}
 
