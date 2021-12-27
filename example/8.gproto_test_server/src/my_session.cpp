@@ -5,7 +5,7 @@
 MySession::MySession(MySessionMgr& owner, uint64_t sid)
 	: m_owner(owner)
 	, m_codec(*this, std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
-		  std::bind(&MySession::OnReceivedPong, this))
+		  std::bind(&MySession::OnReceivedPong, this), 256 * 1024)
 	, m_sid(sid) {}
 
 MySession::~MySession() {

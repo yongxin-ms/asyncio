@@ -5,7 +5,7 @@
 MyConnection::MyConnection(MyConnMgr& owner)
 	: m_owner(owner)
 	, m_codec(*this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2),
-		  std::bind(&MyConnection::OnReceivedPong, this)) {}
+		  std::bind(&MyConnection::OnReceivedPong, this), 256 * 1024) {}
 
 MyConnection::~MyConnection() {
 	ASYNCIO_LOG_DEBUG("MyConnection destroyed");

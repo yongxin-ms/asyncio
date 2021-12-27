@@ -13,7 +13,7 @@ public:
 	MySession(MySessionMgr& owner, asyncio::EventLoop& event_loop, uint64_t sid)
 		: m_owner(owner)
 		, m_event_loop(event_loop)
-		, m_codec(*this, std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1))
+		, m_codec(*this, std::bind(&MySession::OnMyMessageFunc, this, std::placeholders::_1), 256 * 1024)
 		, m_sid(sid) {}
 
 	virtual ~MySession() {
