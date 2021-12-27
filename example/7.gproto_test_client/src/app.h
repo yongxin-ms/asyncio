@@ -4,6 +4,7 @@
 
 class App : public Singleton<App> {
 public:
+	App();
 	void Init(const std::string& ip, uint16_t port, int conn_count);
 	void Run();
 	void Stop();

@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	int port = std::atoi(argv[1]);
-	asyncio::EventLoop my_event_loop;
+	asyncio::EventLoop my_event_loop(std::thread::hardware_concurrency() - 1);
 	MySessionMgr my_session_mgr(my_event_loop);
 	auto listener = my_event_loop.CreateServer(my_session_mgr.GetSessionFactory(), port);
 	if (listener == nullptr) {

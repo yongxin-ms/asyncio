@@ -1,7 +1,8 @@
 ﻿#include "app.h"
 
 App::App()
-	: m_idwork(1, 1, [](const char* s) {
+	: m_event_loop(std::thread::hardware_concurrency() - 1)
+	, m_idwork(1, 1, [](const char* s) {
 		ASYNCIO_LOG_DEBUG("{}", s);
 	}) {}
 

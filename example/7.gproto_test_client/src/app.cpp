@@ -1,5 +1,8 @@
 ﻿#include "app.h"
 
+App::App()
+	: m_event_loop(std::thread::hardware_concurrency() - 1) {}
+
 void App::Init(const std::string& ip, uint16_t port, int conn_count) {
 	ASYNCIO_LOG_INFO("+++++++++++++++++++++++++++++++++++++++++++++++");
 	ASYNCIO_LOG_INFO("+            GProtoTestClient Start           +");
