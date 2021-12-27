@@ -27,7 +27,7 @@ public:
 		for (size_t i = 0; i < pool_size; ++i) {
 			m_contextThreads.emplace_back(std::make_unique<std::thread>([this, i]() {
 				auto thread_id = std::this_thread::get_id();
-				ASYNCIO_LOG_INFO("ContextPool thread:%d, thread_id:%d", i, thread_id);
+				ASYNCIO_LOG_INFO("ContextPool thread:%d, thread_id:%u", i, thread_id);
 
 				//
 				m_contexts[i]->run();
