@@ -39,8 +39,13 @@ private:
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			m_transport = transport;
-
-			SendHello();
+			int random_milliseconds = asyncio::util::Random::RandomInt(1000, 3000);
+			m_chat_timer = m_event_loop.CallLater(
+				std::chrono::milliseconds(random_milliseconds),
+				[this]() {
+					SendHello();
+				},
+				asyncio::RUN_FOREVER);
 		});
 	}
 
@@ -50,8 +55,10 @@ private:
 			if (err_code == asyncio::EC_SHUT_DOWN) {
 				m_transport = nullptr;
 				m_reconnect_timer = nullptr;
+				m_chat_timer = nullptr;
 			} else {
 				m_transport = nullptr;
+				m_chat_timer = nullptr;
 				m_reconnect_timer = m_event_loop.CallLater(std::chrono::seconds(3), [transport]() {
 					ASYNCIO_LOG_DEBUG("Start Reconnect");
 					transport->Connect();
@@ -81,7 +88,6 @@ private:
 	void OnMyMessageFunc(const std::shared_ptr<std::string>& data) {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, this]() {
-			SendHello();
 			g_cur_qps++;
 		});
 	}
@@ -91,6 +97,7 @@ private:
 	asyncio::TransportPtr m_transport;
 	asyncio::CodecLen m_codec;
 	asyncio::DelayTimerPtr m_reconnect_timer;
+	asyncio::DelayTimerPtr m_chat_timer;
 };
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {

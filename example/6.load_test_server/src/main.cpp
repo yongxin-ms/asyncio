@@ -2,7 +2,6 @@
 #include <asyncio.h>
 
 int g_cur_qps = 0;
-asyncio::DelayTimerPtr g_timer = nullptr;
 
 class MySessionMgr;
 
@@ -119,6 +118,10 @@ public:
 		return it->second;
 	}
 
+	size_t size() {
+		return m_sessions.size();
+	}
+
 private:
 	MySessionFactory m_session_factory;
 	std::unordered_map<uint64_t, MySessionPtr> m_sessions;
@@ -179,11 +182,11 @@ int main(int argc, char* argv[]) {
 	}
 
 	ASYNCIO_LOG_INFO("listen on %d suc", port);
-	g_timer = my_event_loop.CallLater(
+	auto qps_timer = my_event_loop.CallLater(
 		std::chrono::seconds(1),
-		[]() {
+		[&my_session_mgr]() {
 			if (g_cur_qps != 0) {
-				ASYNCIO_LOG_DEBUG("Cur qps:%d", g_cur_qps);
+				ASYNCIO_LOG_INFO("Cur qps:%d, ConnCount:%llu", g_cur_qps, my_session_mgr.size());
 				g_cur_qps = 0;
 			}
 		},
