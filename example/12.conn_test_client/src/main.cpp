@@ -9,7 +9,7 @@ class MyConnection
 public:
 	MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(*this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1), 256 * 1024) {}
+		, m_codec(*this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1), 4 * 1024) {}
 
 	~MyConnection() {
 		ASYNCIO_LOG_DEBUG("MyConnection destroyed");
