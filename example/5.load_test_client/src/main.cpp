@@ -25,6 +25,11 @@ public:
 		return m_transport != nullptr;
 	}
 
+	void SendHello() {
+		static std::string msg("hello,world!");
+		Send(msg.data(), msg.size());
+	}
+
 private:
 	virtual std::pair<char*, size_t> GetRxBuffer() override {
 		return m_codec.GetRxBuffer();
@@ -36,8 +41,7 @@ private:
 		m_event_loop.QueueInLoop([self, this, transport]() {
 			m_transport = transport;
 
-			std::string msg("hello,world!");
-			Send(msg.data(), msg.size());
+			SendHello();
 		});
 	}
 
@@ -77,8 +81,8 @@ private:
 
 	void OnMyMessageFunc(const std::shared_ptr<std::string>& data) {
 		auto self = shared_from_this();
-		m_event_loop.QueueInLoop([self, data]() {
-			self->Send(data->data(), data->size());
+		m_event_loop.QueueInLoop([self, this]() {
+			SendHello();
 			g_cur_qps++;
 		});
 	}

@@ -58,7 +58,11 @@ private:
 	void OnMyMessageFunc(const std::shared_ptr<std::string>& data) {
 		auto self = shared_from_this();
 		m_event_loop.QueueInLoop([self, data]() {
-			self->Send(data->data(), data->size());
+			std::string s;
+			for (int i = 0; i < 10; i++) {
+				s += *data;
+			}
+			self->Send(s.data(), s.size());
 			g_cur_qps++;
 		});
 	}
