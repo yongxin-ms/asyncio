@@ -27,15 +27,17 @@ public:
 					break;
 
 				if (bucket_.head.fill(read_pos_, left_len)) {
+					uint32_t body_len = bucket_.head.get().len;
+					//BigLittleSwap32(body_len);
+
 					// 不允许报文长度为0，也不允许超长
-					if (bucket_.head.get().len <= 0 || IsOverSize(bucket_.head.get().len)) {
+					if (body_len <= 0 || IsOverSize(body_len)) {
 						m_protocol.Close();
-						ASYNCIO_LOG_WARN(
-							"Close transport because of packet length(%d) over limit", bucket_.head.get().len);
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", body_len);
 						return;
 					}
 
-					bucket_.data.reset(bucket_.head.get().len);
+					bucket_.data.reset(body_len);
 				}
 			}
 
