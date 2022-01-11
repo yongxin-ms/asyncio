@@ -9,11 +9,13 @@ class CodecLen final : public Codec {
 public:
 	using USER_MSG_CALLBACK = std::function<void(const StringPtr&)>;
 
+	//缺省小端
 	CodecLen(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
-		uint32_t packet_size_limit = MAX_PACKET_SIZE)
+		uint32_t packet_size_limit = MAX_PACKET_SIZE, bool small_endian = true)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_protocol(protocol)
-		, m_user_msg_func(std::move(func)) {}
+		, m_user_msg_func(std::move(func))
+		, m_small_endian(small_endian) {}
 
 	virtual void Decode(size_t len) override {
 		// len是本次接收到的数据长度
@@ -28,7 +30,9 @@ public:
 
 				if (bucket_.head.fill(read_pos_, left_len)) {
 					uint32_t body_len = bucket_.head.get().len;
-					//BigLittleSwap32(body_len);
+
+					if (!m_small_endian)
+						BigLittleSwap32(body_len);
 
 					// 不允许报文长度为0，也不允许超长
 					if (body_len <= 0 || IsOverSize(body_len)) {
@@ -56,6 +60,8 @@ public:
 		auto p = std::make_shared<std::string>(TcpMsgHeader::size() + len, 0);
 		TcpMsgHeader* header = (TcpMsgHeader*)&p->at(0);
 		header->len = (uint32_t)len;
+		if (!m_small_endian)
+			BigLittleSwap32(header->len);
 		if (len > 0) {
 			memcpy(&p->at(TcpMsgHeader::size()), buf, len);
 		}
@@ -83,6 +89,7 @@ private:
 	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
+	const bool m_small_endian;
 };
 
 } // namespace asyncio
