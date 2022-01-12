@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
 	int port = std::atoi(argv[2]);
 	int cli_num = std::atoi(argv[3]);
 
-	asyncio::EventLoop my_event_loop(std::thread::hardware_concurrency() - 1);
+	asyncio::EventLoop my_event_loop;
 	MyConnectionFactory my_conn_factory(my_event_loop);
 	std::vector<asyncio::ProtocolPtr> conns;
 	for (int i = 0; i < cli_num; i++) {
