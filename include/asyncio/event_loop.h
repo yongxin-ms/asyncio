@@ -15,7 +15,7 @@ namespace asyncio {
 class ProtocolFactory;
 
 // io线程太多并没有太大意义，一般情况下3个足矣
-static const int DEFAULT_IO_THREAD_NUM = std::min(uint32_t(3), std::thread::hardware_concurrency());
+static const int DEFAULT_IO_THREAD_NUM = std::min(uint32_t(3), std::thread::hardware_concurrency() - 1);
 
 class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
