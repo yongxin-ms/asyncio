@@ -104,7 +104,7 @@ public:
 private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
-	std::atomic_int64_t m_cur_sid;
+	std::atomic_uint64_t m_cur_sid;
 };
 
 class MySessionMgr {
@@ -117,6 +117,7 @@ public:
 	}
 
 	void OnSessionCreate(const MySessionPtr& session) {
+		assert(m_sessions.find(session->GetSid()) == m_sessions.end());
 		m_sessions[session->GetSid()] = session;
 	}
 
