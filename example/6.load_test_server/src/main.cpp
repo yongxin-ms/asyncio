@@ -185,10 +185,8 @@ int main(int argc, char* argv[]) {
 	auto qps_timer = my_event_loop.CallLater(
 		std::chrono::seconds(1),
 		[&my_session_mgr]() {
-			if (g_cur_qps != 0) {
-				ASYNCIO_LOG_INFO("Cur qps:%d, ConnCount:%llu", g_cur_qps, my_session_mgr.size());
-				g_cur_qps = 0;
-			}
+			ASYNCIO_LOG_INFO("Cur qps:%d, ConnCount:%llu", g_cur_qps, my_session_mgr.size());
+			g_cur_qps = 0;
 		},
 		asyncio::RUN_FOREVER);
 
