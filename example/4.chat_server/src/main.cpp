@@ -75,14 +75,14 @@ public:
 		, m_event_loop(event_loop) {}
 
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
-		static uint64_t g_sid = 0;
-		uint64_t sid = ++g_sid;
+		uint64_t sid = ++m_cur_sid;
 		return std::make_shared<MySession>(m_owner, m_event_loop, sid);
 	}
 
 private:
 	MySessionMgr& m_owner;
 	asyncio::EventLoop& m_event_loop;
+	std::atomic_int64_t m_cur_sid;
 };
 
 using MySessionPtr = std::shared_ptr<MySession>;

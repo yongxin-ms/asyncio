@@ -32,8 +32,8 @@ public:
 	 * @return SnowflakeId
 	 */
 	uint64_t CreateId() {
-		auto timestamp = GetCurMilliSeconds();
 		std::lock_guard<std::mutex> lock{mutex_};
+		auto timestamp = GetCurMilliSeconds();
 
 		// 如果当前时间小于上一次ID生成的时间戳，说明系统时钟回退过
 		if (timestamp < lastTimestamp_) {
