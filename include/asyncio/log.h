@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <functional>
 #include <cstdarg>
-#include <asyncio/util.h>
 
 #define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                                    \
 	if (asyncio::g_log != nullptr)                                                                                     \
