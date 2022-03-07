@@ -19,7 +19,8 @@ std::pair<char*, size_t> MySession::GetRxBuffer() {
 void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 	auto self = shared_from_this();
 	g_EventLoop.QueueInLoop([self, this, transport]() {
-		ASYNCIO_LOG_DEBUG("ConnectionMade sid:%llu", GetSid());
+		ASYNCIO_LOG_DEBUG(
+			"ConnectionMade sid:%llu, ip:%s:%d", GetSid(), transport->GetRemoteIp().data(), transport->GetRemotePort());
 		m_transport = transport;
 		m_ping_counter = 0;
 		m_ping_timer = g_EventLoop.CallLater(
