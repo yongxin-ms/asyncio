@@ -19,4 +19,7 @@ SortIncludes: 'false'
 TabWidth: '4'
 UseTab: Always
 
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+
 ...
