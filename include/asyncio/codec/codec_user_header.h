@@ -23,7 +23,9 @@ class CodecUserHeader final : public Codec {
 	using USER_MSG_CALLBACK = std::function<void(const UserHeader&, const StringPtr&)>;
 
 public:
-	CodecUserHeader(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+	CodecUserHeader(Protocol& protocol,
+		USER_MSG_CALLBACK&& func,
+		uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_protocol(protocol)

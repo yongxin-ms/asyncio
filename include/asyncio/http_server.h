@@ -625,11 +625,10 @@ class connection
 	, public ObjCounter<connection> {
 public:
 	/// Construct a connection with the given socket.
-	explicit connection(asio::ip::tcp::socket socket, connection_manager& manager, request_handler& handler)
+	connection(asio::ip::tcp::socket socket, connection_manager& manager, request_handler& handler)
 		: socket_(std::move(socket))
 		, connection_manager_(manager)
-		, request_handler_(handler) {
-	}
+		, request_handler_(handler) {}
 
 	connection(const connection&) = delete;
 	const connection& operator=(const connection&) = delete;
@@ -696,8 +695,7 @@ private:
 class connection_manager {
 public:
 	/// Construct a connection manager.
-	connection_manager() {
-	}
+	connection_manager() {}
 	connection_manager(const connection_manager&) = delete;
 	const connection_manager& operator=(const connection_manager&) = delete;
 
@@ -774,13 +772,12 @@ class server
 public:
 	/// Construct the server to listen on the specified TCP address and port, and
 	/// serve up files from the given directory.
-	explicit server(asio::io_context& context, request_handler handler)
+	server(asio::io_context& context, request_handler handler)
 		: io_context_(context)
 		, acceptor_(io_context_)
 		, connection_manager_()
 		, request_handler_(handler) {
 		// Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
-		
 	}
 
 	server(const server&) = delete;

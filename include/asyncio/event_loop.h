@@ -67,8 +67,8 @@ public:
 	 * 请通过持有返回值来控制定时器的生命周期
 	 */
 	template <class Rep, class Period>
-	[[nodiscard]] DelayTimerPtr CallLater(const std::chrono::duration<Rep, Period>& timeout,
-		DelayTimer::FUNC_CALLBACK&& func, int run_times = RUN_ONCE);
+	[[nodiscard]] DelayTimerPtr CallLater(
+		const std::chrono::duration<Rep, Period>& timeout, DelayTimer::FUNC_CALLBACK&& func, int run_times = RUN_ONCE);
 	[[nodiscard]] ProtocolPtr CreateConnection(
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 

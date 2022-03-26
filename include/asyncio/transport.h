@@ -70,8 +70,10 @@ public:
 		, m_socket(m_context) {}
 
 	virtual ~Transport() {
-		ASYNCIO_LOG_DEBUG("transport destroyed, is_client(%d), remote_ip(%s), remote_port(%d)", m_is_client,
-			m_remote_ip.data(), m_remote_port);
+		ASYNCIO_LOG_DEBUG("transport destroyed, is_client(%d), remote_ip(%s), remote_port(%d)",
+			m_is_client,
+			m_remote_ip.data(),
+			m_remote_port);
 	}
 
 	Transport(const Transport&) = delete;
@@ -158,7 +160,8 @@ public:
 private:
 	void DoWrite() {
 		auto self = shared_from_this();
-		asio::async_write(m_socket, asio::buffer(m_writeMsgs.front()->data(), m_writeMsgs.front()->size()),
+		asio::async_write(m_socket,
+			asio::buffer(m_writeMsgs.front()->data(), m_writeMsgs.front()->size()),
 			[self, this](std::error_code ec, std::size_t /*length*/) {
 				if (!ec) {
 					m_writeMsgs.pop_front();

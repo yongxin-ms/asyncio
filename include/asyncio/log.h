@@ -34,20 +34,36 @@
 
 #define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                                    \
 	if (asyncio::g_log != nullptr)                                                                                     \
-		asyncio::g_log->DoLog(asyncio::Log::kDebug, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__),          \
-			__LINE__, __func__, ##__VA_ARGS__);
+		asyncio::g_log->DoLog(asyncio::Log::kDebug,                                                                    \
+			"[%s:%d %s()] " fmt,                                                                                       \
+			asyncio::Log::GetFileName(__FILE__),                                                                       \
+			__LINE__,                                                                                                  \
+			__func__,                                                                                                  \
+			##__VA_ARGS__);
 #define ASYNCIO_LOG_INFO(fmt, ...)                                                                                     \
 	if (asyncio::g_log != nullptr)                                                                                     \
-		asyncio::g_log->DoLog(asyncio::Log::kInfo, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__), __LINE__, \
-			__func__, ##__VA_ARGS__);
+		asyncio::g_log->DoLog(asyncio::Log::kInfo,                                                                     \
+			"[%s:%d %s()] " fmt,                                                                                       \
+			asyncio::Log::GetFileName(__FILE__),                                                                       \
+			__LINE__,                                                                                                  \
+			__func__,                                                                                                  \
+			##__VA_ARGS__);
 #define ASYNCIO_LOG_WARN(fmt, ...)                                                                                     \
 	if (asyncio::g_log != nullptr)                                                                                     \
-		asyncio::g_log->DoLog(asyncio::Log::kWarning, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__),        \
-			__LINE__, __func__, ##__VA_ARGS__);
+		asyncio::g_log->DoLog(asyncio::Log::kWarning,                                                                  \
+			"[%s:%d %s()] " fmt,                                                                                       \
+			asyncio::Log::GetFileName(__FILE__),                                                                       \
+			__LINE__,                                                                                                  \
+			__func__,                                                                                                  \
+			##__VA_ARGS__);
 #define ASYNCIO_LOG_ERROR(fmt, ...)                                                                                    \
 	if (asyncio::g_log != nullptr)                                                                                     \
-		asyncio::g_log->DoLog(asyncio::Log::kError, "[%s:%d %s()] " fmt, asyncio::Log::GetFileName(__FILE__),          \
-			__LINE__, __func__, ##__VA_ARGS__);
+		asyncio::g_log->DoLog(asyncio::Log::kError,                                                                    \
+			"[%s:%d %s()] " fmt,                                                                                       \
+			asyncio::Log::GetFileName(__FILE__),                                                                       \
+			__LINE__,                                                                                                  \
+			__func__,                                                                                                  \
+			##__VA_ARGS__);
 
 namespace asyncio {
 

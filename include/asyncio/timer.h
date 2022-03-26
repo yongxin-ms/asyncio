@@ -44,8 +44,11 @@ public:
 	using FUNC_CALLBACK = std::function<void()>;
 
 	template <class Rep, class Period>
-	DelayTimer(std::thread::id thread_id, IOContext& context, const std::chrono::duration<Rep, Period>& timeout,
-		FUNC_CALLBACK&& func, int run_times)
+	DelayTimer(std::thread::id thread_id,
+		IOContext& context,
+		const std::chrono::duration<Rep, Period>& timeout,
+		FUNC_CALLBACK&& func,
+		int run_times)
 		: m_thread_id(thread_id)
 		, m_timer(context)
 		, m_expire(std::chrono::steady_clock::now())

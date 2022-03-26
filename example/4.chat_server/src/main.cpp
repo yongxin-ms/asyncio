@@ -132,8 +132,11 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 		m_transport = transport;
 
 		auto data = std::make_shared<std::string>();
-		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] joined\n", m_transport->GetRemoteIp().data(),
-			m_transport->GetRemotePort(), GetSid());
+		asyncio::util::Text::Format(*data,
+			"> Client[%s:%d %llu] joined\n",
+			m_transport->GetRemoteIp().data(),
+			m_transport->GetRemotePort(),
+			GetSid());
 
 		m_owner.OnSessionCreate(self);
 		m_owner.BroadcastToAll(data);
@@ -144,8 +147,11 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, this, err_code]() {
 		auto data = std::make_shared<std::string>();
-		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] left\n", m_transport->GetRemoteIp().data(),
-			m_transport->GetRemotePort(), GetSid());
+		asyncio::util::Text::Format(*data,
+			"> Client[%s:%d %llu] left\n",
+			m_transport->GetRemoteIp().data(),
+			m_transport->GetRemotePort(),
+			GetSid());
 
 		m_owner.OnSessionDestroy(self);
 		m_owner.BroadcastToAll(data);
@@ -162,8 +168,12 @@ void MySession::DataReceived(size_t len) {
 	auto self = shared_from_this();
 	m_event_loop.QueueInLoop([self, content, this]() {
 		auto data = std::make_shared<std::string>();
-		asyncio::util::Text::Format(*data, "> Client[%s:%d %llu] say: %s", m_transport->GetRemoteIp().data(),
-			m_transport->GetRemotePort(), GetSid(), content->data());
+		asyncio::util::Text::Format(*data,
+			"> Client[%s:%d %llu] say: %s",
+			m_transport->GetRemoteIp().data(),
+			m_transport->GetRemotePort(),
+			GetSid(),
+			content->data());
 		m_owner.BroadcastToAll(data);
 	});
 }
