@@ -5,7 +5,7 @@ class MyConnection
 	: public std::enable_shared_from_this<MyConnection>
 	, public asyncio::Protocol {
 public:
-	MyConnection(asyncio::EventLoop& event_loop)
+	explicit MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {
 		m_rx_buffer.resize(1024);
 	}
@@ -107,7 +107,7 @@ private:
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	MyConnectionFactory(asyncio::EventLoop& event_loop)
+	explicit MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
 
 	virtual asyncio::ProtocolPtr CreateProtocol() override {

@@ -52,8 +52,12 @@ public:
 
 class ProtocolFactory {
 public:
+	ProtocolFactory() = default;
 	virtual ~ProtocolFactory() = default;
 	virtual ProtocolPtr CreateProtocol() = 0;
+
+	ProtocolFactory(const ProtocolFactory&) = delete;
+	ProtocolFactory& operator=(const ProtocolFactory&) = delete;
 };
 
 } // namespace asyncio

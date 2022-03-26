@@ -5,7 +5,7 @@ class MyConnMgr;
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	MyConnectionFactory(MyConnMgr& owner);
+	explicit MyConnectionFactory(MyConnMgr& owner);
 	virtual asyncio::ProtocolPtr CreateProtocol() override;
 
 private:

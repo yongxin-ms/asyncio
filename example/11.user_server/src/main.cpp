@@ -109,7 +109,7 @@ private:
 
 class MySessionMgr {
 public:
-	MySessionMgr(asyncio::EventLoop& event_loop)
+	explicit MySessionMgr(asyncio::EventLoop& event_loop)
 		: m_session_factory(*this, event_loop) {}
 
 	MySessionFactory& GetSessionFactory() {

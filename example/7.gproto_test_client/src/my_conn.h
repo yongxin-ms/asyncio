@@ -8,7 +8,7 @@ class MyConnection
 	: public std::enable_shared_from_this<MyConnection>
 	, public asyncio::Protocol {
 public:
-	MyConnection(MyConnMgr& owner);
+	explicit MyConnection(MyConnMgr& owner);
 	virtual ~MyConnection();
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len);

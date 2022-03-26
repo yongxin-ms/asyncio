@@ -26,7 +26,7 @@ class MyConnection
 	: public std::enable_shared_from_this<MyConnection>
 	, public asyncio::Protocol {
 public:
-	MyConnection(asyncio::EventLoop& event_loop)
+	explicit MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
 		, m_codec(
 			  *this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
@@ -110,7 +110,7 @@ private:
 
 class MyConnectionFactory : public asyncio::ProtocolFactory {
 public:
-	MyConnectionFactory(asyncio::EventLoop& event_loop)
+	explicit MyConnectionFactory(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop) {}
 
 	virtual asyncio::ProtocolPtr CreateProtocol() override {
