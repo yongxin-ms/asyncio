@@ -31,7 +31,7 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed, Closing");
-					Close();
+					Disconnect();
 					m_ping_counter = 0;
 				} else {
 					m_codec.send_ping();
@@ -63,8 +63,8 @@ void MyConnection::ConnectionLost(const asyncio::TransportPtr& transport, int er
 	});
 }
 
-void MyConnection::DataReceived(size_t len) {
-	m_codec.Decode(len);
+bool MyConnection::DataReceived(size_t len) {
+	return m_codec.Decode(len);
 }
 
 size_t MyConnection::Write(const asyncio::StringPtr& s) {
@@ -75,12 +75,6 @@ size_t MyConnection::Write(const asyncio::StringPtr& s) {
 	}
 }
 
-void MyConnection::Close() {
-	if (m_transport != nullptr) {
-		m_transport->Close();
-	}
-}
-
 size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
 	auto ret = m_codec.Encode(msg_id, data, len);
 	Write(ret);
@@ -88,7 +82,9 @@ size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
 }
 
 void MyConnection::Disconnect() {
-	Close();
+	if (m_transport != nullptr) {
+		m_transport->Close();
+	}
 }
 
 void MyConnection::OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data) {

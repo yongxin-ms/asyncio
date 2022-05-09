@@ -31,7 +31,7 @@ public:
 		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func)) {}
 
-	virtual void Decode(size_t len) override {
+	virtual bool Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -45,16 +45,14 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					auto body_len = bucket_.header.get().body_len;
 					if (IsOverSize(body_len)) {
-						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", body_len);
-						return;
+						return false;
 					}
 
 					auto magic_num = bucket_.header.get().magic_num;
 					if (magic_num != MAGIC_NUM) {
-						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of wrong magic_num:0x%x", magic_num);
-						return;
+						return false;
 					}
 
 					bucket_.data.reset(body_len);
@@ -68,6 +66,7 @@ public:
 		}
 
 		ReArrangePos();
+		return true;
 	}
 
 	StringPtr Encode(const UserHeader& user_header, const char* buf, uint32_t len) const {

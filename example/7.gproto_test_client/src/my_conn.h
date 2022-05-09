@@ -19,9 +19,8 @@ private:
 	virtual std::pair<char*, size_t> GetRxBuffer() override;
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
-	virtual void DataReceived(size_t len) override;
+	virtual bool DataReceived(size_t len) override;
 	virtual size_t Write(const asyncio::StringPtr& s) override;
-	virtual void Close() override;
 
 	void OnMyMessageFunc(uint32_t msg_id, const std::shared_ptr<std::string>& data);
 	void OnReceivedPong();

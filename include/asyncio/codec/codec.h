@@ -36,7 +36,7 @@ public:
 		return std::make_pair((char*)write_pos_, rx_buf_.size() - GetRemainedLen());
 	}
 
-	virtual void Decode(size_t len) = 0;
+	virtual bool Decode(size_t len) = 0;
 
 protected:
 	void Reset() {

@@ -30,7 +30,7 @@ void MySession::ConnectionMade(const asyncio::TransportPtr& transport) {
 			[self, this]() {
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed Sid:%llu, Closing", GetSid());
-					Close();
+					Disconnect();
 					m_ping_counter = 0;
 				} else {
 					m_codec.send_ping();
@@ -52,8 +52,8 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	});
 }
 
-void MySession::DataReceived(size_t len) {
-	m_codec.Decode(len);
+bool MySession::DataReceived(size_t len) {
+	return m_codec.Decode(len);
 }
 
 size_t MySession::Write(const asyncio::StringPtr& s) {
@@ -64,7 +64,7 @@ size_t MySession::Write(const asyncio::StringPtr& s) {
 	}
 }
 
-void MySession::Close() {
+void MySession::Disconnect() {
 	if (m_transport != nullptr) {
 		m_transport->Close();
 	}

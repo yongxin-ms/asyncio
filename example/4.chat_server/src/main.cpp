@@ -40,18 +40,12 @@ private:
 
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
-	virtual void DataReceived(size_t len) override;
+	virtual bool DataReceived(size_t len) override;
 	virtual size_t Write(const asyncio::StringPtr& s) override {
 		if (m_transport != nullptr) {
 			return m_transport->Write(s);
 		} else {
 			return 0;
-		}
-	}
-
-	virtual void Close() override {
-		if (m_transport != nullptr) {
-			m_transport->Close();
 		}
 	}
 
@@ -159,10 +153,10 @@ void MySession::ConnectionLost(const asyncio::TransportPtr& transport, int err_c
 	});
 }
 
-void MySession::DataReceived(size_t len) {
+bool MySession::DataReceived(size_t len) {
 	auto content = std::make_shared<std::string>(m_rx_buffer.data(), len);
 	if (content->size() == 1 && (content->at(0) == '\n' || content->at(0) == '\r')) {
-		return;
+		return true;
 	}
 
 	auto self = shared_from_this();
@@ -176,6 +170,7 @@ void MySession::DataReceived(size_t len) {
 			content->data());
 		m_owner.BroadcastToAll(data);
 	});
+	return true;
 }
 
 int main() {

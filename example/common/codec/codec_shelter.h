@@ -28,13 +28,15 @@ class CodecShelter : public Codec {
 	using USER_MSG_CALLBACK = std::function<void(const StringPtr&, const StringPtr&)>;
 
 public:
-	CodecShelter(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+	CodecShelter(Protocol& protocol,
+		USER_MSG_CALLBACK&& func,
+		uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func)) {}
 
-	virtual void Decode(size_t len) override {
+	virtual bool Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -50,17 +52,15 @@ public:
 
 				if (bucket_.header.fill(read_pos_, left_len) && bucket_.msg_name_len.fill(read_pos_, left_len)) {
 					if (IsOverSize(bucket_.msg_name_len.get())) {
-						m_protocol.Close();
-						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit",
-										 bucket_.msg_name_len.get());
-						return;
+						ASYNCIO_LOG_WARN(
+							"Close transport because of packet length(%d) over limit", bucket_.msg_name_len.get());
+						return false;
 					}
 
 					uint32_t data_len = bucket_.header.get().datalen;
 					if (IsOverSize(data_len)) {
-						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", data_len);
-						return;
+						return false;
 					}
 
 					bucket_.msg_name.reset(bucket_.msg_name_len.get());
@@ -81,6 +81,7 @@ public:
 		}
 
 		ReArrangePos();
+		return true;
 	}
 
 	StringPtr Encode(const std::string& msg_name, const std::string& msg) const {

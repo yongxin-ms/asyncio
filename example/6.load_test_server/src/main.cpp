@@ -36,8 +36,8 @@ private:
 	virtual void ConnectionMade(const asyncio::TransportPtr& transport) override;
 	virtual void ConnectionLost(const asyncio::TransportPtr& transport, int err_code) override;
 
-	virtual void DataReceived(size_t len) override {
-		m_codec.Decode(len);
+	virtual bool DataReceived(size_t len) override {
+		return m_codec.Decode(len);
 	}
 
 	virtual size_t Write(const asyncio::StringPtr& s) override {
@@ -45,12 +45,6 @@ private:
 			return m_transport->Write(s);
 		} else {
 			return 0;
-		}
-	}
-
-	virtual void Close() override {
-		if (m_transport != nullptr) {
-			m_transport->Close();
 		}
 	}
 

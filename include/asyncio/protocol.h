@@ -45,9 +45,8 @@ public:
 	virtual std::pair<char*, size_t> GetRxBuffer() = 0;
 	virtual void ConnectionMade(const TransportPtr& transport) = 0;
 	virtual void ConnectionLost(const TransportPtr& transport, int err_code) = 0;
-	virtual void DataReceived(size_t len) = 0;
+	virtual bool DataReceived(size_t len) = 0;
 	virtual size_t Write(const StringPtr& s) = 0;
-	virtual void Close() = 0;
 };
 
 class ProtocolFactory {

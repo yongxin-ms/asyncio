@@ -73,9 +73,10 @@ private:
 		});
 	}
 
-	virtual void DataReceived(size_t len) override {
+	virtual bool DataReceived(size_t len) override {
 		std::string content(m_rx_buffer.data(), len);
 		ASYNCIO_LOG_INFO("%s", content.data());
+		return true;
 	}
 
 	virtual size_t Write(const asyncio::StringPtr& s) override {
@@ -83,12 +84,6 @@ private:
 			return m_transport->Write(s);
 		} else {
 			return 0;
-		}
-	}
-
-	virtual void Close() override {
-		if (m_transport != nullptr) {
-			m_transport->Close();
 		}
 	}
 

@@ -29,13 +29,14 @@ public:
 		m_transport = nullptr;
 	}
 
-	virtual void DataReceived(size_t len) override {
+	virtual bool DataReceived(size_t len) override {
 
 		//
 		// 没有使用解码器，这里会有黏包问题
 		// 如果要解决黏包问题需要使用解码器
 		//
 		ASYNCIO_LOG_DEBUG("DataReceived %lld byte(s): %s", len, m_rx_buffer.data());
+		return true;
 	}
 
 	virtual size_t Write(const asyncio::StringPtr& s) override {
@@ -43,12 +44,6 @@ public:
 			return m_transport->Write(s);
 		} else {
 			return 0;
-		}
-	}
-
-	virtual void Close() override {
-		if (m_transport != nullptr) {
-			m_transport->Close();
 		}
 	}
 

@@ -11,15 +11,17 @@ class CodecGProto : public Codec {
 	using PONG_CALLBACK = std::function<void()>;
 
 public:
-	CodecGProto(Protocol& protocol, USER_MSG_CALLBACK&& msg_func, PONG_CALLBACK&& pong_func,
-				uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE, uint32_t packet_size_limit = MAX_PACKET_SIZE)
+	CodecGProto(Protocol& protocol,
+		USER_MSG_CALLBACK&& msg_func,
+		PONG_CALLBACK&& pong_func,
+		uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_protocol(protocol)
 		, m_user_msg_func(std::move(msg_func))
-		, m_pong_func(std::move(pong_func)) {
-	}
+		, m_pong_func(std::move(pong_func)) {}
 
-	virtual void Decode(size_t len) override {
+	virtual bool Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -34,25 +36,22 @@ public:
 					if (ctrl == CTL_DATA) {
 						if (bucket_.header.get().len < bucket_.msg_id.size()) {
 							ASYNCIO_LOG_WARN("Close transport because of packet length(%d)", bucket_.header.get().len);
-							m_protocol.Close();
-							return;
+							return false;
 						}
 
 						bucket_.msg_id.reset();
 						uint32_t original_len = bucket_.header.get().len - sizeof(uint32_t);
 						if (IsOverSize(original_len)) {
 							ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", original_len);
-							m_protocol.Close();
-							return;
+							return false;
 						}
 
 						bucket_.data.reset(original_len);
 					} else if (ctrl == CTL_PING) {
 						if (bucket_.header.get().len != 0) {
-							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
-											 bucket_.header.get().len);
-							m_protocol.Close();
-							return;
+							ASYNCIO_LOG_WARN(
+								"Close transport because of packet wrong len:%d", bucket_.header.get().len);
+							return false;
 						}
 
 						ASYNCIO_LOG_DEBUG("received ping");
@@ -62,10 +61,9 @@ public:
 						continue;
 					} else if (ctrl == CTL_PONG) {
 						if (bucket_.header.get().len != 0) {
-							ASYNCIO_LOG_WARN("Close transport because of packet wrong len:%d",
-											 bucket_.header.get().len);
-							m_protocol.Close();
-							return;
+							ASYNCIO_LOG_WARN(
+								"Close transport because of packet wrong len:%d", bucket_.header.get().len);
+							return false;
 						}
 
 						ASYNCIO_LOG_DEBUG("received pong");
@@ -76,8 +74,7 @@ public:
 					} else if (ctrl == CTL_CLOSE) {
 						ASYNCIO_LOG_DEBUG("received close");
 						//对方要求关闭连接
-						m_protocol.Close();
-						return;
+						return false;
 					}
 				}
 			}
@@ -99,6 +96,7 @@ public:
 		}
 
 		ReArrangePos();
+		return true;
 	}
 
 	StringPtr Encode(uint32_t msgID, const char* buf, size_t len) const {

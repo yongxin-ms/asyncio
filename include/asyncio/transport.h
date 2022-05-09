@@ -119,7 +119,10 @@ public:
 				asio::buffer(buffer, buffer_size), [self, this](std::error_code ec, std::size_t length) {
 					if (!ec) {
 						if (auto protocol = m_protocol.lock(); protocol != nullptr) {
-							protocol->DataReceived(length);
+							if (!protocol->DataReceived(length)) {
+								InnerClose(EC_ERROR);
+								return;
+							}
 						}
 						DoReadData();
 					} else {

@@ -10,13 +10,15 @@ class CodecX : public Codec {
 	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, const StringPtr&)>;
 
 public:
-	CodecX(Protocol& protocol, USER_MSG_CALLBACK&& func, uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
+	CodecX(Protocol& protocol,
+		USER_MSG_CALLBACK&& func,
+		uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
 		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func)) {}
 
-	virtual void Decode(size_t len) override {
+	virtual bool Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -30,10 +32,10 @@ public:
 				if (bucket_.header.fill(read_pos_, left_len)) {
 					uint32_t original_len = BigLittleSwap32(bucket_.header.get().len);
 					if (IsOverSize(original_len)) {
-						m_protocol.Close();
-						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)", original_len,
+						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit(%d)",
+							original_len,
 							packet_size_limit_);
-						return;
+						return false;
 					}
 
 					bucket_.data.reset(original_len);
@@ -48,6 +50,7 @@ public:
 		}
 
 		ReArrangePos();
+		return true;
 	}
 
 	StringPtr Encode(uint32_t msgID, const char* buf, size_t len) const {

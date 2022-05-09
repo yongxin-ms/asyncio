@@ -20,7 +20,7 @@ public:
 		, m_user_msg_func(std::move(func))
 		, m_small_endian(small_endian) {}
 
-	virtual void Decode(size_t len) override {
+	virtual bool Decode(size_t len) override {
 		// len是本次接收到的数据长度
 		write_pos_ += len;					//需要更新一下最新的写入位置
 		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
@@ -39,9 +39,8 @@ public:
 
 					// 不允许报文长度为0，也不允许超长
 					if (body_len <= 0 || IsOverSize(body_len)) {
-						m_protocol.Close();
 						ASYNCIO_LOG_WARN("Close transport because of packet length(%d) over limit", body_len);
-						return;
+						return false;
 					}
 
 					bucket_.data.reset(body_len);
@@ -55,6 +54,7 @@ public:
 		}
 
 		ReArrangePos();
+		return true;
 	}
 
 	StringPtr Encode(const char* buf, size_t len) const {
