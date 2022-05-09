@@ -28,8 +28,7 @@ class MyConnection
 public:
 	explicit MyConnection(asyncio::EventLoop& event_loop)
 		: m_event_loop(event_loop)
-		, m_codec(
-			  *this, std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
+		, m_codec(std::bind(&MyConnection::OnMyMessageFunc, this, std::placeholders::_1, std::placeholders::_2)) {}
 
 	virtual ~MyConnection() {
 		ASYNCIO_LOG_DEBUG("MyConnection destroyed");

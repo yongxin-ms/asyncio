@@ -10,12 +10,10 @@ class CodecX : public Codec {
 	using USER_MSG_CALLBACK = std::function<void(uint32_t msg_id, const StringPtr&)>;
 
 public:
-	CodecX(Protocol& protocol,
-		USER_MSG_CALLBACK&& func,
+	CodecX(USER_MSG_CALLBACK&& func,
 		uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 		uint32_t packet_size_limit = MAX_PACKET_SIZE)
 		: Codec(rx_buffer_size, packet_size_limit)
-		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func)) {}
 
 	virtual bool Decode(size_t len) override {
@@ -83,7 +81,6 @@ private:
 	};
 
 private:
-	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
 };

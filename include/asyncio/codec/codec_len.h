@@ -10,13 +10,11 @@ public:
 	using USER_MSG_CALLBACK = std::function<void(const StringPtr&)>;
 
 	//缺省小端
-	CodecLen(Protocol& protocol,
-		USER_MSG_CALLBACK&& func,
+	CodecLen(USER_MSG_CALLBACK&& func,
 		uint32_t rx_buffer_size = DEFAULT_RX_BUFFER_SIZE,
 		uint32_t packet_size_limit = MAX_PACKET_SIZE,
 		bool small_endian = true)
 		: Codec(rx_buffer_size, packet_size_limit)
-		, m_protocol(protocol)
 		, m_user_msg_func(std::move(func))
 		, m_small_endian(small_endian) {}
 
@@ -89,7 +87,6 @@ private:
 	};
 
 private:
-	Protocol& m_protocol;
 	USER_MSG_CALLBACK m_user_msg_func;
 	TcpMsgBucket bucket_;
 	const bool m_small_endian;
