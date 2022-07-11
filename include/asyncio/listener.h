@@ -1,4 +1,4 @@
-﻿/* asyncio implementation.
+/* asyncio implementation.
  *
  * Copyright (c) 2019-2022, Will <will at i007 dot cc>
  * All rights reserved.

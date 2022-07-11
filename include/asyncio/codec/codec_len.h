@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <asyncio/codec/codec.h>
 #include <asyncio/codec/bucket.h>
 #include <asyncio/log.h>

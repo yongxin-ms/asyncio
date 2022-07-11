@@ -10,7 +10,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.{h,cpp,hpp}]
-charset = utf-8-bom
+charset = utf-8
 
 [*.md]
 trim_trailing_whitespace = false
