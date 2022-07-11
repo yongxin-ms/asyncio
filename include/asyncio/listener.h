@@ -56,7 +56,6 @@ public:
 		ASYNCIO_LOG_DEBUG("Listener destroyed");
 	}
 
-	// 监听一个指定端口
 	bool Listen(uint16_t port) {
 		auto ep = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port);
 		asio::error_code ec;
@@ -131,7 +130,6 @@ private:
 
 				protocol->ConnectionMade(session);
 
-				//可以在连接建立之后立刻断开它（调用session->Close()），完成一些比如ip黑名单、连接数控制等功能
 				if (session->GetSocket().is_open()) {
 					session->DoReadData();
 				}

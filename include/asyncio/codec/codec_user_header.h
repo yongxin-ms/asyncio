@@ -30,9 +30,8 @@ public:
 		, m_user_msg_func(std::move(func)) {}
 
 	virtual bool Decode(size_t len) override {
-		// len是本次接收到的数据长度
-		write_pos_ += len;					//需要更新一下最新的写入位置
-		size_t left_len = GetRemainedLen(); //缓冲区内的数据总长度
+		write_pos_ += len;
+		size_t left_len = GetRemainedLen();
 
 		while (left_len > 0) {
 			if (!bucket_.header.is_full()) {

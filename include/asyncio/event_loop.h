@@ -44,7 +44,6 @@ namespace asyncio {
 
 class ProtocolFactory;
 
-// io线程太多并没有太大意义，一般情况下3个足矣
 static const int DEFAULT_IO_THREAD_NUM = std::min(uint32_t(3), std::thread::hardware_concurrency() - 1);
 
 class EventLoop {
@@ -63,18 +62,12 @@ public:
 	void Stop();
 	void QueueInLoop(MSG_CALLBACK&& func);
 
-	/*
-	 * 请通过持有返回值来控制定时器的生命周期
-	 */
 	template <class Rep, class Period>
 	[[nodiscard]] DelayTimerPtr CallLater(
 		const std::chrono::duration<Rep, Period>& timeout, DelayTimer::FUNC_CALLBACK&& func, int run_times = RUN_ONCE);
 	[[nodiscard]] ProtocolPtr CreateConnection(
 		ProtocolFactory& protocol_factory, const std::string& host, uint16_t port);
 
-	/*
-	 * remote_addr形如 127.0.0.1:9000
-	 */
 	[[nodiscard]] ProtocolPtr CreateConnection(ProtocolFactory& protocol_factory, const std::string& remote_addr);
 	[[nodiscard]] ListenerPtr CreateServer(ProtocolFactory& protocol_factory, uint16_t port);
 	[[nodiscard]] http::server_ptr CreateHttpServer(uint16_t port, http::request_handler handler);
@@ -172,7 +165,6 @@ ProtocolPtr EventLoop::CreateConnection(ProtocolFactory& protocol_factory, const
 	return CreateConnection(protocol_factory, host, port);
 }
 
-// 使用者应该保持这个监听器
 ListenerPtr EventLoop::CreateServer(ProtocolFactory& protocol_factory, uint16_t port) {
 	auto listener = std::make_shared<Listener>(m_main_context, m_worker_io, protocol_factory);
 	if (!listener->Listen(port)) {

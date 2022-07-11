@@ -35,8 +35,8 @@
 
 namespace asyncio {
 enum {
-	RUN_ONCE = 1,	 // 运行一次
-	RUN_FOREVER = 0, // 永远运行
+	RUN_ONCE = 1,
+	RUN_FOREVER = 0,
 };
 
 class DelayTimer : public ObjCounter<DelayTimer> {

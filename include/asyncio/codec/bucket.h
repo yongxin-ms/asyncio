@@ -5,10 +5,7 @@
 typedef unsigned short int uint16;
 typedef unsigned long int uint32;
 
-// 短整型大小端互换
 #define BigLittleSwap16(A) ((((uint16)(A)&0xff00) >> 8) | (((uint16)(A)&0x00ff) << 8))
-
-// 长整型大小端互换
 #define BigLittleSwap32(A)                                                                                             \
 	((((uint32_t)(A)&0xff000000) >> 24) | (((uint32_t)(A)&0x00ff0000) >> 8) | (((uint32_t)(A)&0x0000ff00) << 8) |      \
 		(((uint32_t)(A)&0x000000ff) << 24))
@@ -39,8 +36,6 @@ public:
 		return m_is_full;
 	}
 
-	// 填充，这个函数不会重复填充
-	// 返回值：是否本次填满
 	bool fill(const char*& buf, size_t& len) {
 		if (m_is_full)
 			return false;
@@ -58,7 +53,7 @@ public:
 
 private:
 	bool m_is_full;
-	char s[3]; //仅仅用于对齐
+	char s[3];
 	T m_t;
 };
 
@@ -88,8 +83,6 @@ public:
 		return m_filled_size >= m_str->size();
 	}
 
-	// 填充，这个函数不会重复填充
-	// 返回值：是否本次填满
 	bool fill(const char*& buf, size_t& len) {
 		size_t need = size() - filled_size();
 		if (need <= 0)

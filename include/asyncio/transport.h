@@ -45,14 +45,13 @@ using IOWorker = asio::executor_work_guard<asio::io_context::executor_type>;
 enum ErrorCode {
 	EC_OK = 0,
 	EC_ERROR = 20000,
-	EC_SHUT_DOWN, // 主动关闭
+	EC_SHUT_DOWN,
 };
 
 class Transport
 	: public std::enable_shared_from_this<Transport>
 	, public ObjCounter<Transport> {
 public:
-	// 作为客户端去连接服务器
 	Transport(IOContext& context, const ProtocolPtr& protocol, const std::string& host, uint16_t port)
 		: m_context(context)
 		, m_protocol(protocol)
@@ -61,7 +60,6 @@ public:
 		, m_remote_port(port)
 		, m_socket(m_context) {}
 
-	// 作为服务器接受客户端的连接
 	Transport(IOContext& context, const ProtocolPtr& protocol)
 		: m_context(context)
 		, m_protocol(protocol)
@@ -177,7 +175,6 @@ private:
 			});
 	}
 
-	//在io线程中关闭
 	void InnerClose(int err_code) {
 		if (m_socket.is_open()) {
 			ASYNCIO_LOG_DEBUG("InnerClose with ec:%d", err_code);

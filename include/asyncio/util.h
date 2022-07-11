@@ -86,7 +86,6 @@ public:
 		return this_tm;
 	}
 
-	//把时间转换成字符串表示
 	static std::string FormatDateTime(time_t t) {
 		tm this_tm = LocalTime(t);
 		char data[64] = {0};
@@ -102,7 +101,6 @@ public:
 		return std::string(data);
 	}
 
-	//带毫秒的时间字符串
 	static std::string FormatDateTime(const std::chrono::system_clock::time_point& t) {
 		uint64_t mill = std::chrono::duration_cast<std::chrono::milliseconds>(t.time_since_epoch()).count() -
 						std::chrono::duration_cast<std::chrono::seconds>(t.time_since_epoch()).count() * 1000;
@@ -145,7 +143,6 @@ public:
 
 class Text {
 public:
-	// 不区分大小的字符串比较
 	static int StrCaseCmp(const char* s1, const char* s2) {
 #ifdef _WIN32
 		return _stricmp(s1, s2);
@@ -187,7 +184,6 @@ public:
 		return s.substr(0, len);
 	}
 
-	// 主要用来切分使用空格分隔的字符串，连续的空格算作一个分隔符
 	static size_t SplitStr(std::vector<std::string>& os, const std::string& is, char c) {
 		os.clear();
 		auto start = is.find_first_not_of(c, 0);
@@ -217,7 +213,6 @@ public:
 		return number_result.size();
 	}
 
-	// 拆分用特殊字符分隔的布尔字符串
 	static size_t SplitBool(std::vector<bool>& vec, const std::string& is, const char c) {
 		std::vector<std::string> vec_string;
 		SplitStr(vec_string, is, c);
@@ -237,7 +232,6 @@ public:
 		return result;
 	}
 
-	// 主要用来切分使用逗号分隔的字符串，连续的逗号算作多个分隔符
 	static size_t ParseParam(std::vector<std::string>& result, const std::string& is, char c) {
 		result.clear();
 		size_t start = 0;
@@ -261,8 +255,6 @@ public:
 
 class App {
 public:
-	//完整路径,程序名称（不带.exe后缀）
-	// Windows下形如：D:/git/gms/bin/app/Debug, BalanceServer
 	static std::pair<std::string, std::string> GetAppName() {
 		std::string fullName;
 		static const int MAXBUFSIZE = 1024;
@@ -309,7 +301,6 @@ public:
 		return dir.substr(0, dir.find_last_of('/'));
 	}
 
-	//获取一个目录下面所有的文件
 	static std::vector<std::string> GetAllFilesFromDir(const std::string& dir) {
 		std::vector<std::string> ret;
 #ifdef _WIN32
@@ -322,7 +313,6 @@ public:
 
 		do {
 			if (findData.attrib & _A_SUBDIR) {
-				// 是否是子目录并且不为"."或".."
 			} else {
 				ret.push_back(findData.name);
 			}
