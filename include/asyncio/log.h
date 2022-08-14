@@ -31,6 +31,7 @@
 #pragma once
 #include <functional>
 #include <cstdarg>
+#include <string.h>
 
 #define ASYNCIO_LOG_DEBUG(fmt, ...)                                                                                    \
 	if (asyncio::g_log != nullptr)                                                                                     \
