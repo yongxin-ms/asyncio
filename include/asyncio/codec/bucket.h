@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <algorithm>
 
 typedef unsigned short int uint16;
 typedef unsigned long int uint32;

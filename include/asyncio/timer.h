@@ -39,6 +39,8 @@ enum {
 	RUN_FOREVER = 0,
 };
 
+using IOContext = asio::io_context;
+
 class DelayTimer : public ObjCounter<DelayTimer> {
 public:
 	using FUNC_CALLBACK = std::function<void()>;
