@@ -32,10 +32,10 @@
 #include <exception>
 #include <deque>
 #include <asio.hpp>
-#include <asyncio/protocol.h>
 #include <asyncio/log.h>
 #include <asyncio/type.h>
 #include <asyncio/obj_counter.h>
+#include <asyncio/protocol.h>
 
 namespace asyncio {
 
