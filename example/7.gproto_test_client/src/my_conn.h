@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <asyncio.h>
 #include "codec/codec_gproto.h"
 
@@ -12,7 +12,7 @@ public:
 	virtual ~MyConnection();
 
 	size_t Send(uint32_t msg_id, const char* data, size_t len);
-	void Disconnect();
+	void Disconnect(bool start_reconnect);
 	bool IsConnected();
 
 private:

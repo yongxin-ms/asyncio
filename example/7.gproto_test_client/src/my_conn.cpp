@@ -1,4 +1,4 @@
-﻿#include "my_conn.h"
+#include "my_conn.h"
 #include "conn_mgr.h"
 #include "app.h"
 
@@ -31,7 +31,7 @@ void MyConnection::ConnectionMade(const asyncio::TransportPtr& transport) {
 
 				if (m_ping_counter > 2) {
 					ASYNCIO_LOG_WARN("Keep alive failed, Closing");
-					Disconnect();
+					Disconnect(true);
 					m_ping_counter = 0;
 				} else {
 					m_codec.send_ping();
@@ -81,9 +81,9 @@ size_t MyConnection::Send(uint32_t msg_id, const char* data, size_t len) {
 	return ret->size();
 }
 
-void MyConnection::Disconnect() {
+void MyConnection::Disconnect(bool start_reconnect) {
 	if (m_transport != nullptr) {
-		m_transport->Close();
+		m_transport->Close(start_reconnect ? asyncio::EC_ERROR : asyncio::EC_SHUT_DOWN);
 	}
 }
 

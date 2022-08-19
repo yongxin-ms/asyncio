@@ -130,7 +130,7 @@ public:
 		}
 	}
 
-	void Close();
+	void Close(int err_code = EC_SHUT_DOWN);
 	size_t Write(const StringPtr& msg);
 
 	void SetRemoteIp(const std::string& remote_ip) {
@@ -198,9 +198,8 @@ private:
 	std::deque<StringPtr> m_writeMsgs;
 };
 
-void Transport::Close() {
+void Transport::Close(int err_code) {
 	auto self = shared_from_this();
-	int err_code = EC_SHUT_DOWN;
 	asio::post(m_context, [self, this, err_code]() {
 		InnerClose(err_code);
 	});

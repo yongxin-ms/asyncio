@@ -1,4 +1,4 @@
-﻿#include <memory>
+#include <memory>
 #include "conn_mgr.h"
 #include "my_conn.h"
 #include "app.h"
@@ -15,7 +15,7 @@ MyConnMgr::MyConnMgr()
 
 void MyConnMgr::StartConnect(const std::string& ip, uint16_t port, int conn_count) {
 	for (auto& conn : m_conns) {
-		conn->Disconnect();
+		conn->Disconnect(false);
 	}
 	m_conns.clear();
 
