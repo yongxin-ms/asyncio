@@ -98,8 +98,8 @@
 | 13   | 修正了循环引用可能导致的内存泄漏                             | 20211127 Will 已完成 |
 | 14   | 客户端退出的时候服务器有一些连接没有清掉                     |                      |
 | 15   | 写一个类和api的调用文档                                      |                      |
-|      |                                                              |                      |
-|      |                                                              |                      |
+| 16   | Support C++20 compiler                                       | 20220928 Will done   |
+| 17   | Compiler(C++17, c++20 etc), Platform(Win, Centos, Ubuntu, Mac, WSL) build check |                      |
 |      |                                                              |                      |
 |      |                                                              |                      |
 
