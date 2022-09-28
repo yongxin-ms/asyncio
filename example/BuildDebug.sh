@@ -1,6 +1,6 @@
 #!/bin/bash
 basepath=$(cd `dirname $0`; pwd)
-dir=$basepath/build
+dir=$basepath/BuildDebug
 mkdir -p "$dir"
 cd "$dir"
 #cmake "-DCMAKE_BUILD_TYPE=Debug" "-DCMAKE_TOOLCHAIN_FILE=~/.vcpkg/scripts/buildsystems/vcpkg.cmake" ..

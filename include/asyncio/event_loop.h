@@ -88,6 +88,10 @@ private:
 		return m_thread_id;
 	}
 
+	static uint64_t GetThreadId(const std::thread::id& id) {
+		return std::hash<std::thread::id>{}(id);
+	}
+
 private:
 	IOContext m_main_context;
 	IOWorker m_main_work;
@@ -139,7 +143,7 @@ DelayTimerPtr EventLoop::CallLater(
 	}
 
 	auto cur_thread_id = std::this_thread::get_id();
-	if (cur_thread_id != m_thread_id) {
+	if (GetThreadId(cur_thread_id) != GetThreadId(m_thread_id)) {
 		ASYNCIO_LOG_ERROR("Thread Error, cur_thread_id:%u, m_thread_id:%u", cur_thread_id, m_thread_id);
 		throw std::runtime_error("this function can only be called in main loop thread");
 	}

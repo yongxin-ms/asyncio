@@ -16,7 +16,6 @@ cmake-build-debug
 *.user
 *.sh
 .DS_Store
-bin
-build
-build_release
-release
+example/bin
+example/BuildDebug
+example/BuildRelease
