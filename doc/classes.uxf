@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>510</x>
+      <y>0</y>
+      <w>260</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>template &lt;typename T&gt;
+ObjCounter
+--
+static int GetCount()
+static int GetMaxCount()
+--
+static std::atomic_int32_t m_count
+static std::atomic_int32_t m_max_count</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>10</x>
+      <y>320</y>
+      <w>480</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>/Protocol/
+--
+virtual std::pair&lt;char*, size_t&gt; GetRxBuffer() = 0;
+virtual void ConnectionMade(const TransportPtr&amp; transport) = 0;
+virtual void ConnectionLost(const TransportPtr&amp; transport, int err_code) = 0;
+virtual bool DataReceived(size_t len) = 0;
+virtual size_t Write(const StringPtr&amp; s) = 0;
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>210</x>
+      <y>110</y>
+      <w>420</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>400.0;10.0;10.0;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>440</y>
+      <w>260</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>/ProtocolFactory/
+--
+virtual ProtocolPtr CreateProtocol() = 0;
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>500</x>
+      <y>340</y>
+      <w>380</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>ContextPool
+--
+explicit ContextPool(size_t pool_size)
+IOContext&amp; NextContext()
+--
+std::vector&lt;IOWorker&gt; m_workers;
+std::vector&lt;std::unique_ptr&lt;std::thread&gt;&gt; m_contextThreads;
+std::vector&lt;std::unique_ptr&lt;IOContext&gt;&gt; m_contexts;
+std::atomic_uint32_t m_nextContextIndex;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>600</x>
+      <y>110</y>
+      <w>140</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;230.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>120</y>
+      <w>340</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>DelayTimer
+--
+template &lt;class Rep, class Period&gt;
+DelayTimer(std::thread::id thread_id,	
+		IOContext&amp; context,
+		const std::chrono::duration&lt;Rep, Period&gt;&amp; timeout,
+		FUNC_CALLBACK&amp;&amp; func,
+		int run_times)
+--
+const std::thread::id m_thread_id;
+asio::steady_timer m_timer;
+std::chrono::steady_clock::time_point m_expire;
+bool m_running;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>170</x>
+      <y>110</y>
+      <w>460</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>440.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>140</x>
+      <y>510</y>
+      <w>610</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>Transport : public std::enable_shared_from_this&lt;Transport&gt;
+--
+Transport(IOContext&amp; context, const ProtocolPtr&amp; protocol, const std::string&amp; host, uint16_t port)
+Transport(IOContext&amp; context, const ProtocolPtr&amp; protocol)
+void Connect()
+void 	DoReadData()	
+void 	Close(int err_code = EC_SHUT_DOWN);
+size_t Write(const StringPtr&amp; msg);
+void SetRemoteIp(const std::string&amp; remote_ip)
+const auto&amp; GetRemoteIp()
+void SetRemotePort(uint16_t remote_port)
+auto GetRemotePort()	
+auto&amp; GetSocket()
+void SetNoDelay(bool b)
+void DoWrite()
+void InnerClose(int err_code)
+--
+IOContext&amp; m_context;
+std::weak_ptr&lt;Protocol&gt; m_protocol;
+const bool m_is_client;
+std::string m_remote_ip;
+uint16_t m_remote_port;
+asio::ip::tcp::socket m_socket;
+std::deque&lt;StringPtr&gt; m_writeMsgs;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>400</x>
+      <y>110</y>
+      <w>230</w>
+      <h>420</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>210.0;10.0;10.0;400.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>770</x>
+      <y>510</y>
+      <w>620</w>
+      <h>300</h>
+    </coordinates>
+    <panel_attributes>Listener : public std::enable_shared_from_this&lt;Listener&gt;
+--
+Listener(IOContext&amp; context, const ContextPoolPtr&amp; worker_io, ProtocolFactory&amp; protocol_factory)
+		: m_main_context(context)
+		, m_worker_io(worker_io)
+		, m_protocol_factory(protocol_factory)
+		, m_acceptor(context) {}
+bool Listen(uint16_t port)
+void Stop()
+IOContext&amp; GetIOContext()	
+void Accept()	
+--
+IOContext&amp; m_main_context;
+std::weak_ptr&lt;ContextPool&gt; m_worker_io;
+ProtocolFactory&amp; m_protocol_factory;
+asio::ip::tcp::acceptor m_acceptor;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>600</x>
+      <y>110</y>
+      <w>490</w>
+      <h>420</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;470.0;400.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>840</x>
+      <y>0</y>
+      <w>770</w>
+      <h>360</h>
+    </coordinates>
+    <panel_attributes>EventLoop
+--
+explicit EventLoop(size_t worker_io_num = DEFAULT_IO_THREAD_NUM)
+void RunForever()
+void Stop()
+void QueueInLoop(MSG_CALLBACK&amp;&amp; func)
+template &lt;class Rep, class Period&gt;
+DelayTimerPtr CallLater(
+const std::chrono::duration&lt;Rep, Period&gt;&amp; timeout, DelayTimer::FUNC_CALLBACK&amp;&amp; func, int run_times = RUN_ONCE)
+ProtocolPtr CreateConnection(
+		ProtocolFactory&amp; protocol_factory, const std::string&amp; host, uint16_t port);
+ProtocolPtr CreateConnection(ProtocolFactory&amp; protocol_factory, const std::string&amp; remote_addr);
+ListenerPtr CreateServer(ProtocolFactory&amp; protocol_factory, uint16_t port);
+auto&amp; MainIOContext()
+IOContext&amp; WorkerIOContext()
+bool IsInLoopThread() const
+auto GetThreadId() const
+static uint64_t GetThreadId(const std::thread::id&amp; id)
+--
+IOContext m_main_context;
+IOWorker m_main_worker;
+ContextPoolPtr m_worker_io;
+const std::thread::id m_thread_id;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLActor</id>
+    <coordinates>
+      <x>1530</x>
+      <y>820</y>
+      <w>60</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Actor</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
