@@ -19,3 +19,4 @@ cmake-build-debug
 example/bin
 example/BuildDebug
 example/BuildRelease
+build/
