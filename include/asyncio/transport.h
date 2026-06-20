@@ -82,6 +82,7 @@ public:
 		asio::post(m_context, [self, this]() {
 			if (!m_is_client) {
 				throw std::runtime_error("not a client, i can't reconnect");
+				return;
 			}
 
 			ASYNCIO_LOG_DEBUG("start connecting to %s:%d", m_remote_ip.data(), m_remote_port);

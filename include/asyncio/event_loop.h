@@ -45,7 +45,12 @@ namespace asyncio {
 
 class ProtocolFactory;
 
-static const int DEFAULT_IO_THREAD_NUM = std::min(uint32_t(3), std::thread::hardware_concurrency() - 1);
+static const size_t DEFAULT_IO_THREAD_NUM = []() -> size_t {
+	unsigned int hc = std::thread::hardware_concurrency();
+	if (hc <= 1)
+		return 0u; // single-threaded or unknown
+	return std::min<size_t>(3u, static_cast<size_t>(hc - 1));
+}();
 
 class EventLoop {
 	using MSG_CALLBACK = std::function<void()>;
@@ -61,7 +66,11 @@ public:
 
 	void RunForever();
 	void Stop();
-	void QueueInLoop(MSG_CALLBACK&& func);
+
+	template <typename F>
+	void QueueInLoop(F&& f) {
+		asio::post(m_main_context, std::forward<F>(f));
+	}
 
 	template <class Rep, class Period>
 	[[nodiscard]] DelayTimerPtr CallLater(
@@ -129,10 +138,6 @@ void EventLoop::Stop() {
 	m_main_work.reset();
 	m_main_context.stop();
 	ASYNCIO_LOG_INFO("EventLoop stopped");
-}
-
-void EventLoop::QueueInLoop(MSG_CALLBACK&& func) {
-	asio::post(m_main_context, std::move(func));
 }
 
 template <class Rep, class Period>

@@ -163,6 +163,7 @@ public:
 			std::vsnprintf(&s[0], s.size(), fmt, args_copy);
 		}
 
+		va_end(args_copy);
 		va_end(args);
 		return s;
 	}
