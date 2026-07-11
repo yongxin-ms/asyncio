@@ -146,9 +146,10 @@
 
 
 ## 求star
-
 您的支持是我前进的动力
-[![Star History Chart](https://api.star-history.com/svg?repos=yongxin-ms/asyncio&type==Date)](https://star-history.com/#yongxin-ms/asyncio&Date)
+
+## Star History
+![Star History](https://raw.githubusercontent.com/yongxin-ms/asyncio/metrics/star-history.svg)
 
 
 ## 联系我们
